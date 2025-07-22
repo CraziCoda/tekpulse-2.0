@@ -1,22 +1,36 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Home, MessageSquare, ShoppingBag, Search, User, Map, Settings, GraduationCap, LogOut, Shield, Users, Building2 } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useState, useEffect } from "react";
+import {
+  Home,
+  MessageSquare,
+  ShoppingBag,
+  Search,
+  User,
+  Map,
+  Settings,
+  GraduationCap,
+  LogOut,
+  Shield,
+  Users,
+  Building2,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import supabase from "@/lib/supabase";
 
 const navItems = [
-  { href: '/dashboard', icon: Home, label: 'Dashboard' },
-  { href: '/posts', icon: Users, label: 'Campus Feed' },
-  { href: '/communities', icon: Building2, label: 'Communities' },
-  { href: '/lost-found', icon: Search, label: 'Lost & Found' },
-  { href: '/messages', icon: MessageSquare, label: 'Messages' },
-  { href: '/marketplace', icon: ShoppingBag, label: 'Marketplace' },
-  { href: '/campus-map', icon: Map, label: 'Campus Map' },
-  { href: '/profile', icon: User, label: 'Profile' },
+  { href: "/dashboard", icon: Home, label: "Dashboard" },
+  { href: "/posts", icon: Users, label: "Campus Feed" },
+  { href: "/communities", icon: Building2, label: "Communities" },
+  { href: "/lost-found", icon: Search, label: "Lost & Found" },
+  { href: "/messages", icon: MessageSquare, label: "Messages" },
+  { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
+  { href: "/campus-map", icon: Map, label: "Campus Map" },
+  { href: "/profile", icon: User, label: "Profile" },
 ];
 
 export function Sidebar() {
@@ -25,15 +39,21 @@ export function Sidebar() {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');
+    const userData = localStorage.getItem("user");
     if (userData) {
       setUser(JSON.parse(userData));
     }
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    router.push('/auth/login');
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    router.push("/auth/login");
   };
 
   if (!user) return null;
@@ -48,13 +68,13 @@ export function Sidebar() {
           <span className="text-xl font-bold">TekPulse</span>
         </div>
       </div>
-      
+
       <div className="flex-1 overflow-y-auto">
         <nav className="p-4 space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
-            
+
             return (
               <Link
                 key={item.href}
@@ -71,13 +91,13 @@ export function Sidebar() {
               </Link>
             );
           })}
-          
+
           {user.isAdmin && (
             <Link
               href="/admin"
               className={cn(
                 "flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors",
-                pathname === '/admin'
+                pathname === "/admin"
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
               )}
@@ -88,7 +108,7 @@ export function Sidebar() {
           )}
         </nav>
       </div>
-      
+
       <div className="p-4 border-t">
         <div className="flex items-center space-x-3 mb-4">
           <Avatar>
@@ -96,7 +116,9 @@ export function Sidebar() {
           </Avatar>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium truncate">{user.name}</p>
-            <p className="text-xs text-muted-foreground truncate">{user.studentId}</p>
+            <p className="text-xs text-muted-foreground truncate">
+              {user.studentId}
+            </p>
           </div>
         </div>
         <Button

@@ -46,6 +46,7 @@ export default function SignupPage() {
           name: formData.name,
           studentId: formData.studentId,
         },
+        emailRedirectTo: `${location.origin}/auth/login`,
       },
     });
 
