@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ProtectedLayout } from "@/components/layout/protected-layout";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import supabase from "@/lib/supabase";
+import moment from "moment";
 
 import {
   Heart,
@@ -163,13 +164,17 @@ const samplePosts = [
 ];
 
 export default function PostsPage() {
-  const [posts, setPosts] = useState(samplePosts);
+  const [posts, setPosts] = useState<any>(samplePosts);
+  const [comments, setComments] = useState<any>([]);
   const [newPost, setNewPost] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<number | null>(null);
   const [newComment, setNewComment] = useState("");
   const [isPosting, setIsPosting] = useState(false);
+  const [isCommenting, setIsCommenting] = useState(false);
   const [postingError, setPostingError] = useState<string | null>(null);
+  const [postsToSkip, setPostsToSkip] = useState(0);
+  const [user, setUser] = useState<any>(null);
 
   const getLevelIcon = (level: string) => {
     switch (level) {
@@ -197,23 +202,65 @@ export default function PostsPage() {
     }
   };
 
-  const handleLike = (postId: number) => {
+  const getTags = (text: string) => {
+    const matches = text.match(/#(\w+)/g);
+    return matches ? matches.map((match) => match.slice(1)) : [];
+  };
+
+  const handleLike = async (postId: number) => {
+    const post = posts.find((post: any) => post.id === postId);
+    const isLiked = post?.users_liked?.some(
+      (like: any) => like.user_id === user.id
+    );
+    if (!isLiked) {
+      const { data, error } = await supabase.from("likes").insert({
+        post_id: postId,
+        user_id: user.id,
+      });
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+    } else {
+      const { data, error } = await supabase
+        .from("likes")
+        .delete()
+        .eq("post_id", postId)
+        .eq("user_id", user.id);
+      if (error) {
+        console.error(error);
+        return;
+      }
+    }
+
     setPosts(
-      posts.map((post) =>
+      posts.map((post: any) =>
         post.id === postId
           ? {
               ...post,
-              isLiked: !post.isLiked,
-              likes: post.isLiked ? post.likes - 1 : post.likes + 1,
+              users_liked: isLiked
+                ? post.users_liked.filter(
+                    (like: any) => like.user_id !== user.id
+                  )
+                : [...post.users_liked, { user_id: user.id }],
+              likes: [
+                {
+                  count: isLiked
+                    ? post.likes?.[0]?.count - 1
+                    : post.likes?.[0]?.count + 1,
+                },
+              ],
             }
           : post
       )
     );
+
   };
 
   const handleBookmark = (postId: number) => {
     setPosts(
-      posts.map((post) =>
+      posts.map((post: any) =>
         post.id === postId
           ? { ...post, isBookmarked: !post.isBookmarked }
           : post
@@ -223,7 +270,7 @@ export default function PostsPage() {
 
   const handleShare = (postId: number) => {
     setPosts(
-      posts.map((post) =>
+      posts.map((post: any) =>
         post.id === postId ? { ...post, shares: post.shares + 1 } : post
       )
     );
@@ -231,30 +278,24 @@ export default function PostsPage() {
     console.log("Sharing post:", postId);
   };
 
+  async function getUserProfile() {
+    const { data: userData } = await supabase.auth.getUser();
+
+    if (userData.user) {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userData.user.id)
+        .single();
+
+      if (data) {
+        setUser(data);
+      }
+    }
+  }
+
   const handleCreatePost = async () => {
     if (newPost.trim()) {
-      // const post = {
-      //   id: posts.length + 1,
-      //   author: {
-      //     name: 'John Doe',
-      //     studentId: 'ST001',
-      //     avatar: 'JD',
-      //     position: null
-      //   },
-      //   content: newPost,
-      //   timestamp: 'Just now',
-      //   likes: 0,
-      //   comments: 0,
-      //   shares: 0,
-      //   isLiked: false,
-      //   isBookmarked: false,
-      //   tags: [],
-      //   type: 'text' as const
-      // };
-      // setPosts([post, ...posts]);
-      // setNewPost('');
-      // setIsCreateDialogOpen(false);
-
       const content = newPost.trim();
       setIsPosting(true);
 
@@ -283,6 +324,116 @@ export default function PostsPage() {
     }
   };
 
+  const handleCreateComment = async () => {
+    const content = newComment.trim();
+
+    setIsCommenting(true);
+
+    if (content) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        return;
+      }
+
+      const { data, error } = await supabase.from("comments").insert({
+        content: content,
+        post_id: selectedPost,
+        author_id: user.id,
+      });
+
+      if (error) {
+        setIsCommenting(false);
+        console.error(error);
+        return;
+      }
+
+      setNewComment("");
+      getComments();
+      setIsCommenting(false);
+    }
+  };
+
+  const getPosts = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return;
+    }
+
+    setUser(user);
+
+    const { data, error } = await supabase
+      .from("posts")
+      .select(
+        `
+        *,
+        author:profiles (
+          id,
+          full_name,
+          student_id
+        ),
+        likes(count),
+        comments(count),
+        users_liked:likes(user_id),
+        users_bookmarked:bookmarks(user_id)
+        `
+      )
+      .eq("users_liked.user_id", user.id)
+      .eq("users_bookmarked.user_id", user.id)
+      .order("created_at", { ascending: false })
+      .range(postsToSkip, postsToSkip + 10);
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    if (data) {
+      console.log(data);
+      setPosts(data);
+    }
+  };
+
+  const getComments = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("comments")
+      .select(
+        `
+        *,
+        author:profiles (
+          id,
+          full_name,
+          student_id
+        )
+        `
+      )
+      .eq("post_id", selectedPost)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    if (data) {
+      console.log(data);
+      setComments(data);
+    }
+  };
+
   const PostCard = ({ post }: { post: any }) => (
     <Card className="hover:shadow-md transition-shadow">
       <CardContent className="p-6">
@@ -290,12 +441,14 @@ export default function PostsPage() {
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-start space-x-3">
             <Avatar>
-              <AvatarFallback>{post.author.avatar}</AvatarFallback>
+              <AvatarFallback>
+                {post.author?.full_name?.charAt(0)}
+              </AvatarFallback>
             </Avatar>
             <div>
               <div className="flex items-center space-x-2 mb-1">
-                <h4 className="font-semibold">{post.author.name}</h4>
-                {post.author.position && (
+                <h4 className="font-semibold">{post.author.full_name}</h4>
+                {post.author?.position && (
                   <>
                     {(() => {
                       const LevelIcon = getLevelIcon(
@@ -316,9 +469,9 @@ export default function PostsPage() {
                 )}
               </div>
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <span>{post.author.studentId}</span>
+                <span>{post.author.student_id}</span>
                 <span>•</span>
-                <span>{post.timestamp}</span>
+                <span>{moment(post.created_at).fromNow()}</span>
                 {post.location && (
                   <>
                     <span>•</span>
@@ -341,9 +494,9 @@ export default function PostsPage() {
           <p className="text-sm leading-relaxed">{post.content}</p>
 
           {/* Tags */}
-          {post.tags.length > 0 && (
+          {getTags(post.content).length > 0 && (
             <div className="flex flex-wrap gap-2 mt-3">
-              {post.tags.map((tag: string) => (
+              {getTags(post.content).map((tag: string) => (
                 <Badge key={tag} variant="secondary" className="text-xs">
                   #{tag}
                 </Badge>
@@ -381,13 +534,20 @@ export default function PostsPage() {
               onClick={() => handleLike(post.id)}
               className={cn(
                 "flex items-center space-x-2 hover:text-red-500",
-                post.isLiked && "text-red-500"
+                post.users_liked?.some(
+                  (like: any) => like.user_id === user.id
+                ) && "text-red-500"
               )}
             >
               <Heart
-                className={cn("h-4 w-4", post.isLiked && "fill-current")}
+                className={cn(
+                  "h-4 w-4",
+                  post.users_liked?.some(
+                    (like: any) => like.user_id === user.id
+                  ) && "fill-current"
+                )}
               />
-              <span className="text-sm">{post.likes}</span>
+              <span className="text-sm">{post.likes?.[0]?.count}</span>
             </Button>
 
             <Button
@@ -397,7 +557,7 @@ export default function PostsPage() {
               className="flex items-center space-x-2 hover:text-blue-500"
             >
               <MessageCircle className="h-4 w-4" />
-              <span className="text-sm">{post.comments}</span>
+              <span className="text-sm">{post.comments?.[0]?.count}</span>
             </Button>
 
             <Button
@@ -407,7 +567,7 @@ export default function PostsPage() {
               className="flex items-center space-x-2 hover:text-green-500"
             >
               <Share className="h-4 w-4" />
-              <span className="text-sm">{post.shares}</span>
+              <span className="text-sm">{0}</span>
             </Button>
           </div>
 
@@ -428,6 +588,17 @@ export default function PostsPage() {
       </CardContent>
     </Card>
   );
+
+  useEffect(() => {
+    getUserProfile();
+    getPosts();
+  }, []);
+
+  useEffect(() => {
+    if (selectedPost) {
+      getComments();
+    }
+  }, [selectedPost]);
 
   return (
     <ProtectedLayout>
@@ -459,7 +630,9 @@ export default function PostsPage() {
               <div className="space-y-4 pt-4">
                 <div className="flex items-start space-x-3">
                   <Avatar>
-                    <AvatarFallback>JD</AvatarFallback>
+                    <AvatarFallback>
+                      {user?.full_name?.charAt(0)}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <Textarea
@@ -512,7 +685,7 @@ export default function PostsPage() {
           <CardContent className="p-4">
             <div className="flex items-start space-x-3">
               <Avatar>
-                <AvatarFallback>JD</AvatarFallback>
+                <AvatarFallback>{user?.full_name?.charAt(0)}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <Textarea
@@ -529,7 +702,7 @@ export default function PostsPage() {
 
         {/* Posts Feed */}
         <div className="space-y-4">
-          {posts.map((post) => (
+          {posts?.map((post: any) => (
             <PostCard key={post.id} post={post} />
           ))}
         </div>
@@ -552,48 +725,36 @@ export default function PostsPage() {
               <div className="space-y-4">
                 {/* Original Post */}
                 <div className="pb-4 border-b">
-                  <PostCard post={posts.find((p) => p.id === selectedPost)} />
+                  <PostCard
+                    post={posts.find((p: any) => p.id === selectedPost)}
+                  />
                 </div>
 
                 {/* Comments */}
                 <div className="space-y-4">
-                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-muted/50">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback>AB</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <span className="font-medium text-sm">Alex Brown</span>
-                        <span className="text-xs text-muted-foreground">
-                          2h
-                        </span>
+                  {comments?.map((comment: any) => (
+                    <div
+                      key={comment.id}
+                      className="flex items-start space-x-3 p-3 rounded-lg bg-muted/50"
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback>
+                          {comment.author.full_name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <span className="font-medium text-sm">
+                            {comment.author.full_name}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {moment(comment.created_at).fromNow()}
+                          </span>
+                        </div>
+                        <p className="text-sm">{comment.content}</p>
                       </div>
-                      <p className="text-sm">
-                        Great post! I'm also looking for study partners.
-                      </p>
                     </div>
-                  </div>
-
-                  <div className="flex items-start space-x-3 p-3 rounded-lg bg-muted/50">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback>LC</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <span className="font-medium text-sm">Lisa Chen</span>
-                        <Star className="h-3 w-3 text-blue-600" />
-                        <Badge variant="outline" className="text-xs">
-                          Medical Secretary
-                        </Badge>
-                        <span className="text-xs text-muted-foreground">
-                          1h
-                        </span>
-                      </div>
-                      <p className="text-sm">
-                        Count me in! Let's create a group chat.
-                      </p>
-                    </div>
-                  </div>
+                  ))}
                 </div>
 
                 {/* Add Comment */}
@@ -608,7 +769,13 @@ export default function PostsPage() {
                       onChange={(e) => setNewComment(e.target.value)}
                       className="flex-1"
                     />
-                    <Button size="sm">
+                    <Button
+                      size="sm"
+                      disabled={!newComment || isCommenting}
+                      onClick={() => {
+                        handleCreateComment();
+                      }}
+                    >
                       <Send className="h-4 w-4" />
                     </Button>
                   </div>
