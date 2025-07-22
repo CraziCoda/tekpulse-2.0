@@ -38,11 +38,29 @@ export function Sidebar() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
 
+  async function getUserProfile() {
+    const { data: userData } = await supabase.auth.getUser();
+
+    if (userData.user) {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userData.user.id)
+        .single();
+
+      if (data) {
+        setUser(data);
+      }
+    }
+  }
+
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (userData) {
       setUser(JSON.parse(userData));
     }
+
+    getUserProfile();
   }, []);
 
   const handleLogout = async () => {
@@ -92,7 +110,7 @@ export function Sidebar() {
             );
           })}
 
-          {user.isAdmin && (
+          {user.is_admin && (
             <Link
               href="/admin"
               className={cn(
@@ -112,12 +130,12 @@ export function Sidebar() {
       <div className="p-4 border-t">
         <div className="flex items-center space-x-3 mb-4">
           <Avatar>
-            <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
+            <AvatarFallback>{user.full_name?.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium truncate">{user.name}</p>
+            <p className="text-sm font-medium truncate">{user.full_name}</p>
             <p className="text-xs text-muted-foreground truncate">
-              {user.studentId}
+              {user.student_id}
             </p>
           </div>
         </div>
