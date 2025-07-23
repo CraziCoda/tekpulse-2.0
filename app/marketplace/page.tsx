@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ProtectedLayout } from "@/components/layout/protected-layout";
 import {
   Card,
@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { Search, Plus, DollarSign, User, Clock, Tag } from "lucide-react";
 import supabase from "@/lib/supabase";
+import moment from "moment";
 
 const marketplaceItems = [
   {
@@ -103,6 +104,18 @@ export default function MarketplacePage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isListingDialogOpen, setIsListingDialogOpen] = useState(false);
 
+  const [isCreatingListing, setIsCreatingListing] = useState(false);
+  const [creatingListingError, setCreatingListingError] = useState("");
+  const [listings, setListings] = useState<any>([]);
+
+  const [listingItem, setListingItem] = useState<any>({
+    title: "",
+    price: 0,
+    description: "",
+    category: "other",
+    condition: "new",
+  });
+
   const categories = [
     { value: "all", label: "All Categories" },
     { value: "books", label: "Books" },
@@ -131,7 +144,7 @@ export default function MarketplacePage() {
     return colors[condition] || "bg-gray-100 text-gray-800";
   };
 
-  const filteredItems = marketplaceItems.filter((item) => {
+  const filteredItems = listings.filter((item: any) => {
     const matchesSearch =
       item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -155,6 +168,78 @@ export default function MarketplacePage() {
       }
     }
   }
+
+  const handleAddListing = async () => {
+    if (listingItem.title.trim() === "") {
+      setCreatingListingError("Title is required");
+      return;
+    }
+
+    if (listingItem.description.trim() === "") {
+      setCreatingListingError("Description is required");
+      return;
+    }
+
+    if (listingItem.price <= 0) {
+      setCreatingListingError("Price must be greater than 0");
+      return;
+    }
+
+    if (listingItem.category.trim() === "") {
+      setCreatingListingError("Category is required");
+      return;
+    }
+
+    setIsCreatingListing(true);
+
+    const { error } = await supabase.from("product_listings").insert([
+      {
+        title: listingItem.title,
+        description: listingItem.description,
+        price: listingItem.price,
+        category: listingItem.category,
+        condition: listingItem.condition,
+        user_id: user?.id,
+      },
+    ]);
+
+    if (error) {
+      setIsCreatingListing(false);
+      setCreatingListingError(error.message);
+      return;
+    }
+    setIsCreatingListing(false);
+    setIsListingDialogOpen(false);
+    setCreatingListingError("");
+    getProductListings();
+  };
+
+  const handleDeleteListing = async (listingId: any) => {};
+
+  const getProductListings = async () => {
+    const { data, error } = await supabase
+      .from("product_listings")
+      .select(
+        `*,
+        author:profiles (
+          id,
+          full_name
+        )`
+      )
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error(error);
+    } else {
+      setListings(data);
+      console.log(data);
+    }
+  };
+
+  useEffect(() => {
+    getUserProfile();
+    getProductListings();
+  }, []);
 
   return (
     <ProtectedLayout>
@@ -189,15 +274,39 @@ export default function MarketplacePage() {
                   <Input
                     id="title"
                     placeholder="e.g., Calculus Textbook - 8th Edition"
+                    value={listingItem.title}
+                    onChange={(e) => {
+                      setListingItem({
+                        ...listingItem,
+                        title: e.target.value,
+                      });
+                    }}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="price">Price ($)</Label>
-                  <Input id="price" type="number" placeholder="45" />
+                  <Label htmlFor="price">Price (₵)</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    placeholder="45"
+                    value={listingItem.price}
+                    onChange={(e) =>
+                      setListingItem({
+                        ...listingItem,
+                        price: e.target.value,
+                      })
+                    }
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="category">Category</Label>
-                  <Select>
+                  <Select
+                    defaultValue={listingItem.category}
+                    value={listingItem.category}
+                    onValueChange={(value) =>
+                      setListingItem({ ...listingItem, category: value })
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
@@ -206,12 +315,19 @@ export default function MarketplacePage() {
                       <SelectItem value="electronics">Electronics</SelectItem>
                       <SelectItem value="furniture">Furniture</SelectItem>
                       <SelectItem value="supplies">Supplies</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="condition">Condition</Label>
-                  <Select>
+                  <Select
+                    defaultValue={listingItem.condition}
+                    value={listingItem.condition}
+                    onValueChange={(value) =>
+                      setListingItem({ ...listingItem, condition: value })
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select condition" />
                     </SelectTrigger>
@@ -229,9 +345,25 @@ export default function MarketplacePage() {
                     id="description"
                     placeholder="Provide detailed description of the item"
                     rows={4}
+                    value={listingItem.description}
+                    onChange={(e) =>
+                      setListingItem({
+                        ...listingItem,
+                        description: e.target.value,
+                      })
+                    }
                   />
                 </div>
-                <Button className="w-full">Create Listing</Button>
+                {creatingListingError && (
+                  <p className="text-red-500">{creatingListingError}</p>
+                )}
+                <Button
+                  className="w-full"
+                  onClick={handleAddListing}
+                  disabled={isCreatingListing}
+                >
+                  Create Listing
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -264,7 +396,7 @@ export default function MarketplacePage() {
 
         {/* Items Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredItems.map((item) => (
+          {filteredItems.map((item: any) => (
             <Card key={item.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
@@ -281,8 +413,7 @@ export default function MarketplacePage() {
                   </div>
                   <div className="text-right">
                     <div className="flex items-center text-2xl font-bold text-primary">
-                      <DollarSign className="h-5 w-5" />
-                      {item.price}
+                      {/* <DollarSign className="h-5 w-5" /> */}₵{item.price}
                     </div>
                   </div>
                 </div>
@@ -295,19 +426,30 @@ export default function MarketplacePage() {
                 <div className="space-y-2 text-sm text-muted-foreground mb-4">
                   <div className="flex items-center">
                     <User className="h-4 w-4 mr-2" />
-                    <span>Sold by {item.seller}</span>
+                    <span>
+                      Sold by{" "}
+                      {item?.author?.id === user?.id
+                        ? "You"
+                        : item?.author?.full_name}
+                    </span>
                   </div>
                   <div className="flex items-center">
                     <Clock className="h-4 w-4 mr-2" />
-                    <span>Posted {item.postedDate}</span>
+                    <span>Posted {moment(item.created_at).fromNow()}</span>
                   </div>
                 </div>
 
                 <div className="flex space-x-2">
-                  <Button className="flex-1">Contact Seller</Button>
-                  <Button variant="outline" size="icon">
-                    <Search className="h-4 w-4" />
-                  </Button>
+                  {item?.author?.id === user?.id ? (
+                    <Button
+                      className="flex-1 bg-red-500 hover:bg-red-600"
+                      onClick={() => handleDeleteListing(item.id)}
+                    >
+                      Remove Listing
+                    </Button>
+                  ) : (
+                    <Button className="flex-1">Contact Seller</Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
