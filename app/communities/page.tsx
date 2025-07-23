@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ProtectedLayout } from "@/components/layout/protected-layout";
 import {
   Card,
@@ -50,182 +50,182 @@ import {
   UserMinus,
   Settings,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import supabase from "@/lib/supabase";
 
-const communities = [
-  {
-    id: 1,
-    name: "Computer Science Department",
-    type: "department",
-    faculty: "Engineering & Technology",
-    description:
-      "Connect with fellow CS students, share projects, discuss coursework, and collaborate on coding challenges.",
-    members: 342,
-    posts: 1247,
-    isJoined: true,
-    isPrivate: false,
-    moderators: ["Dr. Smith", "Prof. Johnson"],
-    leaders: [
-      {
-        name: "Sarah Johnson",
-        position: "CS President",
-        level: "president",
-        studentId: "ST002",
-      },
-    ],
-    recentActivity: "2 min ago",
-    tags: ["Programming", "Algorithms", "Software Engineering"],
-    avatar: "CS",
-    canManage: false,
-  },
-  {
-    id: 2,
-    name: "Business Administration",
-    type: "department",
-    faculty: "Business & Economics",
-    description:
-      "Business students networking, case study discussions, internship opportunities, and career guidance.",
-    members: 289,
-    posts: 856,
-    isJoined: false,
-    isPrivate: false,
-    moderators: ["Prof. Williams", "Dr. Brown"],
-    leaders: [
-      {
-        name: "Mike Davis",
-        position: "Business Rep",
-        level: "representative",
-        studentId: "ST003",
-      },
-    ],
-    recentActivity: "15 min ago",
-    tags: ["Marketing", "Finance", "Entrepreneurship"],
-    avatar: "BA",
-    canManage: false,
-  },
-  {
-    id: 3,
-    name: "Engineering Faculty",
-    type: "faculty",
-    faculty: "Engineering & Technology",
-    description:
-      "All engineering students united! Share resources, discuss projects, and collaborate across departments.",
-    members: 1247,
-    posts: 3421,
-    isJoined: true,
-    isPrivate: false,
-    moderators: ["Dean Anderson", "Prof. Davis"],
-    leaders: [
-      {
-        name: "David Kim",
-        position: "Engineering President",
-        level: "president",
-        studentId: "ST007",
-      },
-    ],
-    recentActivity: "5 min ago",
-    tags: ["Innovation", "Projects", "Research"],
-    avatar: "EF",
-    canManage: true, // User is a president of this community
-  },
-  {
-    id: 4,
-    name: "Psychology Department",
-    type: "department",
-    faculty: "Social Sciences",
-    description:
-      "Psychology students sharing research, discussing theories, and supporting each other through studies.",
-    members: 156,
-    posts: 423,
-    isJoined: false,
-    isPrivate: false,
-    moderators: ["Dr. Wilson", "Prof. Taylor"],
-    leaders: [],
-    recentActivity: "1 hour ago",
-    tags: ["Research", "Mental Health", "Cognitive Science"],
-    avatar: "PS",
-    canManage: false,
-  },
-  {
-    id: 5,
-    name: "Medical College",
-    type: "college",
-    faculty: "Health Sciences",
-    description:
-      "Future doctors and healthcare professionals. Share study materials, discuss cases, and support each other.",
-    members: 567,
-    posts: 1892,
-    isJoined: false,
-    isPrivate: true,
-    moderators: ["Dr. Garcia", "Prof. Martinez"],
-    leaders: [
-      {
-        name: "Lisa Chen",
-        position: "Medical Secretary",
-        level: "secretary",
-        studentId: "ST006",
-      },
-    ],
-    recentActivity: "30 min ago",
-    tags: ["Medicine", "Healthcare", "Clinical Studies"],
-    avatar: "MC",
-    canManage: false,
-  },
-  {
-    id: 6,
-    name: "Mathematics Department",
-    type: "department",
-    faculty: "Sciences",
-    description:
-      "Math enthusiasts solving problems together, sharing proofs, and discussing mathematical concepts.",
-    members: 198,
-    posts: 634,
-    isJoined: true,
-    isPrivate: false,
-    moderators: ["Prof. Lee", "Dr. Chen"],
-    leaders: [],
-    recentActivity: "45 min ago",
-    tags: ["Calculus", "Statistics", "Pure Mathematics"],
-    avatar: "MA",
-    canManage: false,
-  },
-  {
-    id: 7,
-    name: "Arts & Literature Faculty",
-    type: "faculty",
-    faculty: "Arts & Humanities",
-    description:
-      "Creative minds unite! Share your work, discuss literature, and explore artistic expressions.",
-    members: 423,
-    posts: 1156,
-    isJoined: false,
-    isPrivate: false,
-    moderators: ["Prof. Thompson", "Dr. White"],
-    leaders: [],
-    recentActivity: "20 min ago",
-    tags: ["Creative Writing", "Art History", "Literature"],
-    avatar: "AL",
-    canManage: false,
-  },
-  {
-    id: 8,
-    name: "International Students",
-    type: "special",
-    faculty: "Cross-Faculty",
-    description:
-      "International students supporting each other, sharing cultural experiences, and navigating campus life.",
-    members: 234,
-    posts: 567,
-    isJoined: false,
-    isPrivate: false,
-    moderators: ["International Office", "Student Council"],
-    leaders: [],
-    recentActivity: "10 min ago",
-    tags: ["Cultural Exchange", "Support", "Events"],
-    avatar: "IS",
-    canManage: false,
-  },
-];
+// const communities = [
+//   {
+//     id: 1,
+//     name: "Computer Science Department",
+//     type: "department",
+//     faculty: "Engineering & Technology",
+//     description:
+//       "Connect with fellow CS students, share projects, discuss coursework, and collaborate on coding challenges.",
+//     members: 342,
+//     posts: 1247,
+//     isJoined: true,
+//     isPrivate: false,
+//     moderators: ["Dr. Smith", "Prof. Johnson"],
+//     leaders: [
+//       {
+//         name: "Sarah Johnson",
+//         position: "CS President",
+//         level: "president",
+//         studentId: "ST002",
+//       },
+//     ],
+//     recentActivity: "2 min ago",
+//     tags: ["Programming", "Algorithms", "Software Engineering"],
+//     avatar: "CS",
+//     canManage: false,
+//   },
+//   {
+//     id: 2,
+//     name: "Business Administration",
+//     type: "department",
+//     faculty: "Business & Economics",
+//     description:
+//       "Business students networking, case study discussions, internship opportunities, and career guidance.",
+//     members: 289,
+//     posts: 856,
+//     isJoined: false,
+//     isPrivate: false,
+//     moderators: ["Prof. Williams", "Dr. Brown"],
+//     leaders: [
+//       {
+//         name: "Mike Davis",
+//         position: "Business Rep",
+//         level: "representative",
+//         studentId: "ST003",
+//       },
+//     ],
+//     recentActivity: "15 min ago",
+//     tags: ["Marketing", "Finance", "Entrepreneurship"],
+//     avatar: "BA",
+//     canManage: false,
+//   },
+//   {
+//     id: 3,
+//     name: "Engineering Faculty",
+//     type: "faculty",
+//     faculty: "Engineering & Technology",
+//     description:
+//       "All engineering students united! Share resources, discuss projects, and collaborate across departments.",
+//     members: 1247,
+//     posts: 3421,
+//     isJoined: true,
+//     isPrivate: false,
+//     moderators: ["Dean Anderson", "Prof. Davis"],
+//     leaders: [
+//       {
+//         name: "David Kim",
+//         position: "Engineering President",
+//         level: "president",
+//         studentId: "ST007",
+//       },
+//     ],
+//     recentActivity: "5 min ago",
+//     tags: ["Innovation", "Projects", "Research"],
+//     avatar: "EF",
+//     canManage: true, // User is a president of this community
+//   },
+//   {
+//     id: 4,
+//     name: "Psychology Department",
+//     type: "department",
+//     faculty: "Social Sciences",
+//     description:
+//       "Psychology students sharing research, discussing theories, and supporting each other through studies.",
+//     members: 156,
+//     posts: 423,
+//     isJoined: false,
+//     isPrivate: false,
+//     moderators: ["Dr. Wilson", "Prof. Taylor"],
+//     leaders: [],
+//     recentActivity: "1 hour ago",
+//     tags: ["Research", "Mental Health", "Cognitive Science"],
+//     avatar: "PS",
+//     canManage: false,
+//   },
+//   {
+//     id: 5,
+//     name: "Medical College",
+//     type: "college",
+//     faculty: "Health Sciences",
+//     description:
+//       "Future doctors and healthcare professionals. Share study materials, discuss cases, and support each other.",
+//     members: 567,
+//     posts: 1892,
+//     isJoined: false,
+//     isPrivate: true,
+//     moderators: ["Dr. Garcia", "Prof. Martinez"],
+//     leaders: [
+//       {
+//         name: "Lisa Chen",
+//         position: "Medical Secretary",
+//         level: "secretary",
+//         studentId: "ST006",
+//       },
+//     ],
+//     recentActivity: "30 min ago",
+//     tags: ["Medicine", "Healthcare", "Clinical Studies"],
+//     avatar: "MC",
+//     canManage: false,
+//   },
+//   {
+//     id: 6,
+//     name: "Mathematics Department",
+//     type: "department",
+//     faculty: "Sciences",
+//     description:
+//       "Math enthusiasts solving problems together, sharing proofs, and discussing mathematical concepts.",
+//     members: 198,
+//     posts: 634,
+//     isJoined: true,
+//     isPrivate: false,
+//     moderators: ["Prof. Lee", "Dr. Chen"],
+//     leaders: [],
+//     recentActivity: "45 min ago",
+//     tags: ["Calculus", "Statistics", "Pure Mathematics"],
+//     avatar: "MA",
+//     canManage: false,
+//   },
+//   {
+//     id: 7,
+//     name: "Arts & Literature Faculty",
+//     type: "faculty",
+//     faculty: "Arts & Humanities",
+//     description:
+//       "Creative minds unite! Share your work, discuss literature, and explore artistic expressions.",
+//     members: 423,
+//     posts: 1156,
+//     isJoined: false,
+//     isPrivate: false,
+//     moderators: ["Prof. Thompson", "Dr. White"],
+//     leaders: [],
+//     recentActivity: "20 min ago",
+//     tags: ["Creative Writing", "Art History", "Literature"],
+//     avatar: "AL",
+//     canManage: false,
+//   },
+//   {
+//     id: 8,
+//     name: "International Students",
+//     type: "special",
+//     faculty: "Cross-Faculty",
+//     description:
+//       "International students supporting each other, sharing cultural experiences, and navigating campus life.",
+//     members: 234,
+//     posts: 567,
+//     isJoined: false,
+//     isPrivate: false,
+//     moderators: ["International Office", "Student Council"],
+//     leaders: [],
+//     recentActivity: "10 min ago",
+//     tags: ["Cultural Exchange", "Support", "Events"],
+//     avatar: "IS",
+//     canManage: false,
+//   },
+// ];
 
 const recentPosts = [
   {
@@ -270,6 +270,7 @@ const recentPosts = [
 ];
 
 export default function CommunitiesPage() {
+  const [user, setUser] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("all");
   const [selectedCommunity, setSelectedCommunity] = useState<number | null>(
@@ -281,6 +282,24 @@ export default function CommunitiesPage() {
   const [manageCommunityId, setManageCommunityId] = useState<number | null>(
     null
   );
+
+  const [isCreatingCommunity, setIsCreatingCommunity] = useState(false);
+  const [creatingCommunityError, setCreatingCommunityError] = useState("");
+  const [communities, setCommunities] = useState<any>([]);
+
+  const [newCommunity, setNewCommunity] = useState<{
+    name: string;
+    type: string;
+    description: string;
+    tags: string;
+    parent: string | null;
+  }>({
+    name: "",
+    type: "special",
+    description: "",
+    tags: "",
+    parent: null,
+  });
 
   const communityTypes = [
     { value: "all", label: "All Communities" },
@@ -341,21 +360,45 @@ export default function CommunitiesPage() {
     }
   };
 
-  const filteredCommunities = communities.filter((community) => {
+  const filteredCommunities = communities.filter((community: any) => {
     const matchesSearch =
       community.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       community.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      community.faculty.toLowerCase().includes(searchTerm.toLowerCase());
+      community.parent_name?.toLowerCase()?.includes(searchTerm.toLowerCase());
     const matchesType =
       selectedType === "all" || community.type === selectedType;
     return matchesSearch && matchesType;
   });
 
-  const joinedCommunities = communities.filter((c) => c.isJoined);
+  const joinedCommunities = communities.filter((c: any) => c.isJoined);
 
-  const handleJoinCommunity = (communityId: number) => {
-    // In a real app, this would make an API call
-    console.log("Joining community:", communityId);
+  const handleJoinCommunity = async (communityId: string) => {
+    const commmunity = communities.find((c: any) => c.id === communityId);
+
+    if (!commmunity) {
+      console.error("Community not found");
+      return;
+    }
+
+    if (commmunity?.member_ids?.includes(user.id)) {
+      return;
+    }
+
+    const { data, error } = await supabase.from("community_members").insert({
+      community_id: communityId,
+      user_id: user.id,
+    });
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    setCommunities(
+      communities.map((c: any) =>
+        c.id === communityId ? { ...c, member_ids: [...c.member_ids, user.id] } : c
+      )
+    );
   };
 
   const handleApplyForLeadership = () => {
@@ -364,11 +407,73 @@ export default function CommunitiesPage() {
     setIsApplyDialogOpen(false);
   };
 
-  const handleCreateCommunity = () => {
-    // In a real app, this would create the community
-    console.log("Creating community");
+  const handleCreateCommunity = async () => {
+    if (newCommunity.name.trim() === "") {
+      setCreatingCommunityError("Community name is required");
+      return;
+    } else if (newCommunity.description.trim() === "") {
+      setCreatingCommunityError("Description is required");
+      return;
+    } else if (newCommunity.tags.trim() === "") {
+      setCreatingCommunityError("Tags are required");
+      return;
+    }
+
+    if (!user?.is_admin) {
+      setCreatingCommunityError("You are not authorized to create a community");
+      return;
+    }
+    setIsCreatingCommunity(true);
+
+    const { error } = await supabase.from("communities").insert([
+      {
+        name: newCommunity.name,
+        type: newCommunity.type,
+        parent_id: newCommunity.parent,
+        description: newCommunity.description,
+        tags: newCommunity.tags,
+      },
+    ]);
+
+    if (error) {
+      setIsCreatingCommunity(false);
+      setCreatingCommunityError(error.message);
+      return;
+    }
+
+    setCreatingCommunityError("");
+    setIsCreatingCommunity(false);
     setIsCreateDialogOpen(false);
   };
+
+  async function getUserProfile() {
+    const { data: userData } = await supabase.auth.getUser();
+
+    if (userData.user) {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userData.user.id)
+        .single();
+
+      if (data) {
+        setUser(data);
+      }
+    }
+  }
+
+  async function getCommunities() {
+    const { data, error } = await supabase
+      .from("community_details")
+      .select("*");
+
+    if (error) {
+      console.error("Error:", error);
+    } else {
+      setCommunities(data);
+      console.log(data);
+    }
+  }
 
   const CommunityCard = ({ community }: { community: any }) => {
     const TypeIcon = getTypeIcon(community.type);
@@ -403,7 +508,7 @@ export default function CommunitiesPage() {
                 </div>
 
                 {/* Community Leaders */}
-                {community.leaders.length > 0 && (
+                {community?.leaders?.length > 0 && (
                   <div className="flex flex-wrap gap-1 mb-2">
                     {community.leaders.map((leader: any, index: number) => {
                       const LevelIcon = getLevelIcon(leader.level);
@@ -440,7 +545,9 @@ export default function CommunitiesPage() {
                 </Button>
               )}
               <Button
-                variant={community.isJoined ? "secondary" : "default"}
+                variant={
+                  community.member_ids.includes(user?.id) ? "secondary" : "default"
+                }
                 size="sm"
                 onClick={() => handleJoinCommunity(community.id)}
               >
@@ -455,7 +562,7 @@ export default function CommunitiesPage() {
           </CardDescription>
 
           <div className="flex flex-wrap gap-1 mb-4">
-            {community.tags.map((tag: string) => (
+            {community.tags.split(",").map((tag: string) => (
               <Badge key={tag} variant="outline" className="text-xs">
                 {tag}
               </Badge>
@@ -466,26 +573,34 @@ export default function CommunitiesPage() {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-1">
                 <Users className="h-4 w-4" />
-                <span>{community.members.toLocaleString()} members</span>
+                <span>{community.member_count} members</span>
               </div>
               <div className="flex items-center space-x-1">
                 <MessageSquare className="h-4 w-4" />
-                <span>{community.posts.toLocaleString()} posts</span>
+                <span>{community?.posts?.length} posts</span>
               </div>
             </div>
-            <div className="flex items-center space-x-1">
+            {/* <div className="flex items-center space-x-1">
               <Clock className="h-4 w-4" />
               <span>{community.recentActivity}</span>
-            </div>
+            </div> */}
           </div>
 
           <div className="text-xs text-muted-foreground">
-            <span>Moderated by: {community.moderators.join(", ")}</span>
+            <span>
+              Moderated by:{" "}
+              {["Dr. Cheeks", "Dr. Binks", "Dr. Pinks"].join(", ")}
+            </span>
           </div>
         </CardContent>
       </Card>
     );
   };
+
+  useEffect(() => {
+    getUserProfile();
+    getCommunities();
+  }, []);
 
   return (
     <ProtectedLayout>
@@ -596,11 +711,26 @@ export default function CommunitiesPage() {
                 <div className="space-y-4 pt-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Community Name</Label>
-                    <Input id="name" placeholder="e.g., Photography Club" />
+                    <Input
+                      id="name"
+                      placeholder="e.g., Photography Club"
+                      value={newCommunity.name}
+                      onChange={(e) =>
+                        setNewCommunity({
+                          ...newCommunity,
+                          name: e.target.value,
+                        })
+                      }
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="type">Community Type</Label>
-                    <Select>
+                    <Select
+                      defaultValue={newCommunity.type}
+                      onValueChange={(value) =>
+                        setNewCommunity({ ...newCommunity, type: value })
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
@@ -614,7 +744,12 @@ export default function CommunitiesPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="parent">Parent Community</Label>
-                    <Select>
+                    <Select
+                      defaultValue={newCommunity.parent || ""}
+                      onValueChange={(value) =>
+                        setNewCommunity({ ...newCommunity, parent: value })
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select parent community" />
                       </SelectTrigger>
@@ -636,6 +771,13 @@ export default function CommunitiesPage() {
                     <Textarea
                       id="description"
                       placeholder="Describe the purpose and goals of this community..."
+                      value={newCommunity.description}
+                      onChange={(e) =>
+                        setNewCommunity({
+                          ...newCommunity,
+                          description: e.target.value,
+                        })
+                      }
                       rows={3}
                     />
                   </div>
@@ -644,10 +786,24 @@ export default function CommunitiesPage() {
                     <Input
                       id="tags"
                       placeholder="e.g., photography, art, creative"
+                      value={newCommunity.tags}
+                      onChange={(e) =>
+                        setNewCommunity({
+                          ...newCommunity,
+                          tags: e.target.value,
+                        })
+                      }
                     />
                   </div>
-                  <Button className="w-full" onClick={handleCreateCommunity}>
-                    Create Community
+                  {creatingCommunityError && (
+                    <p className="text-red-500">{creatingCommunityError}</p>
+                  )}
+                  <Button
+                    className="w-full"
+                    onClick={handleCreateCommunity}
+                    disabled={isCreatingCommunity}
+                  >
+                    {isCreatingCommunity ? "Creating..." : "Create Community"}
                   </Button>
                 </div>
               </DialogContent>
@@ -694,7 +850,7 @@ export default function CommunitiesPage() {
 
             {/* Communities Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filteredCommunities.map((community) => (
+              {filteredCommunities.map((community: any) => (
                 <CommunityCard key={community.id} community={community} />
               ))}
             </div>
@@ -714,7 +870,7 @@ export default function CommunitiesPage() {
 
           <TabsContent value="joined" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {joinedCommunities.map((community) => (
+              {joinedCommunities.map((community: any) => (
                 <CommunityCard key={community.id} community={community} />
               ))}
             </div>
