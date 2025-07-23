@@ -1,119 +1,160 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { ProtectedLayout } from '@/components/layout/protected-layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Plus, DollarSign, User, Clock, Tag } from 'lucide-react';
+import { useState } from "react";
+import { ProtectedLayout } from "@/components/layout/protected-layout";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Search, Plus, DollarSign, User, Clock, Tag } from "lucide-react";
+import supabase from "@/lib/supabase";
 
 const marketplaceItems = [
   {
     id: 1,
-    title: 'Calculus Textbook - 8th Edition',
+    title: "Calculus Textbook - 8th Edition",
     price: 45,
-    description: 'Excellent condition, minimal highlighting. Perfect for Math 101.',
-    category: 'books',
-    seller: 'John Smith',
-    postedDate: '2024-03-10',
-    condition: 'Like New'
+    description:
+      "Excellent condition, minimal highlighting. Perfect for Math 101.",
+    category: "books",
+    seller: "John Smith",
+    postedDate: "2024-03-10",
+    condition: "Like New",
   },
   {
     id: 2,
-    title: 'MacBook Air M1 (2020)',
+    title: "MacBook Air M1 (2020)",
     price: 650,
-    description: 'Great laptop for students. Includes charger and protective case.',
-    category: 'electronics',
-    seller: 'Sarah Johnson',
-    postedDate: '2024-03-12',
-    condition: 'Good'
+    description:
+      "Great laptop for students. Includes charger and protective case.",
+    category: "electronics",
+    seller: "Sarah Johnson",
+    postedDate: "2024-03-12",
+    condition: "Good",
   },
   {
     id: 3,
-    title: 'Desk Lamp - Adjustable',
+    title: "Desk Lamp - Adjustable",
     price: 25,
-    description: 'Perfect for studying. LED bulb included.',
-    category: 'furniture',
-    seller: 'Mike Davis',
-    postedDate: '2024-03-08',
-    condition: 'Used'
+    description: "Perfect for studying. LED bulb included.",
+    category: "furniture",
+    seller: "Mike Davis",
+    postedDate: "2024-03-08",
+    condition: "Used",
   },
   {
     id: 4,
-    title: 'Chemistry Lab Goggles',
+    title: "Chemistry Lab Goggles",
     price: 12,
-    description: 'Required for Chem 201. Never used, still in packaging.',
-    category: 'supplies',
-    seller: 'Emma Wilson',
-    postedDate: '2024-03-11',
-    condition: 'New'
+    description: "Required for Chem 201. Never used, still in packaging.",
+    category: "supplies",
+    seller: "Emma Wilson",
+    postedDate: "2024-03-11",
+    condition: "New",
   },
   {
     id: 5,
-    title: 'Graphing Calculator TI-84',
+    title: "Graphing Calculator TI-84",
     price: 80,
-    description: 'Essential for math and engineering courses. Works perfectly.',
-    category: 'electronics',
-    seller: 'Alex Brown',
-    postedDate: '2024-03-09',
-    condition: 'Good'
+    description: "Essential for math and engineering courses. Works perfectly.",
+    category: "electronics",
+    seller: "Alex Brown",
+    postedDate: "2024-03-09",
+    condition: "Good",
   },
   {
     id: 6,
-    title: 'Study Desk - Wooden',
+    title: "Study Desk - Wooden",
     price: 120,
-    description: 'Solid wood desk with drawers. Perfect for dorm or apartment.',
-    category: 'furniture',
-    seller: 'Lisa Chen',
-    postedDate: '2024-03-07',
-    condition: 'Good'
-  }
+    description: "Solid wood desk with drawers. Perfect for dorm or apartment.",
+    category: "furniture",
+    seller: "Lisa Chen",
+    postedDate: "2024-03-07",
+    condition: "Good",
+  },
 ];
 
 export default function MarketplacePage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [user, setUser] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [isListingDialogOpen, setIsListingDialogOpen] = useState(false);
 
   const categories = [
-    { value: 'all', label: 'All Categories' },
-    { value: 'books', label: 'Books' },
-    { value: 'electronics', label: 'Electronics' },
-    { value: 'furniture', label: 'Furniture' },
-    { value: 'supplies', label: 'Supplies' }
+    { value: "all", label: "All Categories" },
+    { value: "books", label: "Books" },
+    { value: "electronics", label: "Electronics" },
+    { value: "furniture", label: "Furniture" },
+    { value: "supplies", label: "Supplies" },
   ];
 
   const getCategoryColor = (category: string) => {
     const colors: { [key: string]: string } = {
-      books: 'bg-blue-100 text-blue-800',
-      electronics: 'bg-purple-100 text-purple-800',
-      furniture: 'bg-green-100 text-green-800',
-      supplies: 'bg-orange-100 text-orange-800'
+      books: "bg-blue-100 text-blue-800",
+      electronics: "bg-purple-100 text-purple-800",
+      furniture: "bg-green-100 text-green-800",
+      supplies: "bg-orange-100 text-orange-800",
     };
-    return colors[category] || 'bg-gray-100 text-gray-800';
+    return colors[category] || "bg-gray-100 text-gray-800";
   };
 
   const getConditionColor = (condition: string) => {
     const colors: { [key: string]: string } = {
-      'New': 'bg-green-100 text-green-800',
-      'Like New': 'bg-emerald-100 text-emerald-800',
-      'Good': 'bg-yellow-100 text-yellow-800',
-      'Used': 'bg-orange-100 text-orange-800'
+      New: "bg-green-100 text-green-800",
+      "Like New": "bg-emerald-100 text-emerald-800",
+      Good: "bg-yellow-100 text-yellow-800",
+      Used: "bg-orange-100 text-orange-800",
     };
-    return colors[condition] || 'bg-gray-100 text-gray-800';
+    return colors[condition] || "bg-gray-100 text-gray-800";
   };
 
-  const filteredItems = marketplaceItems.filter(item => {
-    const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+  const filteredItems = marketplaceItems.filter((item) => {
+    const matchesSearch =
+      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "all" || item.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  async function getUserProfile() {
+    const { data: userData } = await supabase.auth.getUser();
+
+    if (userData.user) {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userData.user?.id)
+        .single();
+
+      if (data) {
+        setUser(data);
+      }
+    }
+  }
 
   return (
     <ProtectedLayout>
@@ -125,7 +166,10 @@ export default function MarketplacePage() {
               Buy and sell items with fellow students
             </p>
           </div>
-          <Dialog open={isListingDialogOpen} onOpenChange={setIsListingDialogOpen}>
+          <Dialog
+            open={isListingDialogOpen}
+            onOpenChange={setIsListingDialogOpen}
+          >
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
@@ -142,7 +186,10 @@ export default function MarketplacePage() {
               <div className="space-y-4 pt-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">Item Title</Label>
-                  <Input id="title" placeholder="e.g., Calculus Textbook - 8th Edition" />
+                  <Input
+                    id="title"
+                    placeholder="e.g., Calculus Textbook - 8th Edition"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="price">Price ($)</Label>
@@ -178,15 +225,13 @@ export default function MarketplacePage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="description">Description</Label>
-                  <Textarea 
-                    id="description" 
+                  <Textarea
+                    id="description"
                     placeholder="Provide detailed description of the item"
                     rows={4}
                   />
                 </div>
-                <Button className="w-full">
-                  Create Listing
-                </Button>
+                <Button className="w-full">Create Listing</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -246,7 +291,7 @@ export default function MarketplacePage() {
                 <CardDescription className="mb-4 line-clamp-2">
                   {item.description}
                 </CardDescription>
-                
+
                 <div className="space-y-2 text-sm text-muted-foreground mb-4">
                   <div className="flex items-center">
                     <User className="h-4 w-4 mr-2" />
@@ -259,9 +304,7 @@ export default function MarketplacePage() {
                 </div>
 
                 <div className="flex space-x-2">
-                  <Button className="flex-1">
-                    Contact Seller
-                  </Button>
+                  <Button className="flex-1">Contact Seller</Button>
                   <Button variant="outline" size="icon">
                     <Search className="h-4 w-4" />
                   </Button>
