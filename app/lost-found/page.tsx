@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ProtectedLayout } from "@/components/layout/protected-layout";
 import {
   Card,
@@ -24,6 +24,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Search, Plus, MapPin, Clock, User, Tag } from "lucide-react";
+import supabase from "@/lib/supabase";
+import moment from "moment";
 
 const lostItems = [
   {
@@ -82,9 +84,31 @@ const foundItems = [
 ];
 
 export default function LostFoundPage() {
+  const [user, setUser] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [reportType, setReportType] = useState<"lost" | "found">("lost");
+  const [isReporting, setIsReporting] = useState(false);
+  const [createReportError, setCreateReportError] = useState("");
+  const [reports, setReports] = useState<any>([]);
+
+  const reportsFiltered = reports.filter((report: any) =>
+    report.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const lostItems = reportsFiltered.filter(
+    (report: any) => report.status === "lost"
+  );
+  const foundItems = reportsFiltered.filter(
+    (report: any) => report.status === "found"
+  );
+
+  const [reportItem, setReportItem] = useState<any>({
+    title: "",
+    description: "",
+    location: "",
+    category: "",
+  });
 
   const getCategoryColor = (category: string) => {
     const colors: { [key: string]: string } = {
@@ -97,6 +121,98 @@ export default function LostFoundPage() {
     return colors[category] || "bg-gray-100 text-gray-800";
   };
 
+  async function getUserProfile() {
+    const { data: userData } = await supabase.auth.getUser();
+
+    if (userData.user) {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userData.user?.id)
+        .single();
+
+      if (data) {
+        setUser(data);
+      }
+    }
+  }
+
+  const handleReport = async () => {
+    if (reportItem.title.trim() === "") {
+      setCreateReportError("Title is required");
+      return;
+    }
+
+    if (reportItem.description.trim() === "") {
+      setCreateReportError("Description is required");
+      return;
+    }
+
+    if (reportItem.location.trim() === "") {
+      setCreateReportError("Location is required");
+      return;
+    }
+    if (reportItem.category.trim() === "") {
+      setCreateReportError("Category is required");
+      return;
+    }
+    setIsReporting(true);
+
+    const { error } = await supabase.from("lost_and_founds").insert([
+      {
+        title: reportItem.title,
+        description: reportItem.description,
+        location: reportItem.location,
+        category: reportItem.category,
+        user_id: user?.id,
+        status: reportType,
+      },
+    ]);
+
+    setIsReportDialogOpen(false);
+    if (error) {
+      setCreateReportError(error.message);
+      return;
+    } else {
+      setCreateReportError("");
+    }
+  };
+
+  const handleResolved = async (id: any) => {
+    const { error } = await supabase
+      .from("lost_and_founds")
+      .update({
+        is_resolved: true,
+      })
+      .eq("id", id);
+
+    getReports();
+    if (error) {
+      console.error(error);
+    }
+  };
+
+  const getReports = async () => {
+    const { data, error } = await supabase
+      .from("lost_and_founds")
+      .select(
+        `
+        *,
+        author:profiles (
+          id,
+          full_name
+        ) 
+        `
+      )
+      .eq("is_resolved", false)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error(error);
+    } else {
+      setReports(data);
+    }
+  };
   const ItemCard = ({ item }: { item: any }) => (
     <Card className="hover:shadow-md transition-shadow">
       <CardContent className="p-4">
@@ -114,19 +230,35 @@ export default function LostFoundPage() {
           </div>
           <div className="flex items-center text-muted-foreground">
             <Clock className="h-4 w-4 mr-2" />
-            <span>{item.dateReported}</span>
+            <span>{moment(item.created_at).fromNow()}</span>
           </div>
           <div className="flex items-center text-muted-foreground">
             <User className="h-4 w-4 mr-2" />
-            <span>Reported by {item.reportedBy}</span>
+            <span>Reported by {item.author.full_name}</span>
           </div>
         </div>
-        <Button className="w-full mt-4" variant="outline">
-          Contact Reporter
+        <Button
+          className="w-full mt-4"
+          variant="outline"
+          onClick={(e) => {
+            if (item.author.id === user?.id) {
+              handleResolved(item.id);
+              e.currentTarget.disabled = true;
+            }
+          }}
+        >
+          {item.author.id === user?.id
+            ? "Mark as Resolved"
+            : "Contact Reporter"}
         </Button>
       </CardContent>
     </Card>
   );
+
+  useEffect(() => {
+    getUserProfile();
+    getReports();
+  }, []);
 
   return (
     <ProtectedLayout>
@@ -174,7 +306,14 @@ export default function LostFoundPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="title">Item Title</Label>
-                  <Input id="title" placeholder="e.g., Blue Backpack" />
+                  <Input
+                    id="title"
+                    placeholder="e.g., Blue Backpack"
+                    value={reportItem.title}
+                    onChange={(e) =>
+                      setReportItem({ ...reportItem, title: e.target.value })
+                    }
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="description">Description</Label>
@@ -182,6 +321,13 @@ export default function LostFoundPage() {
                     id="description"
                     placeholder="Provide detailed description of the item"
                     rows={3}
+                    value={reportItem.description}
+                    onChange={(e) =>
+                      setReportItem({
+                        ...reportItem,
+                        description: e.target.value,
+                      })
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -189,6 +335,10 @@ export default function LostFoundPage() {
                   <Input
                     id="location"
                     placeholder="e.g., Library - 2nd Floor"
+                    value={reportItem.location}
+                    onChange={(e) =>
+                      setReportItem({ ...reportItem, location: e.target.value })
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -196,9 +346,23 @@ export default function LostFoundPage() {
                   <Input
                     id="category"
                     placeholder="e.g., electronics, bag, books"
+                    value={reportItem.category}
+                    onChange={(e) =>
+                      setReportItem({
+                        ...reportItem,
+                        category: e.target.value,
+                      })
+                    }
                   />
                 </div>
-                <Button className="w-full">
+                {createReportError && (
+                  <p className="text-red-500">{createReportError}</p>
+                )}
+                <Button
+                  className="w-full"
+                  onClick={handleReport}
+                  disabled={isReporting}
+                >
                   Report {reportType === "lost" ? "Lost" : "Found"} Item
                 </Button>
               </div>
@@ -227,14 +391,14 @@ export default function LostFoundPage() {
           </TabsList>
           <TabsContent value="lost" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {lostItems.map((item) => (
+              {lostItems.map((item: any) => (
                 <ItemCard key={item.id} item={item} />
               ))}
             </div>
           </TabsContent>
           <TabsContent value="found" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {foundItems.map((item) => (
+              {foundItems.map((item: any) => (
                 <ItemCard key={item.id} item={item} />
               ))}
             </div>

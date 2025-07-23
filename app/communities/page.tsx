@@ -371,7 +371,7 @@ export default function CommunitiesPage() {
   });
 
   const joinedCommunities = communities.filter((c: any) =>
-    c.member_ids?.includes(user.id)
+    c.member_ids?.includes(user?.id)
   );
 
   const handleJoinCommunity = async (communityId: string) => {
@@ -475,7 +475,6 @@ export default function CommunitiesPage() {
       console.error("Error:", error);
     } else {
       setCommunities(data);
-      console.log(data);
     }
   }
 
