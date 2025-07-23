@@ -394,7 +394,6 @@ export default function PostsPage() {
     }
 
     if (data) {
-      console.log(data);
       setPosts(data);
     }
   };

@@ -1,22 +1,41 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { ProtectedLayout } from '@/components/layout/protected-layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Search, 
-  Users, 
-  Plus, 
-  MessageSquare, 
+import { useState } from "react";
+import { ProtectedLayout } from "@/components/layout/protected-layout";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Search,
+  Users,
+  Plus,
+  MessageSquare,
   Calendar,
   BookOpen,
   GraduationCap,
@@ -29,232 +48,267 @@ import {
   UserCheck,
   UserPlus,
   UserMinus,
-  Settings
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+  Settings,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const communities = [
   {
     id: 1,
-    name: 'Computer Science Department',
-    type: 'department',
-    faculty: 'Engineering & Technology',
-    description: 'Connect with fellow CS students, share projects, discuss coursework, and collaborate on coding challenges.',
+    name: "Computer Science Department",
+    type: "department",
+    faculty: "Engineering & Technology",
+    description:
+      "Connect with fellow CS students, share projects, discuss coursework, and collaborate on coding challenges.",
     members: 342,
     posts: 1247,
     isJoined: true,
     isPrivate: false,
-    moderators: ['Dr. Smith', 'Prof. Johnson'],
+    moderators: ["Dr. Smith", "Prof. Johnson"],
     leaders: [
-      { name: 'Sarah Johnson', position: 'CS President', level: 'president', studentId: 'ST002' }
+      {
+        name: "Sarah Johnson",
+        position: "CS President",
+        level: "president",
+        studentId: "ST002",
+      },
     ],
-    recentActivity: '2 min ago',
-    tags: ['Programming', 'Algorithms', 'Software Engineering'],
-    avatar: 'CS',
-    canManage: false
+    recentActivity: "2 min ago",
+    tags: ["Programming", "Algorithms", "Software Engineering"],
+    avatar: "CS",
+    canManage: false,
   },
   {
     id: 2,
-    name: 'Business Administration',
-    type: 'department',
-    faculty: 'Business & Economics',
-    description: 'Business students networking, case study discussions, internship opportunities, and career guidance.',
+    name: "Business Administration",
+    type: "department",
+    faculty: "Business & Economics",
+    description:
+      "Business students networking, case study discussions, internship opportunities, and career guidance.",
     members: 289,
     posts: 856,
     isJoined: false,
     isPrivate: false,
-    moderators: ['Prof. Williams', 'Dr. Brown'],
+    moderators: ["Prof. Williams", "Dr. Brown"],
     leaders: [
-      { name: 'Mike Davis', position: 'Business Rep', level: 'representative', studentId: 'ST003' }
+      {
+        name: "Mike Davis",
+        position: "Business Rep",
+        level: "representative",
+        studentId: "ST003",
+      },
     ],
-    recentActivity: '15 min ago',
-    tags: ['Marketing', 'Finance', 'Entrepreneurship'],
-    avatar: 'BA',
-    canManage: false
+    recentActivity: "15 min ago",
+    tags: ["Marketing", "Finance", "Entrepreneurship"],
+    avatar: "BA",
+    canManage: false,
   },
   {
     id: 3,
-    name: 'Engineering Faculty',
-    type: 'faculty',
-    faculty: 'Engineering & Technology',
-    description: 'All engineering students united! Share resources, discuss projects, and collaborate across departments.',
+    name: "Engineering Faculty",
+    type: "faculty",
+    faculty: "Engineering & Technology",
+    description:
+      "All engineering students united! Share resources, discuss projects, and collaborate across departments.",
     members: 1247,
     posts: 3421,
     isJoined: true,
     isPrivate: false,
-    moderators: ['Dean Anderson', 'Prof. Davis'],
+    moderators: ["Dean Anderson", "Prof. Davis"],
     leaders: [
-      { name: 'David Kim', position: 'Engineering President', level: 'president', studentId: 'ST007' }
+      {
+        name: "David Kim",
+        position: "Engineering President",
+        level: "president",
+        studentId: "ST007",
+      },
     ],
-    recentActivity: '5 min ago',
-    tags: ['Innovation', 'Projects', 'Research'],
-    avatar: 'EF',
-    canManage: true // User is a president of this community
+    recentActivity: "5 min ago",
+    tags: ["Innovation", "Projects", "Research"],
+    avatar: "EF",
+    canManage: true, // User is a president of this community
   },
   {
     id: 4,
-    name: 'Psychology Department',
-    type: 'department',
-    faculty: 'Social Sciences',
-    description: 'Psychology students sharing research, discussing theories, and supporting each other through studies.',
+    name: "Psychology Department",
+    type: "department",
+    faculty: "Social Sciences",
+    description:
+      "Psychology students sharing research, discussing theories, and supporting each other through studies.",
     members: 156,
     posts: 423,
     isJoined: false,
     isPrivate: false,
-    moderators: ['Dr. Wilson', 'Prof. Taylor'],
+    moderators: ["Dr. Wilson", "Prof. Taylor"],
     leaders: [],
-    recentActivity: '1 hour ago',
-    tags: ['Research', 'Mental Health', 'Cognitive Science'],
-    avatar: 'PS',
-    canManage: false
+    recentActivity: "1 hour ago",
+    tags: ["Research", "Mental Health", "Cognitive Science"],
+    avatar: "PS",
+    canManage: false,
   },
   {
     id: 5,
-    name: 'Medical College',
-    type: 'college',
-    faculty: 'Health Sciences',
-    description: 'Future doctors and healthcare professionals. Share study materials, discuss cases, and support each other.',
+    name: "Medical College",
+    type: "college",
+    faculty: "Health Sciences",
+    description:
+      "Future doctors and healthcare professionals. Share study materials, discuss cases, and support each other.",
     members: 567,
     posts: 1892,
     isJoined: false,
     isPrivate: true,
-    moderators: ['Dr. Garcia', 'Prof. Martinez'],
+    moderators: ["Dr. Garcia", "Prof. Martinez"],
     leaders: [
-      { name: 'Lisa Chen', position: 'Medical Secretary', level: 'secretary', studentId: 'ST006' }
+      {
+        name: "Lisa Chen",
+        position: "Medical Secretary",
+        level: "secretary",
+        studentId: "ST006",
+      },
     ],
-    recentActivity: '30 min ago',
-    tags: ['Medicine', 'Healthcare', 'Clinical Studies'],
-    avatar: 'MC',
-    canManage: false
+    recentActivity: "30 min ago",
+    tags: ["Medicine", "Healthcare", "Clinical Studies"],
+    avatar: "MC",
+    canManage: false,
   },
   {
     id: 6,
-    name: 'Mathematics Department',
-    type: 'department',
-    faculty: 'Sciences',
-    description: 'Math enthusiasts solving problems together, sharing proofs, and discussing mathematical concepts.',
+    name: "Mathematics Department",
+    type: "department",
+    faculty: "Sciences",
+    description:
+      "Math enthusiasts solving problems together, sharing proofs, and discussing mathematical concepts.",
     members: 198,
     posts: 634,
     isJoined: true,
     isPrivate: false,
-    moderators: ['Prof. Lee', 'Dr. Chen'],
+    moderators: ["Prof. Lee", "Dr. Chen"],
     leaders: [],
-    recentActivity: '45 min ago',
-    tags: ['Calculus', 'Statistics', 'Pure Mathematics'],
-    avatar: 'MA',
-    canManage: false
+    recentActivity: "45 min ago",
+    tags: ["Calculus", "Statistics", "Pure Mathematics"],
+    avatar: "MA",
+    canManage: false,
   },
   {
     id: 7,
-    name: 'Arts & Literature Faculty',
-    type: 'faculty',
-    faculty: 'Arts & Humanities',
-    description: 'Creative minds unite! Share your work, discuss literature, and explore artistic expressions.',
+    name: "Arts & Literature Faculty",
+    type: "faculty",
+    faculty: "Arts & Humanities",
+    description:
+      "Creative minds unite! Share your work, discuss literature, and explore artistic expressions.",
     members: 423,
     posts: 1156,
     isJoined: false,
     isPrivate: false,
-    moderators: ['Prof. Thompson', 'Dr. White'],
+    moderators: ["Prof. Thompson", "Dr. White"],
     leaders: [],
-    recentActivity: '20 min ago',
-    tags: ['Creative Writing', 'Art History', 'Literature'],
-    avatar: 'AL',
-    canManage: false
+    recentActivity: "20 min ago",
+    tags: ["Creative Writing", "Art History", "Literature"],
+    avatar: "AL",
+    canManage: false,
   },
   {
     id: 8,
-    name: 'International Students',
-    type: 'special',
-    faculty: 'Cross-Faculty',
-    description: 'International students supporting each other, sharing cultural experiences, and navigating campus life.',
+    name: "International Students",
+    type: "special",
+    faculty: "Cross-Faculty",
+    description:
+      "International students supporting each other, sharing cultural experiences, and navigating campus life.",
     members: 234,
     posts: 567,
     isJoined: false,
     isPrivate: false,
-    moderators: ['International Office', 'Student Council'],
+    moderators: ["International Office", "Student Council"],
     leaders: [],
-    recentActivity: '10 min ago',
-    tags: ['Cultural Exchange', 'Support', 'Events'],
-    avatar: 'IS',
-    canManage: false
-  }
+    recentActivity: "10 min ago",
+    tags: ["Cultural Exchange", "Support", "Events"],
+    avatar: "IS",
+    canManage: false,
+  },
 ];
 
 const recentPosts = [
   {
     id: 1,
     communityId: 1,
-    communityName: 'Computer Science Department',
-    author: 'Sarah Johnson',
-    authorPosition: { title: 'CS President', level: 'president' },
-    content: 'Anyone working on the Data Structures assignment? I\'m stuck on implementing binary trees. Would love to collaborate! 🌳',
-    timestamp: '2 min ago',
+    communityName: "Computer Science Department",
+    author: "Sarah Johnson",
+    authorPosition: { title: "CS President", level: "president" },
+    content:
+      "Anyone working on the Data Structures assignment? I'm stuck on implementing binary trees. Would love to collaborate! 🌳",
+    timestamp: "2 min ago",
     likes: 8,
     comments: 3,
-    isPinned: false
+    isPinned: false,
   },
   {
     id: 2,
     communityId: 3,
-    communityName: 'Engineering Faculty',
-    author: 'David Kim',
-    authorPosition: { title: 'Engineering President', level: 'president' },
-    content: 'Reminder: Engineering Expo registration closes tomorrow! Don\'t miss the chance to showcase your projects. 🚀',
-    timestamp: '15 min ago',
+    communityName: "Engineering Faculty",
+    author: "David Kim",
+    authorPosition: { title: "Engineering President", level: "president" },
+    content:
+      "Reminder: Engineering Expo registration closes tomorrow! Don't miss the chance to showcase your projects. 🚀",
+    timestamp: "15 min ago",
     likes: 23,
     comments: 7,
-    isPinned: true
+    isPinned: true,
   },
   {
     id: 3,
     communityId: 6,
-    communityName: 'Mathematics Department',
-    author: 'Emma Wilson',
+    communityName: "Mathematics Department",
+    author: "Emma Wilson",
     authorPosition: null,
-    content: 'Found this amazing proof for the Pythagorean theorem using geometric algebra. Sharing the PDF in comments! 📐',
-    timestamp: '45 min ago',
+    content:
+      "Found this amazing proof for the Pythagorean theorem using geometric algebra. Sharing the PDF in comments! 📐",
+    timestamp: "45 min ago",
     likes: 15,
     comments: 12,
-    isPinned: false
-  }
+    isPinned: false,
+  },
 ];
 
 export default function CommunitiesPage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedType, setSelectedType] = useState('all');
-  const [selectedCommunity, setSelectedCommunity] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedType, setSelectedType] = useState("all");
+  const [selectedCommunity, setSelectedCommunity] = useState<number | null>(
+    null
+  );
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isApplyDialogOpen, setIsApplyDialogOpen] = useState(false);
   const [isManageDialogOpen, setIsManageDialogOpen] = useState(false);
-  const [manageCommunityId, setManageCommunityId] = useState<number | null>(null);
+  const [manageCommunityId, setManageCommunityId] = useState<number | null>(
+    null
+  );
 
   const communityTypes = [
-    { value: 'all', label: 'All Communities' },
-    { value: 'department', label: 'Departments' },
-    { value: 'faculty', label: 'Faculties' },
-    { value: 'college', label: 'Colleges' },
-    { value: 'special', label: 'Special Groups' }
+    { value: "all", label: "All Communities" },
+    { value: "department", label: "Departments" },
+    { value: "faculty", label: "Faculties" },
+    { value: "college", label: "Colleges" },
+    { value: "special", label: "Special Groups" },
   ];
 
   const getTypeColor = (type: string) => {
     const colors: { [key: string]: string } = {
-      department: 'bg-blue-100 text-blue-800',
-      faculty: 'bg-purple-100 text-purple-800',
-      college: 'bg-green-100 text-green-800',
-      special: 'bg-orange-100 text-orange-800'
+      department: "bg-blue-100 text-blue-800",
+      faculty: "bg-purple-100 text-purple-800",
+      college: "bg-green-100 text-green-800",
+      special: "bg-orange-100 text-orange-800",
     };
-    return colors[type] || 'bg-gray-100 text-gray-800';
+    return colors[type] || "bg-gray-100 text-gray-800";
   };
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'department':
+      case "department":
         return BookOpen;
-      case 'faculty':
+      case "faculty":
         return GraduationCap;
-      case 'college':
+      case "college":
         return Building;
-      case 'special':
+      case "special":
         return Star;
       default:
         return Users;
@@ -263,11 +317,11 @@ export default function CommunitiesPage() {
 
   const getLevelIcon = (level: string) => {
     switch (level) {
-      case 'president':
+      case "president":
         return Crown;
-      case 'secretary':
+      case "secretary":
         return Star;
-      case 'representative':
+      case "representative":
         return UserCheck;
       default:
         return Users;
@@ -276,47 +330,49 @@ export default function CommunitiesPage() {
 
   const getLevelColor = (level: string) => {
     switch (level) {
-      case 'president':
-        return 'text-yellow-600';
-      case 'secretary':
-        return 'text-blue-600';
-      case 'representative':
-        return 'text-green-600';
+      case "president":
+        return "text-yellow-600";
+      case "secretary":
+        return "text-blue-600";
+      case "representative":
+        return "text-green-600";
       default:
-        return 'text-gray-600';
+        return "text-gray-600";
     }
   };
 
-  const filteredCommunities = communities.filter(community => {
-    const matchesSearch = community.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         community.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         community.faculty.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = selectedType === 'all' || community.type === selectedType;
+  const filteredCommunities = communities.filter((community) => {
+    const matchesSearch =
+      community.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      community.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      community.faculty.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType =
+      selectedType === "all" || community.type === selectedType;
     return matchesSearch && matchesType;
   });
 
-  const joinedCommunities = communities.filter(c => c.isJoined);
+  const joinedCommunities = communities.filter((c) => c.isJoined);
 
   const handleJoinCommunity = (communityId: number) => {
     // In a real app, this would make an API call
-    console.log('Joining community:', communityId);
+    console.log("Joining community:", communityId);
   };
 
   const handleApplyForLeadership = () => {
     // In a real app, this would submit the application
-    console.log('Applying for leadership position');
+    console.log("Applying for leadership position");
     setIsApplyDialogOpen(false);
   };
 
   const handleCreateCommunity = () => {
     // In a real app, this would create the community
-    console.log('Creating community');
+    console.log("Creating community");
     setIsCreateDialogOpen(false);
   };
 
   const CommunityCard = ({ community }: { community: any }) => {
     const TypeIcon = getTypeIcon(community.type);
-    
+
     return (
       <Card className="hover:shadow-md transition-shadow">
         <CardHeader className="pb-3">
@@ -331,7 +387,9 @@ export default function CommunitiesPage() {
                 <div className="flex items-center space-x-2 mb-1">
                   <CardTitle className="text-lg">{community.name}</CardTitle>
                   {community.isPrivate && (
-                    <Badge variant="secondary" className="text-xs">Private</Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      Private
+                    </Badge>
                   )}
                 </div>
                 <div className="flex items-center space-x-2 mb-2">
@@ -339,19 +397,28 @@ export default function CommunitiesPage() {
                     <TypeIcon className="h-3 w-3 mr-1" />
                     {community.type}
                   </Badge>
-                  <span className="text-sm text-muted-foreground">{community.faculty}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {community.faculty}
+                  </span>
                 </div>
-                
+
                 {/* Community Leaders */}
                 {community.leaders.length > 0 && (
                   <div className="flex flex-wrap gap-1 mb-2">
                     {community.leaders.map((leader: any, index: number) => {
                       const LevelIcon = getLevelIcon(leader.level);
                       return (
-                        <div key={index} className="flex items-center space-x-1 text-xs">
-                          <LevelIcon className={`h-3 w-3 ${getLevelColor(leader.level)}`} />
+                        <div
+                          key={index}
+                          className="flex items-center space-x-1 text-xs"
+                        >
+                          <LevelIcon
+                            className={`h-3 w-3 ${getLevelColor(leader.level)}`}
+                          />
                           <span className="font-medium">{leader.name}</span>
-                          <span className="text-muted-foreground">({leader.position})</span>
+                          <span className="text-muted-foreground">
+                            ({leader.position})
+                          </span>
                         </div>
                       );
                     })}
@@ -386,7 +453,7 @@ export default function CommunitiesPage() {
           <CardDescription className="mb-4 line-clamp-2">
             {community.description}
           </CardDescription>
-          
+
           <div className="flex flex-wrap gap-1 mb-4">
             {community.tags.map((tag: string) => (
               <Badge key={tag} variant="outline" className="text-xs">
@@ -413,7 +480,7 @@ export default function CommunitiesPage() {
           </div>
 
           <div className="text-xs text-muted-foreground">
-            <span>Moderated by: {community.moderators.join(', ')}</span>
+            <span>Moderated by: {community.moderators.join(", ")}</span>
           </div>
         </CardContent>
       </Card>
@@ -431,7 +498,10 @@ export default function CommunitiesPage() {
             </p>
           </div>
           <div className="flex space-x-2">
-            <Dialog open={isApplyDialogOpen} onOpenChange={setIsApplyDialogOpen}>
+            <Dialog
+              open={isApplyDialogOpen}
+              onOpenChange={setIsApplyDialogOpen}
+            >
               <DialogTrigger asChild>
                 <Button variant="outline">
                   <Crown className="h-4 w-4 mr-2" />
@@ -442,13 +512,17 @@ export default function CommunitiesPage() {
                 <DialogHeader>
                   <DialogTitle>Apply for Leadership Position</DialogTitle>
                   <DialogDescription>
-                    Apply to become a leader in your department or faculty community.
+                    Apply to become a leader in your department or faculty
+                    community.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 pt-4">
                   <div className="space-y-2">
                     <Label htmlFor="position">Position Title</Label>
-                    <Input id="position" placeholder="e.g., CS Department President" />
+                    <Input
+                      id="position"
+                      placeholder="e.g., CS Department President"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="community">Community</Label>
@@ -457,9 +531,15 @@ export default function CommunitiesPage() {
                         <SelectValue placeholder="Select community" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="cs">Computer Science Department</SelectItem>
-                        <SelectItem value="business">Business Administration</SelectItem>
-                        <SelectItem value="engineering">Engineering Faculty</SelectItem>
+                        <SelectItem value="cs">
+                          Computer Science Department
+                        </SelectItem>
+                        <SelectItem value="business">
+                          Business Administration
+                        </SelectItem>
+                        <SelectItem value="engineering">
+                          Engineering Faculty
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -470,16 +550,20 @@ export default function CommunitiesPage() {
                         <SelectValue placeholder="Select level" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="representative">Representative</SelectItem>
+                        <SelectItem value="representative">
+                          Representative
+                        </SelectItem>
                         <SelectItem value="secretary">Secretary</SelectItem>
                         <SelectItem value="president">President</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="reason">Why do you want this position?</Label>
-                    <Textarea 
-                      id="reason" 
+                    <Label htmlFor="reason">
+                      Why do you want this position?
+                    </Label>
+                    <Textarea
+                      id="reason"
                       placeholder="Explain your motivation and qualifications..."
                       rows={4}
                     />
@@ -490,8 +574,11 @@ export default function CommunitiesPage() {
                 </div>
               </DialogContent>
             </Dialog>
-            
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+
+            <Dialog
+              open={isCreateDialogOpen}
+              onOpenChange={setIsCreateDialogOpen}
+            >
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="h-4 w-4 mr-2" />
@@ -502,7 +589,8 @@ export default function CommunitiesPage() {
                 <DialogHeader>
                   <DialogTitle>Create New Community</DialogTitle>
                   <DialogDescription>
-                    Start a new community for your department, club, or interest group.
+                    Start a new community for your department, club, or interest
+                    group.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 pt-4">
@@ -525,16 +613,38 @@ export default function CommunitiesPage() {
                     </Select>
                   </div>
                   <div className="space-y-2">
+                    <Label htmlFor="parent">Parent Community</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select parent community" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cs">
+                          Computer Science Department
+                        </SelectItem>
+                        <SelectItem value="business">
+                          Business Administration
+                        </SelectItem>
+                        <SelectItem value="engineering">
+                          Engineering Faculty
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
                     <Label htmlFor="description">Description</Label>
-                    <Textarea 
-                      id="description" 
+                    <Textarea
+                      id="description"
                       placeholder="Describe the purpose and goals of this community..."
                       rows={3}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="tags">Tags (comma-separated)</Label>
-                    <Input id="tags" placeholder="e.g., photography, art, creative" />
+                    <Input
+                      id="tags"
+                      placeholder="e.g., photography, art, creative"
+                    />
                   </div>
                   <Button className="w-full" onClick={handleCreateCommunity}>
                     Create Community
@@ -548,10 +658,12 @@ export default function CommunitiesPage() {
         <Tabs defaultValue="discover" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="discover">Discover</TabsTrigger>
-            <TabsTrigger value="joined">My Communities ({joinedCommunities.length})</TabsTrigger>
+            <TabsTrigger value="joined">
+              My Communities ({joinedCommunities.length})
+            </TabsTrigger>
             <TabsTrigger value="feed">Recent Posts</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="discover" className="space-y-4">
             {/* Search and Filter */}
             <div className="flex flex-col sm:flex-row gap-4">
@@ -568,7 +680,9 @@ export default function CommunitiesPage() {
                 {communityTypes.map((type) => (
                   <Button
                     key={type.value}
-                    variant={selectedType === type.value ? 'default' : 'outline'}
+                    variant={
+                      selectedType === type.value ? "default" : "outline"
+                    }
                     size="sm"
                     onClick={() => setSelectedType(type.value)}
                   >
@@ -588,37 +702,46 @@ export default function CommunitiesPage() {
             {filteredCommunities.length === 0 && (
               <div className="text-center py-12">
                 <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                <h3 className="text-lg font-medium mb-2">No communities found</h3>
-                <p className="text-muted-foreground">Try adjusting your search or filter criteria</p>
+                <h3 className="text-lg font-medium mb-2">
+                  No communities found
+                </h3>
+                <p className="text-muted-foreground">
+                  Try adjusting your search or filter criteria
+                </p>
               </div>
             )}
           </TabsContent>
-          
+
           <TabsContent value="joined" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {joinedCommunities.map((community) => (
                 <CommunityCard key={community.id} community={community} />
               ))}
             </div>
-            
+
             {joinedCommunities.length === 0 && (
               <div className="text-center py-12">
                 <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                <h3 className="text-lg font-medium mb-2">No communities joined yet</h3>
+                <h3 className="text-lg font-medium mb-2">
+                  No communities joined yet
+                </h3>
                 <p className="text-muted-foreground">
                   Discover and join communities to connect with fellow students
                 </p>
-                <Button className="mt-4" onClick={() => setSelectedType('all')}>
+                <Button className="mt-4" onClick={() => setSelectedType("all")}>
                   Discover Communities
                 </Button>
               </div>
             )}
           </TabsContent>
-          
+
           <TabsContent value="feed" className="space-y-4">
             <div className="space-y-4">
               {recentPosts.map((post) => (
-                <Card key={post.id} className="hover:shadow-md transition-shadow">
+                <Card
+                  key={post.id}
+                  className="hover:shadow-md transition-shadow"
+                >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-2">
@@ -630,12 +753,22 @@ export default function CommunitiesPage() {
                         </Badge>
                         <span className="text-sm text-muted-foreground">•</span>
                         <div className="flex items-center space-x-1">
-                          <span className="text-sm font-medium">{post.author}</span>
+                          <span className="text-sm font-medium">
+                            {post.author}
+                          </span>
                           {post.authorPosition && (
                             <>
                               {(() => {
-                                const LevelIcon = getLevelIcon(post.authorPosition.level);
-                                return <LevelIcon className={`h-3 w-3 ${getLevelColor(post.authorPosition.level)}`} />;
+                                const LevelIcon = getLevelIcon(
+                                  post.authorPosition.level
+                                );
+                                return (
+                                  <LevelIcon
+                                    className={`h-3 w-3 ${getLevelColor(
+                                      post.authorPosition.level
+                                    )}`}
+                                  />
+                                );
                               })()}
                               <Badge variant="outline" className="text-xs">
                                 {post.authorPosition.title}
@@ -644,12 +777,14 @@ export default function CommunitiesPage() {
                           )}
                         </div>
                         <span className="text-sm text-muted-foreground">•</span>
-                        <span className="text-sm text-muted-foreground">{post.timestamp}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {post.timestamp}
+                        </span>
                       </div>
                     </div>
-                    
+
                     <p className="text-sm mb-3">{post.content}</p>
-                    
+
                     <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                       <div className="flex items-center space-x-1">
                         <TrendingUp className="h-4 w-4" />
@@ -664,11 +799,9 @@ export default function CommunitiesPage() {
                 </Card>
               ))}
             </div>
-            
+
             <div className="text-center">
-              <Button variant="outline">
-                Load More Posts
-              </Button>
+              <Button variant="outline">Load More Posts</Button>
             </div>
           </TabsContent>
         </Tabs>
@@ -684,12 +817,15 @@ export default function CommunitiesPage() {
             </DialogHeader>
             <div className="space-y-4 pt-4">
               <div className="flex space-x-2">
-                <Input placeholder="Search students by name or ID..." className="flex-1" />
+                <Input
+                  placeholder="Search students by name or ID..."
+                  className="flex-1"
+                />
                 <Button>
                   <Search className="h-4 w-4" />
                 </Button>
               </div>
-              
+
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 <div className="flex items-center justify-between p-2 border rounded">
                   <div className="flex items-center space-x-2">
@@ -706,7 +842,7 @@ export default function CommunitiesPage() {
                     Add
                   </Button>
                 </div>
-                
+
                 <div className="flex items-center justify-between p-2 border rounded">
                   <div className="flex items-center space-x-2">
                     <Avatar className="h-8 w-8">
@@ -714,7 +850,9 @@ export default function CommunitiesPage() {
                     </Avatar>
                     <div>
                       <p className="text-sm font-medium">Alex Brown</p>
-                      <p className="text-xs text-muted-foreground">ST005 • Member</p>
+                      <p className="text-xs text-muted-foreground">
+                        ST005 • Member
+                      </p>
                     </div>
                   </div>
                   <Button size="sm" variant="outline">
