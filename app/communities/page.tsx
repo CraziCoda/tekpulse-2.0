@@ -370,7 +370,9 @@ export default function CommunitiesPage() {
     return matchesSearch && matchesType;
   });
 
-  const joinedCommunities = communities.filter((c: any) => c.isJoined);
+  const joinedCommunities = communities.filter((c: any) =>
+    c.member_ids?.includes(user.id)
+  );
 
   const handleJoinCommunity = async (communityId: string) => {
     const commmunity = communities.find((c: any) => c.id === communityId);
@@ -396,7 +398,9 @@ export default function CommunitiesPage() {
 
     setCommunities(
       communities.map((c: any) =>
-        c.id === communityId ? { ...c, member_ids: [...c.member_ids, user.id] } : c
+        c.id === communityId
+          ? { ...c, member_ids: [...c.member_ids, user.id] }
+          : c
       )
     );
   };
@@ -485,7 +489,8 @@ export default function CommunitiesPage() {
             <div className="flex items-start space-x-3">
               <Avatar className="h-12 w-12">
                 <AvatarFallback className="text-lg font-bold">
-                  {community.avatar}
+                  {community.name.charAt(0) +
+                    community.name.split(" ")?.[1]?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
@@ -546,7 +551,9 @@ export default function CommunitiesPage() {
               )}
               <Button
                 variant={
-                  community.member_ids.includes(user?.id) ? "secondary" : "default"
+                  community.member_ids.includes(user?.id)
+                    ? "secondary"
+                    : "default"
                 }
                 size="sm"
                 onClick={() => handleJoinCommunity(community.id)}
