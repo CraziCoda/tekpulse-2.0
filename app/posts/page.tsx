@@ -446,8 +446,8 @@ export default function PostsPage() {
             </Avatar>
             <div>
               <div className="flex items-center space-x-2 mb-1">
-                <h4 className="font-semibold">{post.author.full_name}</h4>
-                {post.author?.position && (
+                <h4 className="font-semibold">{post.author?.full_name}</h4>
+                {post?.author?.position && (
                   <>
                     {(() => {
                       const LevelIcon = getLevelIcon(
