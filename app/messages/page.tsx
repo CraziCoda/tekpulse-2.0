@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import supabase from "@/lib/supabase";
+import { set } from "date-fns";
 
 const conversations = [
   {
@@ -119,16 +120,11 @@ export default function MessagesPage() {
   const [showStudentModal, setShowStudentModal] = useState(false);
   const [studentSearch, setStudentSearch] = useState("");
   const [allUsers, setAllUsers] = useState<any>([]);
+  const [conversations, setConversations] = useState<any>([]);
+  const [currentConversation, setCurrentConversation] = useState<any>(null);
 
-  const selectedUser = conversations.find((c) => c.id === selectedConversation);
-
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMessage.trim()) {
-      // In a real app, this would send the message to the server
-      console.log("Sending message:", newMessage);
-      setNewMessage("");
-    }
   };
 
   // Enhanced filter: search by name or position
@@ -138,6 +134,121 @@ export default function MessagesPage() {
     // ||
     // (s.position && s.position.toLowerCase().includes(term))
   });
+
+  const loadConversations = async () => {
+    const { data: chatRooms, error } = await supabase
+      .from("chat_members")
+      .select(
+        `
+        chat_room_id,
+        chat_room:chat_rooms (
+          id,
+          created_at,
+          last_active,
+          chat_members (
+            user_id,
+            profiles (
+              id,
+              full_name,
+              student_id
+            )
+          )
+        )
+  `
+      )
+      .eq("user_id", user.id);
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    for (const room of chatRooms) {
+      // @ts-ignore
+      const otherUser = room?.chat_room?.chat_members?.find(
+        (m: any) => m.user_id !== user.id
+      );
+      const conversation = {
+        // @ts-ignore
+        id: room?.chat_room?.id as any,
+        name: otherUser?.profiles?.full_name,
+        lastMessage: "",
+        timestamp: "",
+        unread: 0,
+        online: false,
+      };
+
+      setConversations((prevConversations: any) => [
+        ...prevConversations,
+        conversation,
+      ]);
+    }
+  };
+
+  async function startConversation(id: any) {
+    const { data: chatRooms, error } = await supabase
+      .from("chat_rooms")
+      .select(
+        `
+        id,
+        chat_members!inner (
+          user_id,
+          profile:profiles (
+            id,
+            full_name
+          )
+        )
+      `
+      )
+      .in("chat_members.user_id", [user.id, id]);
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    if (chatRooms?.length == 0) {
+      const { data: newRoom, error: roomError } = await supabase
+        .from("chat_rooms")
+        .insert({})
+        .select()
+        .single();
+
+      if (roomError) {
+        console.error(roomError);
+        return;
+      }
+
+      if (newRoom) {
+        await supabase.from("chat_members").insert([
+          { chat_room_id: newRoom.id, user_id: user.id },
+          { chat_room_id: newRoom.id, user_id: id },
+        ]);
+
+        const selectedUser = allUsers.find((u: any) => u.id === id);
+
+        const conversation = {
+          name: selectedUser.full_name,
+          id: newRoom.id,
+          online: true,
+        };
+
+        setCurrentConversation(conversation);
+      }
+    } else if (chatRooms?.length > 0) {
+      const user_profile: any = chatRooms[0].chat_members.find(
+        (m) => m.user_id === id
+      );
+
+      const conversation = {
+        name: user_profile?.profile?.full_name || "",
+        id: chatRooms[0].id,
+        online: true,
+      };
+
+      setCurrentConversation(conversation);
+    }
+  }
 
   async function getUserProfile() {
     const { data: userData } = await supabase.auth.getUser();
@@ -171,7 +282,7 @@ export default function MessagesPage() {
     if (error) {
       console.error(error);
     } else {
-      const formatted = data.map((profile: any) => {
+      let formatted = data.map((profile: any) => {
         const positions: any[] = [];
 
         profile.community_members?.forEach((member: any) => {
@@ -188,6 +299,7 @@ export default function MessagesPage() {
           positions: positions.slice(0, 3),
         };
       });
+      formatted = formatted.filter((_user: any) => _user.id !== user.id);
 
       setAllUsers(formatted);
     }
@@ -196,6 +308,10 @@ export default function MessagesPage() {
   useEffect(() => {
     getUserProfile();
   }, []);
+
+  useEffect(() => {
+    if (user) loadConversations();
+  }, [user]);
 
   return (
     <ProtectedLayout>
@@ -228,13 +344,13 @@ export default function MessagesPage() {
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            {conversations.map((conversation) => (
+            {conversations.map((conversation: any) => (
               <div
                 key={conversation.id}
-                onClick={() => setSelectedConversation(conversation.id)}
+                onClick={() => setCurrentConversation(conversation)}
                 className={cn(
                   "p-4 border-b cursor-pointer hover:bg-muted/50 transition-colors",
-                  selectedConversation === conversation.id && "bg-muted"
+                  currentConversation?.id === conversation.id && "bg-muted"
                 )}
               >
                 <div className="flex items-start space-x-3">
@@ -259,7 +375,7 @@ export default function MessagesPage() {
                     </div>
                     <div className="flex items-center justify-between mt-1">
                       <p className="text-sm text-muted-foreground truncate">
-                        {conversation.lastMessage}
+                        {conversation.lastMessage || "No messages yet"}
                       </p>
                       {conversation.unread > 0 && (
                         <Badge
@@ -279,7 +395,7 @@ export default function MessagesPage() {
 
         {/* Chat Area */}
         <div className="hidden md:flex flex-1 flex-col">
-          {selectedUser ? (
+          {currentConversation ? (
             <>
               {/* Chat Header */}
               <div className="p-4 border-b bg-card">
@@ -287,17 +403,17 @@ export default function MessagesPage() {
                   <div className="relative">
                     <Avatar>
                       <AvatarFallback>
-                        {selectedUser.name.charAt(0)}
+                        {currentConversation?.name?.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
-                    {selectedUser.online && (
+                    {currentConversation.online && (
                       <Circle className="absolute -bottom-1 -right-1 h-3 w-3 fill-green-500 text-green-500" />
                     )}
                   </div>
                   <div>
-                    <h3 className="font-medium">{selectedUser.name}</h3>
+                    <h3 className="font-medium">{currentConversation.name}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {selectedUser.online
+                      {currentConversation.online
                         ? "Active now"
                         : "Last seen 2 hours ago"}
                     </p>
@@ -389,12 +505,13 @@ export default function MessagesPage() {
                     onClick={() => {
                       setShowStudentModal(false);
                       const existing = conversations.find(
-                        (c) => c.name === student.full_name
+                        (c: any) => c.name === student.full_name
                       );
                       if (existing) {
                         setSelectedConversation(existing.id);
                       } else {
-                        alert(`Start conversation with ${student.full_name}`);
+                        // alert(`Start conversation with ${student.full_name}`);
+                        startConversation(student.id);
                       }
                     }}
                   >
