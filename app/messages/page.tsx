@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ProtectedLayout } from "@/components/layout/protected-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,88 +17,6 @@ import {
 } from "@/components/ui/dialog";
 import supabase from "@/lib/supabase";
 const moment = require("moment");
-
-const conversations = [
-  {
-    id: 1,
-    name: "Sarah Johnson",
-    lastMessage: "Hey, did you find your textbook?",
-    timestamp: "2 min ago",
-    unread: 2,
-    online: true,
-  },
-  {
-    id: 2,
-    name: "Mike Davis",
-    lastMessage: "Thanks for helping with the assignment!",
-    timestamp: "1 hour ago",
-    unread: 0,
-    online: false,
-  },
-  {
-    id: 3,
-    name: "Emma Wilson",
-    lastMessage: "See you at the study group tomorrow",
-    timestamp: "3 hours ago",
-    unread: 1,
-    online: true,
-  },
-  {
-    id: 4,
-    name: "Alex Brown",
-    lastMessage: "The project deadline is next week",
-    timestamp: "1 day ago",
-    unread: 0,
-    online: false,
-  },
-];
-
-const messages = [
-  {
-    id: 1,
-    senderId: 2,
-    content:
-      "Hey! I saw your post about the lost textbook. Is it still missing?",
-    timestamp: "10:30 AM",
-    isCurrentUser: false,
-  },
-  {
-    id: 2,
-    senderId: 1,
-    content: "Yes, I still haven't found it. It's the Physics 101 textbook.",
-    timestamp: "10:32 AM",
-    isCurrentUser: true,
-  },
-  {
-    id: 3,
-    senderId: 2,
-    content: "I think I saw one in the library yesterday. Want me to check?",
-    timestamp: "10:33 AM",
-    isCurrentUser: false,
-  },
-  {
-    id: 4,
-    senderId: 1,
-    content: "That would be amazing! Thank you so much 🙏",
-    timestamp: "10:34 AM",
-    isCurrentUser: true,
-  },
-  {
-    id: 5,
-    senderId: 2,
-    content: "No problem! I'll head there after my class and let you know.",
-    timestamp: "10:35 AM",
-    isCurrentUser: false,
-  },
-];
-
-const students = [
-  { id: 101, name: "Alice Carter", position: "CS President" },
-  { id: 102, name: "Brian Lee", position: "Business Rep" },
-  { id: 103, name: "Chloe Kim", position: null },
-  { id: 104, name: "David Smith", position: "Math Secretary" },
-  // Add more students as needed
-];
 
 // Utility: map position to bg color
 const positionBg = (position: string | null) => {
@@ -123,6 +41,7 @@ export default function MessagesPage() {
   const [conversations, setConversations] = useState<any>([]);
   const [currentConversation, setCurrentConversation] = useState<any>(null);
   const [messages, setMessages] = useState<any>([]);
+  const currentConversationRef = useRef<any>(null);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -182,12 +101,19 @@ export default function MessagesPage() {
             created_at,
             sender_id,
             is_read
+          ),
+          unread_count:unread_message_counts (
+            unread_count
           )
         )
       `
       )
       .eq("user_id", user.id)
-      .order('created_at', { ascending: false, referencedTable: 'chat_rooms.messages' })
+      .eq("chat_room.unread_message_counts.receiver_id", user.id)
+      .order("created_at", {
+        ascending: false,
+        referencedTable: "chat_rooms.messages",
+      })
       .limit(1, { foreignTable: "chat_rooms.messages" });
 
     if (error) {
@@ -195,8 +121,6 @@ export default function MessagesPage() {
       return;
     }
 
-    console.log("Chat rooms:", chatRooms);
-    
     const convos: any = [];
 
     for (const room of chatRooms) {
@@ -208,6 +132,9 @@ export default function MessagesPage() {
       // @ts-ignore
       const lastMessage = room?.chat_room?.messages[0];
 
+      // @ts-ignore
+      const unreadCount = room?.chat_room?.unread_count[0]?.unread_count;
+
       const conversation = {
         // @ts-ignore
         id: room?.chat_room?.id as any,
@@ -215,7 +142,7 @@ export default function MessagesPage() {
         otherUser: otherUser?.profile,
         lastMessage: lastMessage?.content,
         timestamp: moment(lastMessage?.created_at).fromNow(),
-        unread: 0,
+        unread: unreadCount,
         online: false,
       };
 
@@ -299,11 +226,12 @@ export default function MessagesPage() {
   }
 
   async function getMessages() {
+    const currentConversation = currentConversationRef.current;
+
     if (!currentConversation) {
       return;
     }
 
-    console.log("Getting messages");
     const { data: messages, error } = await supabase
       .from("messages")
       .select("*")
@@ -403,13 +331,14 @@ export default function MessagesPage() {
   useEffect(() => {
     if (user) {
       loadConversations();
+      checkForMessages();
     }
   }, [user]);
 
   useEffect(() => {
     if (currentConversation) {
       getMessages();
-      checkForMessages();
+      currentConversationRef.current = currentConversation;
     }
   }, [currentConversation]);
 
