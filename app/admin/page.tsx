@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -46,6 +47,7 @@ import {
   UserCheck,
   UserPlus,
   Building2,
+  Megaphone,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import supabase from "@/lib/supabase";
@@ -214,6 +216,10 @@ export default function AdminPage() {
   const [applications, setApplications] = useState(leadershipApplications);
   const [leaders, setLeaders] = useState(currentLeaders);
   const [isAppointDialogOpen, setIsAppointDialogOpen] = useState(false);
+  const [isAnnouncementDialogOpen, setIsAnnouncementDialogOpen] = useState(false);
+  const [announcementTitle, setAnnouncementTitle] = useState("");
+  const [announcementContent, setAnnouncementContent] = useState("");
+  const [announcementPriority, setAnnouncementPriority] = useState("normal");
   const router = useRouter();
 
   useEffect(() => {
@@ -343,17 +349,92 @@ export default function AdminPage() {
     }
   };
 
+  const handleCreateAnnouncement = () => {
+    // Handle announcement creation logic here
+    console.log({
+      title: announcementTitle,
+      content: announcementContent,
+      priority: announcementPriority
+    });
+    
+    // Reset form and close dialog
+    setAnnouncementTitle("");
+    setAnnouncementContent("");
+    setAnnouncementPriority("normal");
+    setIsAnnouncementDialogOpen(false);
+  };
+
   return (
     <ProtectedLayout>
       <div className="p-6 space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center">
-            <Shield className="h-8 w-8 mr-3 text-primary" />
-            Admin Dashboard
-          </h1>
-          <p className="text-muted-foreground">
-            Manage users, content, leadership positions, and platform settings
-          </p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight flex items-center">
+              <Shield className="h-8 w-8 mr-3 text-primary" />
+              Admin Dashboard
+            </h1>
+            <p className="text-muted-foreground">
+              Manage users, content, leadership positions, and platform settings
+            </p>
+          </div>
+          <Dialog open={isAnnouncementDialogOpen} onOpenChange={setIsAnnouncementDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Megaphone className="h-4 w-4 mr-2" />
+                Create Announcement
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Create Announcement</DialogTitle>
+                <DialogDescription>
+                  Send an announcement to all users on the platform
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Title</Label>
+                  <Input
+                    id="title"
+                    placeholder="Announcement title"
+                    value={announcementTitle}
+                    onChange={(e) => setAnnouncementTitle(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="content">Content</Label>
+                  <Textarea
+                    id="content"
+                    placeholder="Write your announcement here..."
+                    value={announcementContent}
+                    onChange={(e) => setAnnouncementContent(e.target.value)}
+                    rows={4}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="priority">Priority</Label>
+                  <Select value={announcementPriority} onValueChange={setAnnouncementPriority}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="urgent">Urgent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button 
+                  className="w-full" 
+                  onClick={handleCreateAnnouncement}
+                  disabled={!announcementTitle.trim() || !announcementContent.trim()}
+                >
+                  Create Announcement
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Stats Overview */}
