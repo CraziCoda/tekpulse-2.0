@@ -652,15 +652,11 @@ export default function CommunitiesPage() {
                         <SelectValue placeholder="Select community" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="cs">
-                          Computer Science Department
-                        </SelectItem>
-                        <SelectItem value="business">
-                          Business Administration
-                        </SelectItem>
-                        <SelectItem value="engineering">
-                          Engineering Faculty
-                        </SelectItem>
+                        {communities.map((community: any) => (
+                          <SelectItem key={community.id} value={community.id}>
+                            {community.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -750,25 +746,16 @@ export default function CommunitiesPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="parent">Parent Community</Label>
-                    <Select
-                      defaultValue={newCommunity.parent || ""}
-                      onValueChange={(value) =>
-                        setNewCommunity({ ...newCommunity, parent: value })
-                      }
-                    >
+                    <Select>
                       <SelectTrigger>
                         <SelectValue placeholder="Select parent community" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="cs">
-                          Computer Science Department
-                        </SelectItem>
-                        <SelectItem value="business">
-                          Business Administration
-                        </SelectItem>
-                        <SelectItem value="engineering">
-                          Engineering Faculty
-                        </SelectItem>
+                        {communities.map((community: any) => (
+                          <SelectItem key={community.id} value={community.id}>
+                            {community.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
