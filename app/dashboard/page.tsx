@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Calendar,
   Users,
@@ -87,6 +89,7 @@ export default function DashboardPage() {
     totalFoundItems: 0,
   });
   const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [isAnnouncementsDialogOpen, setIsAnnouncementsDialogOpen] = useState(false);
 
   const quickStats = [
     {
@@ -272,7 +275,7 @@ export default function DashboardPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {announcements.map((announcement) => (
+              {announcements.slice(0, 3).map((announcement) => (
                 <div
                   key={announcement.id}
                   className={`p-3 rounded-lg border-l-4 ${getPriorityColor(
@@ -290,9 +293,56 @@ export default function DashboardPage() {
                   </span>
                 </div>
               ))}
-              <Button variant="outline" className="w-full">
-                View All Announcements
-              </Button>
+              <Dialog open={isAnnouncementsDialogOpen} onOpenChange={setIsAnnouncementsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="w-full">
+                    View All Announcements
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[80vh]">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center">
+                      <Bell className="h-5 w-5 mr-2" />
+                      All Announcements
+                    </DialogTitle>
+                  </DialogHeader>
+                  <ScrollArea className="h-[60vh] pr-4">
+                    <div className="space-y-4">
+                      {announcements.map((announcement) => (
+                        <div
+                          key={announcement.id}
+                          className={`p-4 rounded-lg border-l-4 ${getPriorityColor(
+                            announcement.priority
+                          )} bg-muted/50`}
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <h4 className="text-base font-semibold">
+                              {announcement.title}
+                            </h4>
+                            <Badge 
+                              variant={announcement.priority === 'high' ? 'destructive' : 
+                                     announcement.priority === 'medium' ? 'default' : 'secondary'}
+                            >
+                              {announcement.priority}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
+                            {announcement.content}
+                          </p>
+                          <span className="text-xs text-muted-foreground">
+                            {moment(announcement.created_at).fromNow()}
+                          </span>
+                        </div>
+                      ))}
+                      {announcements.length === 0 && (
+                        <div className="text-center py-8 text-muted-foreground">
+                          No announcements available
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                </DialogContent>
+              </Dialog>
             </CardContent>
           </Card>
         </div>
