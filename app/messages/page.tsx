@@ -175,17 +175,28 @@ export default function MessagesPage() {
               full_name,
               student_id
             )
+          ),
+          messages (
+            id,
+            content,
+            created_at,
+            sender_id,
+            is_read
           )
         )
-  `
+      `
       )
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .order('created_at', { ascending: false, referencedTable: 'chat_rooms.messages' })
+      .limit(1, { foreignTable: "chat_rooms.messages" });
 
     if (error) {
       console.error(error);
       return;
     }
 
+    console.log("Chat rooms:", chatRooms);
+    
     const convos: any = [];
 
     for (const room of chatRooms) {
@@ -193,13 +204,17 @@ export default function MessagesPage() {
       const otherUser = room?.chat_room?.chat_members?.find(
         (m: any) => m.user_id !== user.id
       );
+
+      // @ts-ignore
+      const lastMessage = room?.chat_room?.messages[0];
+
       const conversation = {
         // @ts-ignore
         id: room?.chat_room?.id as any,
         name: otherUser?.profile?.full_name,
         otherUser: otherUser?.profile,
-        lastMessage: "",
-        timestamp: "",
+        lastMessage: lastMessage?.content,
+        timestamp: moment(lastMessage?.created_at).fromNow(),
         unread: 0,
         online: false,
       };
@@ -320,6 +335,7 @@ export default function MessagesPage() {
         },
         async () => {
           await getMessages();
+          await loadConversations();
         }
       )
       .subscribe();
