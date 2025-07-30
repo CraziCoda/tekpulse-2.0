@@ -41,6 +41,12 @@ export default function ProfilePage() {
   useEffect(() => {
     if (user) {
       userOverview();
+      supabase.auth.getUser().then(({ data }) => {
+        setUser({
+          ...user,
+          email: data.user?.email,
+        });
+      });
     }
   }, [user]);
 
@@ -163,7 +169,7 @@ export default function ProfilePage() {
                   <h2 className="text-xl font-semibold">{user.name}</h2>
                   <p className="text-muted-foreground">{user.email}</p>
                   <Badge variant="secondary" className="mt-2">
-                    Student ID: {user.studentId}
+                    Student ID: {user.student_id}
                   </Badge>
                 </div>
 
@@ -207,7 +213,9 @@ export default function ProfilePage() {
                         <Input
                           id="name"
                           value={
-                            isEditing ? editedUser.name || "" : user.name || ""
+                            isEditing
+                              ? editedUser.name || ""
+                              : user.full_name || ""
                           }
                           onChange={(e) =>
                             setEditedUser({
@@ -216,6 +224,7 @@ export default function ProfilePage() {
                             })
                           }
                           readOnly={!isEditing}
+                          disabled
                         />
                       </div>
                       <div className="space-y-2">
@@ -243,7 +252,7 @@ export default function ProfilePage() {
                           value={
                             isEditing
                               ? editedUser.studentId || ""
-                              : user.studentId || ""
+                              : user.student_id || ""
                           }
                           onChange={(e) =>
                             setEditedUser({
