@@ -52,36 +52,36 @@ const upcomingEvents = [
   },
 ];
 
-const quickStats = [
-  {
-    title: "Active Students",
-    value: "2,847",
-    icon: Users,
-    change: "+12%",
-    color: "text-blue-600",
-  },
-  {
-    title: "Lost Items",
-    value: "23",
-    icon: Clock,
-    change: "-8%",
-    color: "text-orange-600",
-  },
-  {
-    title: "Marketplace Items",
-    value: "156",
-    icon: DollarSign,
-    change: "+24%",
-    color: "text-green-600",
-  },
-  {
-    title: "Found Items",
-    value: "8",
-    icon: Tag,
-    change: "+3%",
-    color: "text-purple-600",
-  },
-];
+// const quickStats = [
+//   {
+//     title: "Active Students",
+//     value: "2,847",
+//     icon: Users,
+//     change: "+12%",
+//     color: "text-blue-600",
+//   },
+//   {
+//     title: "Lost Items",
+//     value: "23",
+//     icon: Clock,
+//     change: "-8%",
+//     color: "text-orange-600",
+//   },
+//   {
+//     title: "Marketplace Items",
+//     value: "156",
+//     icon: DollarSign,
+//     change: "+24%",
+//     color: "text-green-600",
+//   },
+//   {
+//     title: "Found Items",
+//     value: "8",
+//     icon: Tag,
+//     change: "+3%",
+//     color: "text-purple-600",
+//   },
+// ];
 
 const announcements = [
   {
@@ -116,6 +116,37 @@ export default function DashboardPage() {
     totalLostItems: 0,
     totalFoundItems: 0,
   });
+
+  const quickStats = [
+    {
+      title: "Active Students",
+      value: platformSummary.totalUsers,
+      icon: Users,
+      change: "+12%",
+      color: "text-blue-600",
+    },
+    {
+      title: "Lost Items",
+      value: platformSummary.totalLostItems,
+      icon: Clock,
+      change: "-8%",
+      color: "text-orange-600",
+    },
+    {
+      title: "Marketplace Items",
+      value: platformSummary.totalItems,
+      icon: DollarSign,
+      change: "+24%",
+      color: "text-green-600",
+    },
+    {
+      title: "Found Items",
+      value: platformSummary.totalFoundItems,
+      icon: Tag,
+      change: "+3%",
+      color: "text-purple-600",
+    },
+  ];
   const getEventTypeColor = (type: string) => {
     switch (type) {
       case "academic":
@@ -142,7 +173,26 @@ export default function DashboardPage() {
     }
   };
 
-  useEffect(() => {}, []);
+  async function getPlatformSummary() {
+    const { data, error } = await supabase
+      .from("platform_summary")
+      .select("*")
+      .single();
+    if (error) {
+      console.error(error);
+    } else {
+      setPlatformSummary({
+        totalUsers: data.total_profiles,
+        totalItems: data.marketplace_items,
+        totalLostItems: data.lost_items,
+        totalFoundItems: data.found_items,
+      });
+    }
+  }
+
+  useEffect(() => {
+    getPlatformSummary();
+  }, []);
 
   return (
     <ProtectedLayout>
