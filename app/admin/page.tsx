@@ -216,26 +216,14 @@ export default function AdminPage() {
   const [applications, setApplications] = useState(leadershipApplications);
   const [leaders, setLeaders] = useState(currentLeaders);
   const [isAppointDialogOpen, setIsAppointDialogOpen] = useState(false);
-  const [isAnnouncementDialogOpen, setIsAnnouncementDialogOpen] = useState(false);
+  const [isAnnouncementDialogOpen, setIsAnnouncementDialogOpen] =
+    useState(false);
   const [announcementTitle, setAnnouncementTitle] = useState("");
   const [announcementContent, setAnnouncementContent] = useState("");
   const [announcementPriority, setAnnouncementPriority] = useState("normal");
   const router = useRouter();
 
   useEffect(() => {
-    const userData = localStorage.getItem("user");
-
-    // if (userData) {
-    //   const parsedUser = JSON.parse(userData);
-    //   if (!parsedUser.is_admin) {
-    //     router.push('/dashboard');
-    //     return;
-    //   }
-    //   setUser(parsedUser);
-    // } else {
-    //   router.push('/auth/login');
-    // }
-
     getUserProfile();
   }, []);
 
@@ -349,14 +337,18 @@ export default function AdminPage() {
     }
   };
 
-  const handleCreateAnnouncement = () => {
-    // Handle announcement creation logic here
-    console.log({
+  const handleCreateAnnouncement = async () => {
+    const { error } = await supabase.from("announcements").insert({
       title: announcementTitle,
       content: announcementContent,
-      priority: announcementPriority
+      priority: announcementPriority,
     });
-    
+
+    if (error) {
+      console.error("Error creating announcement:", error);
+      return;
+    }
+
     // Reset form and close dialog
     setAnnouncementTitle("");
     setAnnouncementContent("");
@@ -377,7 +369,10 @@ export default function AdminPage() {
               Manage users, content, leadership positions, and platform settings
             </p>
           </div>
-          <Dialog open={isAnnouncementDialogOpen} onOpenChange={setIsAnnouncementDialogOpen}>
+          <Dialog
+            open={isAnnouncementDialogOpen}
+            onOpenChange={setIsAnnouncementDialogOpen}
+          >
             <DialogTrigger asChild>
               <Button>
                 <Megaphone className="h-4 w-4 mr-2" />
@@ -413,7 +408,10 @@ export default function AdminPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="priority">Priority</Label>
-                  <Select value={announcementPriority} onValueChange={setAnnouncementPriority}>
+                  <Select
+                    value={announcementPriority}
+                    onValueChange={setAnnouncementPriority}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select priority" />
                     </SelectTrigger>
@@ -425,10 +423,12 @@ export default function AdminPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button 
-                  className="w-full" 
+                <Button
+                  className="w-full"
                   onClick={handleCreateAnnouncement}
-                  disabled={!announcementTitle.trim() || !announcementContent.trim()}
+                  disabled={
+                    !announcementTitle.trim() || !announcementContent.trim()
+                  }
                 >
                   Create Announcement
                 </Button>

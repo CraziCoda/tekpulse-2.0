@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import supabase from "@/lib/supabase";
+import moment from "moment";
 import { useEffect } from "react";
 
 const upcomingEvents = [
@@ -51,37 +52,6 @@ const upcomingEvents = [
     type: "deadline",
   },
 ];
-
-// const quickStats = [
-//   {
-//     title: "Active Students",
-//     value: "2,847",
-//     icon: Users,
-//     change: "+12%",
-//     color: "text-blue-600",
-//   },
-//   {
-//     title: "Lost Items",
-//     value: "23",
-//     icon: Clock,
-//     change: "-8%",
-//     color: "text-orange-600",
-//   },
-//   {
-//     title: "Marketplace Items",
-//     value: "156",
-//     icon: DollarSign,
-//     change: "+24%",
-//     color: "text-green-600",
-//   },
-//   {
-//     title: "Found Items",
-//     value: "8",
-//     icon: Tag,
-//     change: "+3%",
-//     color: "text-purple-600",
-//   },
-// ];
 
 const announcements = [
   {
@@ -116,6 +86,7 @@ export default function DashboardPage() {
     totalLostItems: 0,
     totalFoundItems: 0,
   });
+  const [announcements, setAnnouncements] = useState<any[]>([]);
 
   const quickStats = [
     {
@@ -162,11 +133,11 @@ export default function DashboardPage() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case "high":
+      case "urgent":
         return "border-l-red-500";
-      case "medium":
+      case "high":
         return "border-l-yellow-500";
-      case "low":
+      case "normal":
         return "border-l-green-500";
       default:
         return "border-l-gray-500";
@@ -190,8 +161,18 @@ export default function DashboardPage() {
     }
   }
 
+  async function getAnnouncements() {
+    const { data, error } = await supabase.from("announcements").select("*");
+    if (error) {
+      console.error(error);
+    } else {
+      setAnnouncements(data);
+    }
+  }
+
   useEffect(() => {
     getPlatformSummary();
+    getAnnouncements();
   }, []);
 
   return (
@@ -305,7 +286,7 @@ export default function DashboardPage() {
                     {announcement.content}
                   </p>
                   <span className="text-xs text-muted-foreground">
-                    {announcement.timestamp}
+                    {moment(announcement.created_at).fromNow()}
                   </span>
                 </div>
               ))}
