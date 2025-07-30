@@ -31,13 +31,18 @@ const positionBg = (position: string | null) => {
   return "bg-muted text-muted-foreground";
 };
 
-// Helper to parse attachment info from message string
+// Update parseAttachment to extract name and description if present
 function parseAttachment(message: string) {
-  const match = message.match(/^attachment\(([^)]+)\):\s*([^;]+);/i);
+  // Matches: attachment(type): id(Name = Description);
+  const match = message.match(
+    /^attachment\(([^)]+)\):\s*([^(;]+)(?:\(([^=]+)=([^)]+)\))?;/i
+  );
   if (!match) return null;
   return {
-    type: match[1],
-    id: match[2],
+    type: match[1]?.trim(),
+    id: match[2]?.trim(),
+    name: match[3]?.trim() || null,
+    description: match[4]?.trim() || null,
   };
 }
 
@@ -82,7 +87,7 @@ export default function MessagesPage() {
     let content = newMessage;
     if (attachmentPreview) {
       content =
-        `attachment(${attachmentPreview.type}): ${attachmentPreview.id};` +
+        `attachment(${attachmentPreview.type}): ${attachmentPreview.id}(${attachmentPreview?.name} = ${attachmentPreview?.description});` +
         (newMessage ? " " + newMessage : "");
     }
 
@@ -486,12 +491,10 @@ export default function MessagesPage() {
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {messages.map((message: any) => {
                   const attachment = parseAttachment(message.content);
-                  // Remove the attachment string from the message content if present
                   let messageText = message.content;
                   if (attachment) {
-                    // Remove the attachment string from the start of the message
                     messageText = messageText.replace(
-                      /^attachment\([^)]+\):\s*[^;]+;\s*/i,
+                      /^attachment\([^)]+\):\s*([^(;]+)(?:\([^)]+\))?;/i,
                       ""
                     );
                   }
@@ -500,9 +503,7 @@ export default function MessagesPage() {
                       key={message.id}
                       className={cn(
                         "flex",
-                        message.sender_id === user.id
-                          ? "justify-end"
-                          : "justify-start"
+                        message.sender_id === user.id ? "justify-end" : "justify-start"
                       )}
                     >
                       <div>
@@ -512,6 +513,8 @@ export default function MessagesPage() {
                             <AttachmentPreview
                               type={attachment.type}
                               id={attachment.id}
+                              name={attachment.name}
+                              description={attachment.description}
                             />
                           </div>
                         )}
@@ -565,6 +568,8 @@ export default function MessagesPage() {
                     <AttachmentPreview
                       type={attachmentPreview.type}
                       id={attachmentPreview.id}
+                      name={attachmentPreview.name}
+                      description={attachmentPreview.description}
                     />
                     <button
                       type="button"
@@ -673,12 +678,29 @@ export default function MessagesPage() {
 }
 
 // Simple attachment preview component
-function AttachmentPreview({ type, id }: { type: string; id: string }) {
-  // You can expand this to render images, files, etc. based on type
+function AttachmentPreview({
+  type,
+  id,
+  name,
+  description,
+}: {
+  type: string;
+  id: string;
+  name?: string | null;
+  description?: string | null;
+}) {
   return (
-    <div className="flex items-center gap-2 p-2 rounded bg-muted border">
-      <span className="font-semibold capitalize">{type}</span>
-      <span className="text-xs text-muted-foreground">ID: {id}</span>
+    <div className="flex items-center gap-3 p-2 rounded bg-muted border">
+      <div>
+        <div className="font-semibold capitalize">{type}</div>
+        <div className="text-xs text-muted-foreground">ID: {id}</div>
+        {name && (
+          <div className="text-xs font-medium text-primary">{name}</div>
+        )}
+        {description && (
+          <div className="text-xs text-muted-foreground">{description}</div>
+        )}
+      </div>
     </div>
   );
 }
