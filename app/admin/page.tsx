@@ -46,7 +46,7 @@ import {
   Star,
   UserCheck,
   UserPlus,
-  Building2,
+  Calendar,
   Megaphone,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -218,9 +218,15 @@ export default function AdminPage() {
   const [isAppointDialogOpen, setIsAppointDialogOpen] = useState(false);
   const [isAnnouncementDialogOpen, setIsAnnouncementDialogOpen] =
     useState(false);
+  const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
   const [announcementTitle, setAnnouncementTitle] = useState("");
   const [announcementContent, setAnnouncementContent] = useState("");
   const [announcementPriority, setAnnouncementPriority] = useState("normal");
+  const [eventTitle, setEventTitle] = useState("");
+  const [eventDate, setEventDate] = useState("");
+  const [eventTime, setEventTime] = useState("");
+  const [eventLocation, setEventLocation] = useState("");
+  const [eventType, setEventType] = useState("academic");
   const router = useRouter();
 
   useEffect(() => {
@@ -356,6 +362,29 @@ export default function AdminPage() {
     setIsAnnouncementDialogOpen(false);
   };
 
+  const handleCreateEvent = async () => {
+    const { error } = await supabase.from("events").insert({
+      title: eventTitle,
+      date: eventDate,
+      time: eventTime,
+      location: eventLocation,
+      type: eventType,
+    });
+
+    if (error) {
+      console.error("Error creating event:", error);
+      return;
+    }
+
+    // Reset form and close dialog
+    setEventTitle("");
+    setEventDate("");
+    setEventTime("");
+    setEventLocation("");
+    setEventType("academic");
+    setIsEventDialogOpen(false);
+  };
+
   return (
     <ProtectedLayout>
       <div className="p-6 space-y-6">
@@ -369,72 +398,156 @@ export default function AdminPage() {
               Manage users, content, leadership positions, and platform settings
             </p>
           </div>
-          <Dialog
-            open={isAnnouncementDialogOpen}
-            onOpenChange={setIsAnnouncementDialogOpen}
-          >
-            <DialogTrigger asChild>
-              <Button>
-                <Megaphone className="h-4 w-4 mr-2" />
-                Create Announcement
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Create Announcement</DialogTitle>
-                <DialogDescription>
-                  Send an announcement to all users on the platform
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    placeholder="Announcement title"
-                    value={announcementTitle}
-                    onChange={(e) => setAnnouncementTitle(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="content">Content</Label>
-                  <Textarea
-                    id="content"
-                    placeholder="Write your announcement here..."
-                    value={announcementContent}
-                    onChange={(e) => setAnnouncementContent(e.target.value)}
-                    rows={4}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="priority">Priority</Label>
-                  <Select
-                    value={announcementPriority}
-                    onValueChange={setAnnouncementPriority}
+          <div className="flex gap-2">
+            <Dialog
+              open={isEventDialogOpen}
+              onOpenChange={setIsEventDialogOpen}
+            >
+              <DialogTrigger asChild>
+                <Button>
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Add Event
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>Add Event</DialogTitle>
+                  <DialogDescription>
+                    Create a new event for the campus calendar
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="eventTitle">Title</Label>
+                    <Input
+                      id="eventTitle"
+                      placeholder="Event title"
+                      value={eventTitle}
+                      onChange={(e) => setEventTitle(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="eventDate">Date</Label>
+                    <Input
+                      id="eventDate"
+                      type="date"
+                      value={eventDate}
+                      onChange={(e) => setEventDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="eventTime">Time</Label>
+                    <Input
+                      id="eventTime"
+                      type="time"
+                      value={eventTime}
+                      onChange={(e) => setEventTime(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="eventLocation">Location</Label>
+                    <Input
+                      id="eventLocation"
+                      placeholder="Event location"
+                      value={eventLocation}
+                      onChange={(e) => setEventLocation(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="eventType">Type</Label>
+                    <Select value={eventType} onValueChange={setEventType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select event type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="academic">Academic</SelectItem>
+                        <SelectItem value="event">Event</SelectItem>
+                        <SelectItem value="deadline">Deadline</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button
+                    className="w-full"
+                    onClick={handleCreateEvent}
+                    disabled={
+                      !eventTitle.trim() ||
+                      !eventDate ||
+                      !eventTime ||
+                      !eventLocation.trim()
+                    }
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select priority" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="normal">Normal</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="urgent">Urgent</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    Create Event
+                  </Button>
                 </div>
-                <Button
-                  className="w-full"
-                  onClick={handleCreateAnnouncement}
-                  disabled={
-                    !announcementTitle.trim() || !announcementContent.trim()
-                  }
-                >
+              </DialogContent>
+            </Dialog>
+            <Dialog
+              open={isAnnouncementDialogOpen}
+              onOpenChange={setIsAnnouncementDialogOpen}
+            >
+              <DialogTrigger asChild>
+                <Button>
+                  <Megaphone className="h-4 w-4 mr-2" />
                   Create Announcement
                 </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>Create Announcement</DialogTitle>
+                  <DialogDescription>
+                    Send an announcement to all users on the platform
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Title</Label>
+                    <Input
+                      id="title"
+                      placeholder="Announcement title"
+                      value={announcementTitle}
+                      onChange={(e) => setAnnouncementTitle(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="content">Content</Label>
+                    <Textarea
+                      id="content"
+                      placeholder="Write your announcement here..."
+                      value={announcementContent}
+                      onChange={(e) => setAnnouncementContent(e.target.value)}
+                      rows={4}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="priority">Priority</Label>
+                    <Select
+                      value={announcementPriority}
+                      onValueChange={setAnnouncementPriority}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select priority" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="normal">Normal</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="urgent">Urgent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button
+                    className="w-full"
+                    onClick={handleCreateAnnouncement}
+                    disabled={
+                      !announcementTitle.trim() || !announcementContent.trim()
+                    }
+                  >
+                    Create Announcement
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         {/* Stats Overview */}

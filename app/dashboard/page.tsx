@@ -10,7 +10,13 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Calendar,
@@ -55,31 +61,6 @@ const upcomingEvents = [
   },
 ];
 
-const announcements = [
-  {
-    id: 1,
-    title: "New Semester Registration Open",
-    content:
-      "Registration for Spring 2024 semester is now open. Deadline: March 30th.",
-    timestamp: "2 hours ago",
-    priority: "high",
-  },
-  {
-    id: 2,
-    title: "Campus Wi-Fi Maintenance",
-    content: "Scheduled maintenance on March 16th from 2:00 AM to 4:00 AM.",
-    timestamp: "1 day ago",
-    priority: "medium",
-  },
-  {
-    id: 3,
-    title: "Student Health Services Update",
-    content:
-      "New COVID-19 protocols are now in effect. Please review the guidelines.",
-    timestamp: "3 days ago",
-    priority: "low",
-  },
-];
 
 export default function DashboardPage() {
   const [platformSummary, setPlatformSummary] = useState({
@@ -89,7 +70,11 @@ export default function DashboardPage() {
     totalFoundItems: 0,
   });
   const [announcements, setAnnouncements] = useState<any[]>([]);
-  const [isAnnouncementsDialogOpen, setIsAnnouncementsDialogOpen] = useState(false);
+  const [isAnnouncementsDialogOpen, setIsAnnouncementsDialogOpen] =
+    useState(false);
+
+  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
+  const [isEventsDialogOpen, setIsEventsDialogOpen] = useState(false);
 
   const quickStats = [
     {
@@ -173,9 +158,19 @@ export default function DashboardPage() {
     }
   }
 
+  async function getUpcomingEvents() {
+    const { data, error } = await supabase.from("events").select("*");
+    if (error) {
+      console.error(error);
+    } else {
+      setUpcomingEvents(data);
+    }
+  }
+
   useEffect(() => {
     getPlatformSummary();
     getAnnouncements();
+    getUpcomingEvents();
   }, []);
 
   return (
@@ -257,9 +252,55 @@ export default function DashboardPage() {
                   </div>
                 </div>
               ))}
-              <Button variant="outline" className="w-full">
-                View All Events
-              </Button>
+              <Dialog open={isEventsDialogOpen} onOpenChange={setIsEventsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="w-full">
+                    View All Events
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[80vh]">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center">
+                      <Calendar className="h-5 w-5 mr-2" />
+                      All Events
+                    </DialogTitle>
+                  </DialogHeader>
+                  <ScrollArea className="h-[60vh] pr-4">
+                    <div className="space-y-4">
+                      {upcomingEvents.map((event) => (
+                        <div
+                          key={event.id}
+                          className="flex items-start space-x-4 p-4 rounded-lg border"
+                        >
+                          <div className="flex-shrink-0">
+                            <Badge className={getEventTypeColor(event.type)}>
+                              {event.type}
+                            </Badge>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-base font-semibold mb-2">{event.title}</h4>
+                            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                              <span>{event.date}</span>
+                              <span>•</span>
+                              <span>{event.time}</span>
+                              <span>•</span>
+                              <span className="flex items-center">
+                                <MapPin className="h-4 w-4 mr-1" />
+                                {event.location}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {upcomingEvents.length === 0 && (
+                        <div className="text-center py-8 text-muted-foreground">
+                          No events available
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                </DialogContent>
+              </Dialog>
             </CardContent>
           </Card>
 
@@ -293,7 +334,10 @@ export default function DashboardPage() {
                   </span>
                 </div>
               ))}
-              <Dialog open={isAnnouncementsDialogOpen} onOpenChange={setIsAnnouncementsDialogOpen}>
+              <Dialog
+                open={isAnnouncementsDialogOpen}
+                onOpenChange={setIsAnnouncementsDialogOpen}
+              >
                 <DialogTrigger asChild>
                   <Button variant="outline" className="w-full">
                     View All Announcements
@@ -319,9 +363,14 @@ export default function DashboardPage() {
                             <h4 className="text-base font-semibold">
                               {announcement.title}
                             </h4>
-                            <Badge 
-                              variant={announcement.priority === 'high' ? 'destructive' : 
-                                     announcement.priority === 'medium' ? 'default' : 'secondary'}
+                            <Badge
+                              variant={
+                                announcement.priority === "high"
+                                  ? "destructive"
+                                  : announcement.priority === "medium"
+                                  ? "default"
+                                  : "secondary"
+                              }
                             >
                               {announcement.priority}
                             </Badge>
