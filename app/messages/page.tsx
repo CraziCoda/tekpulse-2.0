@@ -18,6 +18,7 @@ import {
 import supabase from "@/lib/supabase";
 const moment = require("moment");
 import React from "react";
+import { useRouter, useSearchParams } from 'next/navigation'
 
 // Utility: map position to bg color
 const positionBg = (position: string | null) => {
@@ -59,8 +60,9 @@ export default function MessagesPage() {
   const [messages, setMessages] = useState<any>([]);
   const [attachmentPreview, setAttachmentPreview] = useState<any>(null);
   const currentConversationRef = useRef<any>(null);
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
-  // Watch newMessage for attachment pattern and remove the string from input
   useEffect(() => {
     const parsed = parseAttachment(newMessage);
     if (parsed) {
@@ -369,6 +371,21 @@ export default function MessagesPage() {
     if (user) {
       loadConversations();
       checkForMessages();
+
+      const id = searchParams.get("id");
+      const receiver_id = searchParams.get("user");
+      const type = searchParams.get("type");
+      const name = searchParams.get("name");
+      const description = searchParams.get("description");
+
+      if (id) {
+        startConversation(receiver_id);
+
+        setNewMessage(
+          `attachment(${type}): ${id}(${name} = ${description});`)
+
+          router.replace('/messages', { scroll: false })
+      }
     }
   }, [user]);
 
@@ -503,7 +520,9 @@ export default function MessagesPage() {
                       key={message.id}
                       className={cn(
                         "flex",
-                        message.sender_id === user.id ? "justify-end" : "justify-start"
+                        message.sender_id === user.id
+                          ? "justify-end"
+                          : "justify-start"
                       )}
                     >
                       <div>
@@ -694,9 +713,7 @@ function AttachmentPreview({
       <div>
         <div className="font-semibold capitalize">{type}</div>
         <div className="text-xs text-muted-foreground">ID: {id}</div>
-        {name && (
-          <div className="text-xs font-medium text-primary">{name}</div>
-        )}
+        {name && <div className="text-xs font-medium text-primary">{name}</div>}
         {description && (
           <div className="text-xs text-muted-foreground">{description}</div>
         )}

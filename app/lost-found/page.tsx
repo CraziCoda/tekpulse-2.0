@@ -24,64 +24,9 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Search, Plus, MapPin, Clock, User, Tag } from "lucide-react";
+import { useRouter } from "next/navigation";
 import supabase from "@/lib/supabase";
 import moment from "moment";
-
-const lostItems = [
-  {
-    id: 1,
-    title: "Blue Backpack",
-    description: "Navy blue Jansport backpack with laptop compartment",
-    location: "Library - 2nd Floor",
-    dateReported: "2024-03-10",
-    category: "bag",
-    reportedBy: "John Smith",
-    status: "lost",
-  },
-  {
-    id: 2,
-    title: "iPhone 14",
-    description: "Black iPhone 14 with a clear case",
-    location: "Student Center",
-    dateReported: "2024-03-12",
-    category: "electronics",
-    reportedBy: "Sarah Johnson",
-    status: "lost",
-  },
-  {
-    id: 3,
-    title: "Red Water Bottle",
-    description: "Stainless steel red water bottle with university logo",
-    location: "Gym - Main Hall",
-    dateReported: "2024-03-08",
-    category: "personal",
-    reportedBy: "Mike Davis",
-    status: "lost",
-  },
-];
-
-const foundItems = [
-  {
-    id: 4,
-    title: "Textbook - Physics 101",
-    description: "Physics textbook with handwritten notes inside",
-    location: "Physics Building - Room 203",
-    dateReported: "2024-03-11",
-    category: "books",
-    reportedBy: "Emma Wilson",
-    status: "found",
-  },
-  {
-    id: 5,
-    title: "Silver Watch",
-    description: "Silver digital watch with black strap",
-    location: "Cafeteria",
-    dateReported: "2024-03-09",
-    category: "accessories",
-    reportedBy: "Alex Brown",
-    status: "found",
-  },
-];
 
 export default function LostFoundPage() {
   const [user, setUser] = useState<any>(null);
@@ -91,6 +36,8 @@ export default function LostFoundPage() {
   const [isReporting, setIsReporting] = useState(false);
   const [createReportError, setCreateReportError] = useState("");
   const [reports, setReports] = useState<any>([]);
+
+  const router = useRouter();
 
   const reportsFiltered = reports.filter((report: any) =>
     report.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -244,6 +191,10 @@ export default function LostFoundPage() {
             if (item.author.id === user?.id) {
               handleResolved(item.id);
               e.currentTarget.disabled = true;
+            } else {
+              router.push(
+                `/messages?id=${item.id}&user=${item.author.id}&type=lost-found&name=${item.title}&description=${item.description}`
+              );
             }
           }}
         >

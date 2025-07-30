@@ -32,71 +32,7 @@ import {
 import { Search, Plus, DollarSign, User, Clock, Tag } from "lucide-react";
 import supabase from "@/lib/supabase";
 import moment from "moment";
-
-const marketplaceItems = [
-  {
-    id: 1,
-    title: "Calculus Textbook - 8th Edition",
-    price: 45,
-    description:
-      "Excellent condition, minimal highlighting. Perfect for Math 101.",
-    category: "books",
-    seller: "John Smith",
-    postedDate: "2024-03-10",
-    condition: "Like New",
-  },
-  {
-    id: 2,
-    title: "MacBook Air M1 (2020)",
-    price: 650,
-    description:
-      "Great laptop for students. Includes charger and protective case.",
-    category: "electronics",
-    seller: "Sarah Johnson",
-    postedDate: "2024-03-12",
-    condition: "Good",
-  },
-  {
-    id: 3,
-    title: "Desk Lamp - Adjustable",
-    price: 25,
-    description: "Perfect for studying. LED bulb included.",
-    category: "furniture",
-    seller: "Mike Davis",
-    postedDate: "2024-03-08",
-    condition: "Used",
-  },
-  {
-    id: 4,
-    title: "Chemistry Lab Goggles",
-    price: 12,
-    description: "Required for Chem 201. Never used, still in packaging.",
-    category: "supplies",
-    seller: "Emma Wilson",
-    postedDate: "2024-03-11",
-    condition: "New",
-  },
-  {
-    id: 5,
-    title: "Graphing Calculator TI-84",
-    price: 80,
-    description: "Essential for math and engineering courses. Works perfectly.",
-    category: "electronics",
-    seller: "Alex Brown",
-    postedDate: "2024-03-09",
-    condition: "Good",
-  },
-  {
-    id: 6,
-    title: "Study Desk - Wooden",
-    price: 120,
-    description: "Solid wood desk with drawers. Perfect for dorm or apartment.",
-    category: "furniture",
-    seller: "Lisa Chen",
-    postedDate: "2024-03-07",
-    condition: "Good",
-  },
-];
+import { useRouter } from "next/navigation";
 
 export default function MarketplacePage() {
   const [user, setUser] = useState<any>(null);
@@ -107,6 +43,8 @@ export default function MarketplacePage() {
   const [isCreatingListing, setIsCreatingListing] = useState(false);
   const [creatingListingError, setCreatingListingError] = useState("");
   const [listings, setListings] = useState<any>([]);
+
+  const router = useRouter();
 
   const [listingItem, setListingItem] = useState<any>({
     title: "",
@@ -448,7 +386,16 @@ export default function MarketplacePage() {
                       Remove Listing
                     </Button>
                   ) : (
-                    <Button className="flex-1">Contact Seller</Button>
+                    <Button
+                      className="flex-1"
+                      onClick={() => {
+                        router.push(
+                          `/messages?id=${item.id}&user=${item.author.id}&type=marketplace&name=${item.title}&description=${item.description}`
+                        );
+                      }}
+                    >
+                      Contact Seller
+                    </Button>
                   )}
                 </div>
               </CardContent>
