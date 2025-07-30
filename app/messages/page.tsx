@@ -81,7 +81,9 @@ export default function MessagesPage() {
     // If there's an attachment, prepend it to the message string
     let content = newMessage;
     if (attachmentPreview) {
-      content = `attachment(${attachmentPreview.type}): ${attachmentPreview.id};` + (newMessage ? " " + newMessage : "");
+      content =
+        `attachment(${attachmentPreview.type}): ${attachmentPreview.id};` +
+        (newMessage ? " " + newMessage : "");
     }
 
     const { error } = await supabase.from("messages").insert({
@@ -367,8 +369,8 @@ export default function MessagesPage() {
 
   useEffect(() => {
     if (currentConversation) {
-      getMessages();
       currentConversationRef.current = currentConversation;
+      getMessages();
     }
   }, [currentConversation]);
 
@@ -507,7 +509,10 @@ export default function MessagesPage() {
                         {/* Show attachment above message if exists */}
                         {attachment && (
                           <div className="mb-1">
-                            <AttachmentPreview type={attachment.type} id={attachment.id} />
+                            <AttachmentPreview
+                              type={attachment.type}
+                              id={attachment.id}
+                            />
                           </div>
                         )}
                         {/* Show message text if any */}
@@ -557,7 +562,10 @@ export default function MessagesPage() {
                 {/* Attachment preview above input */}
                 {attachmentPreview && (
                   <div className="mb-2 flex items-center">
-                    <AttachmentPreview type={attachmentPreview.type} id={attachmentPreview.id} />
+                    <AttachmentPreview
+                      type={attachmentPreview.type}
+                      id={attachmentPreview.id}
+                    />
                     <button
                       type="button"
                       className="ml-2 text-muted-foreground hover:text-destructive"
