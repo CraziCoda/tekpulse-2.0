@@ -1,16 +1,31 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { ProtectedLayout } from '@/components/layout/protected-layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Mail, GraduationCap, MapPin, Calendar, Edit, Save, X } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { ProtectedLayout } from "@/components/layout/protected-layout";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  User,
+  Mail,
+  GraduationCap,
+  MapPin,
+  Calendar,
+  Edit,
+  Save,
+  X,
+} from "lucide-react";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
@@ -18,7 +33,7 @@ export default function ProfilePage() {
   const [editedUser, setEditedUser] = useState<any>({});
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');
+    const userData = localStorage.getItem("user");
     if (userData) {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
@@ -27,7 +42,7 @@ export default function ProfilePage() {
   }, []);
 
   const handleSave = () => {
-    localStorage.setItem('user', JSON.stringify(editedUser));
+    localStorage.setItem("user", JSON.stringify(editedUser));
     setUser(editedUser);
     setIsEditing(false);
   };
@@ -40,37 +55,36 @@ export default function ProfilePage() {
   if (!user) return null;
 
   const userStats = [
-    { label: 'Messages Sent', value: '342' },
-    { label: 'Items Listed', value: '12' },
-    { label: 'Items Found', value: '5' },
-    { label: 'Points Earned', value: '1,240' }
+    { label: "Messages Sent", value: "342" },
+    { label: "Items Listed", value: "12" },
+    { label: "Items Found", value: "5" },
   ];
 
   const recentActivity = [
     {
       id: 1,
-      type: 'message',
-      description: 'Sent a message to Sarah Johnson',
-      timestamp: '2 hours ago'
+      type: "message",
+      description: "Sent a message to Sarah Johnson",
+      timestamp: "2 hours ago",
     },
     {
       id: 2,
-      type: 'listing',
+      type: "listing",
       description: 'Listed "Calculus Textbook" in marketplace',
-      timestamp: '1 day ago'
+      timestamp: "1 day ago",
     },
     {
       id: 3,
-      type: 'found',
-      description: 'Reported found item: Blue Backpack',
-      timestamp: '3 days ago'
+      type: "found",
+      description: "Reported found item: Blue Backpack",
+      timestamp: "3 days ago",
     },
     {
       id: 4,
-      type: 'message',
-      description: 'Received message from Mike Davis',
-      timestamp: '5 days ago'
-    }
+      type: "message",
+      description: "Received message from Mike Davis",
+      timestamp: "5 days ago",
+    },
   ];
 
   return (
@@ -112,7 +126,7 @@ export default function ProfilePage() {
                     {user.name?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
-                
+
                 <div>
                   <h2 className="text-xl font-semibold">{user.name}</h2>
                   <p className="text-muted-foreground">{user.email}</p>
@@ -124,8 +138,12 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-2 gap-4 pt-4">
                   {userStats.map((stat) => (
                     <div key={stat.label} className="text-center">
-                      <div className="text-2xl font-bold text-primary">{stat.value}</div>
-                      <div className="text-sm text-muted-foreground">{stat.label}</div>
+                      <div className="text-2xl font-bold text-primary">
+                        {stat.value}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {stat.label}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -141,7 +159,7 @@ export default function ProfilePage() {
                 <TabsTrigger value="activity">Activity</TabsTrigger>
                 <TabsTrigger value="settings">Settings</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="personal" className="space-y-4">
                 <Card>
                   <CardHeader>
@@ -156,8 +174,15 @@ export default function ProfilePage() {
                         <Label htmlFor="name">Full Name</Label>
                         <Input
                           id="name"
-                          value={isEditing ? editedUser.name || '' : user.name || ''}
-                          onChange={(e) => setEditedUser({...editedUser, name: e.target.value})}
+                          value={
+                            isEditing ? editedUser.name || "" : user.name || ""
+                          }
+                          onChange={(e) =>
+                            setEditedUser({
+                              ...editedUser,
+                              name: e.target.value,
+                            })
+                          }
                           readOnly={!isEditing}
                         />
                       </div>
@@ -165,8 +190,17 @@ export default function ProfilePage() {
                         <Label htmlFor="email">Email</Label>
                         <Input
                           id="email"
-                          value={isEditing ? editedUser.email || '' : user.email || ''}
-                          onChange={(e) => setEditedUser({...editedUser, email: e.target.value})}
+                          value={
+                            isEditing
+                              ? editedUser.email || ""
+                              : user.email || ""
+                          }
+                          onChange={(e) =>
+                            setEditedUser({
+                              ...editedUser,
+                              email: e.target.value,
+                            })
+                          }
                           readOnly={!isEditing}
                         />
                       </div>
@@ -174,8 +208,17 @@ export default function ProfilePage() {
                         <Label htmlFor="studentId">Student ID</Label>
                         <Input
                           id="studentId"
-                          value={isEditing ? editedUser.studentId || '' : user.studentId || ''}
-                          onChange={(e) => setEditedUser({...editedUser, studentId: e.target.value})}
+                          value={
+                            isEditing
+                              ? editedUser.studentId || ""
+                              : user.studentId || ""
+                          }
+                          onChange={(e) =>
+                            setEditedUser({
+                              ...editedUser,
+                              studentId: e.target.value,
+                            })
+                          }
                           readOnly={!isEditing}
                         />
                       </div>
@@ -183,8 +226,17 @@ export default function ProfilePage() {
                         <Label htmlFor="phone">Phone Number</Label>
                         <Input
                           id="phone"
-                          value={isEditing ? editedUser.phone || '' : user.phone || ''}
-                          onChange={(e) => setEditedUser({...editedUser, phone: e.target.value})}
+                          value={
+                            isEditing
+                              ? editedUser.phone || ""
+                              : user.phone || ""
+                          }
+                          onChange={(e) =>
+                            setEditedUser({
+                              ...editedUser,
+                              phone: e.target.value,
+                            })
+                          }
                           readOnly={!isEditing}
                           placeholder="(555) 123-4567"
                         />
@@ -193,8 +245,17 @@ export default function ProfilePage() {
                         <Label htmlFor="major">Major</Label>
                         <Input
                           id="major"
-                          value={isEditing ? editedUser.major || '' : user.major || ''}
-                          onChange={(e) => setEditedUser({...editedUser, major: e.target.value})}
+                          value={
+                            isEditing
+                              ? editedUser.major || ""
+                              : user.major || ""
+                          }
+                          onChange={(e) =>
+                            setEditedUser({
+                              ...editedUser,
+                              major: e.target.value,
+                            })
+                          }
                           readOnly={!isEditing}
                           placeholder="Computer Science"
                         />
@@ -203,8 +264,15 @@ export default function ProfilePage() {
                         <Label htmlFor="year">Year</Label>
                         <Input
                           id="year"
-                          value={isEditing ? editedUser.year || '' : user.year || ''}
-                          onChange={(e) => setEditedUser({...editedUser, year: e.target.value})}
+                          value={
+                            isEditing ? editedUser.year || "" : user.year || ""
+                          }
+                          onChange={(e) =>
+                            setEditedUser({
+                              ...editedUser,
+                              year: e.target.value,
+                            })
+                          }
                           readOnly={!isEditing}
                           placeholder="Junior"
                         />
@@ -214,8 +282,12 @@ export default function ProfilePage() {
                       <Label htmlFor="bio">Bio</Label>
                       <Textarea
                         id="bio"
-                        value={isEditing ? editedUser.bio || '' : user.bio || ''}
-                        onChange={(e) => setEditedUser({...editedUser, bio: e.target.value})}
+                        value={
+                          isEditing ? editedUser.bio || "" : user.bio || ""
+                        }
+                        onChange={(e) =>
+                          setEditedUser({ ...editedUser, bio: e.target.value })
+                        }
                         readOnly={!isEditing}
                         placeholder="Tell other students about yourself..."
                         rows={3}
@@ -224,7 +296,7 @@ export default function ProfilePage() {
                   </CardContent>
                 </Card>
               </TabsContent>
-              
+
               <TabsContent value="activity" className="space-y-4">
                 <Card>
                   <CardHeader>
@@ -236,15 +308,28 @@ export default function ProfilePage() {
                   <CardContent>
                     <div className="space-y-4">
                       {recentActivity.map((activity) => (
-                        <div key={activity.id} className="flex items-center space-x-4 p-3 rounded-lg border">
+                        <div
+                          key={activity.id}
+                          className="flex items-center space-x-4 p-3 rounded-lg border"
+                        >
                           <div className="flex-shrink-0">
-                            {activity.type === 'message' && <Mail className="h-5 w-5 text-blue-500" />}
-                            {activity.type === 'listing' && <GraduationCap className="h-5 w-5 text-green-500" />}
-                            {activity.type === 'found' && <MapPin className="h-5 w-5 text-orange-500" />}
+                            {activity.type === "message" && (
+                              <Mail className="h-5 w-5 text-blue-500" />
+                            )}
+                            {activity.type === "listing" && (
+                              <GraduationCap className="h-5 w-5 text-green-500" />
+                            )}
+                            {activity.type === "found" && (
+                              <MapPin className="h-5 w-5 text-orange-500" />
+                            )}
                           </div>
                           <div className="flex-1">
-                            <p className="text-sm font-medium">{activity.description}</p>
-                            <p className="text-xs text-muted-foreground">{activity.timestamp}</p>
+                            <p className="text-sm font-medium">
+                              {activity.description}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {activity.timestamp}
+                            </p>
                           </div>
                         </div>
                       ))}
@@ -252,7 +337,7 @@ export default function ProfilePage() {
                   </CardContent>
                 </Card>
               </TabsContent>
-              
+
               <TabsContent value="settings" className="space-y-4">
                 <Card>
                   <CardHeader>
@@ -264,15 +349,18 @@ export default function ProfilePage() {
                   <CardContent className="space-y-4">
                     <div className="space-y-4">
                       <div className="p-4 border rounded-lg">
-                        <h4 className="font-medium mb-2">Email Notifications</h4>
+                        <h4 className="font-medium mb-2">
+                          Email Notifications
+                        </h4>
                         <p className="text-sm text-muted-foreground mb-3">
-                          Receive email notifications for messages and important updates
+                          Receive email notifications for messages and important
+                          updates
                         </p>
                         <Button variant="outline" size="sm">
                           Configure Notifications
                         </Button>
                       </div>
-                      
+
                       <div className="p-4 border rounded-lg">
                         <h4 className="font-medium mb-2">Privacy Settings</h4>
                         <p className="text-sm text-muted-foreground mb-3">
@@ -282,7 +370,7 @@ export default function ProfilePage() {
                           Manage Privacy
                         </Button>
                       </div>
-                      
+
                       <div className="p-4 border rounded-lg">
                         <h4 className="font-medium mb-2">Change Password</h4>
                         <p className="text-sm text-muted-foreground mb-3">
