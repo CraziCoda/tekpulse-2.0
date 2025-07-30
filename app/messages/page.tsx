@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import supabase from "@/lib/supabase";
-import { set } from "date-fns";
+const moment = require("moment");
 
 const conversations = [
   {
@@ -122,9 +122,32 @@ export default function MessagesPage() {
   const [allUsers, setAllUsers] = useState<any>([]);
   const [conversations, setConversations] = useState<any>([]);
   const [currentConversation, setCurrentConversation] = useState<any>(null);
+  const [messages, setMessages] = useState<any>([]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!newMessage) {
+      alert("Please enter a message");
+      return;
+    }
+    if (!currentConversation) {
+      alert("Please select a conversation");
+      return;
+    }
+
+    const { error } = await supabase.from("messages").insert({
+      chat_room_id: currentConversation.id,
+      sender_id: user.id,
+      receiver_id: currentConversation.otherUser.id,
+      content: newMessage,
+    });
+
+    if (error) {
+      console.error(error);
+    } else {
+      setNewMessage("");
+    }
   };
 
   // Enhanced filter: search by name or position
@@ -147,7 +170,7 @@ export default function MessagesPage() {
           last_active,
           chat_members (
             user_id,
-            profiles (
+            profile:profiles (
               id,
               full_name,
               student_id
@@ -163,6 +186,8 @@ export default function MessagesPage() {
       return;
     }
 
+    const convos: any = [];
+
     for (const room of chatRooms) {
       // @ts-ignore
       const otherUser = room?.chat_room?.chat_members?.find(
@@ -171,18 +196,18 @@ export default function MessagesPage() {
       const conversation = {
         // @ts-ignore
         id: room?.chat_room?.id as any,
-        name: otherUser?.profiles?.full_name,
+        name: otherUser?.profile?.full_name,
+        otherUser: otherUser?.profile,
         lastMessage: "",
         timestamp: "",
         unread: 0,
         online: false,
       };
 
-      setConversations((prevConversations: any) => [
-        ...prevConversations,
-        conversation,
-      ]);
+      convos.push(conversation);
     }
+
+    setConversations(convos);
   };
 
   async function startConversation(id: any) {
@@ -230,6 +255,10 @@ export default function MessagesPage() {
         const conversation = {
           name: selectedUser.full_name,
           id: newRoom.id,
+          otherUser: selectedUser,
+          lastMessage: "",
+          timestamp: "",
+          unread: 0,
           online: true,
         };
 
@@ -243,11 +272,57 @@ export default function MessagesPage() {
       const conversation = {
         name: user_profile?.profile?.full_name || "",
         id: chatRooms[0].id,
+        otherUser: user_profile?.profile,
+        lastMessage: "",
+        timestamp: "",
+        unread: 0,
         online: true,
       };
 
       setCurrentConversation(conversation);
     }
+  }
+
+  async function getMessages() {
+    if (!currentConversation) {
+      return;
+    }
+
+    console.log("Getting messages");
+    const { data: messages, error } = await supabase
+      .from("messages")
+      .select("*")
+      .eq("chat_room_id", currentConversation?.id)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error(error);
+    } else {
+      setMessages(messages);
+
+      await supabase
+        .from("messages")
+        .update({ is_read: true })
+        .eq("chat_room_id", currentConversation?.id)
+        .eq("receiver_id", user.id);
+    }
+  }
+
+  async function checkForMessages() {
+    const channel = supabase
+      .channel("messages")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+        },
+        async () => {
+          await getMessages();
+        }
+      )
+      .subscribe();
   }
 
   async function getUserProfile() {
@@ -310,8 +385,17 @@ export default function MessagesPage() {
   }, []);
 
   useEffect(() => {
-    if (user) loadConversations();
+    if (user) {
+      loadConversations();
+    }
   }, [user]);
+
+  useEffect(() => {
+    if (currentConversation) {
+      getMessages();
+      checkForMessages();
+    }
+  }, [currentConversation]);
 
   return (
     <ProtectedLayout>
@@ -423,18 +507,20 @@ export default function MessagesPage() {
 
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {messages.map((message) => (
+                {messages.map((message: any) => (
                   <div
                     key={message.id}
                     className={cn(
                       "flex",
-                      message.isCurrentUser ? "justify-end" : "justify-start"
+                      message.sender_id === user.id
+                        ? "justify-end"
+                        : "justify-start"
                     )}
                   >
                     <div
                       className={cn(
                         "max-w-xs lg:max-w-md px-4 py-2 rounded-lg",
-                        message.isCurrentUser
+                        message.sender_id === user.id
                           ? "bg-primary text-primary-foreground"
                           : "bg-muted"
                       )}
@@ -443,12 +529,12 @@ export default function MessagesPage() {
                       <p
                         className={cn(
                           "text-xs mt-1",
-                          message.isCurrentUser
+                          message.sender_id === user.id
                             ? "text-primary-foreground/70"
                             : "text-muted-foreground"
                         )}
                       >
-                        {message.timestamp}
+                        {moment(message.created_at).fromNow()}
                       </p>
                     </div>
                   </div>
