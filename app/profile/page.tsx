@@ -26,20 +26,58 @@ import {
   Save,
   X,
 } from "lucide-react";
+import supabase from "@/lib/supabase";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState<any>({});
+  const [userStats, setUserStats] = useState<any>([]);
 
   useEffect(() => {
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      const parsedUser = JSON.parse(userData);
-      setUser(parsedUser);
-      setEditedUser(parsedUser);
-    }
+    getUserProfile();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      userOverview();
+    }
+  }, [user]);
+
+  async function userOverview() {
+    const { data, error } = await supabase
+      .from("user_activity_summary")
+      .select("*")
+      .eq("user_id", user.id)
+      .single();
+
+    if (error) {
+      console.error(error);
+    } else {
+      setUserStats([
+        { label: "Communities Joined", value: data.communities_joined },
+        { label: "Items Listed", value: data.product_listings },
+        { label: "Items Found", value: data.items_found },
+        { label: "Posts", value: data.post_count },
+      ]);
+    }
+  }
+
+  async function getUserProfile() {
+    const { data: userData } = await supabase.auth.getUser();
+
+    if (userData.user) {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userData.user.id)
+        .single();
+
+      if (data) {
+        setUser(data);
+      }
+    }
+  }
 
   const handleSave = () => {
     localStorage.setItem("user", JSON.stringify(editedUser));
@@ -53,12 +91,6 @@ export default function ProfilePage() {
   };
 
   if (!user) return null;
-
-  const userStats = [
-    { label: "Messages Sent", value: "342" },
-    { label: "Items Listed", value: "12" },
-    { label: "Items Found", value: "5" },
-  ];
 
   const recentActivity = [
     {
@@ -136,7 +168,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 pt-4">
-                  {userStats.map((stat) => (
+                  {userStats.map((stat: any) => (
                     <div key={stat.label} className="text-center">
                       <div className="text-2xl font-bold text-primary">
                         {stat.value}
