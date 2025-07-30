@@ -740,7 +740,7 @@ export default function CommunitiesPage() {
                         <SelectItem value="department">Department</SelectItem>
                         <SelectItem value="faculty">Faculty</SelectItem>
                         <SelectItem value="college">College</SelectItem>
-                        <SelectItem value="special">Special Group</SelectItem>
+                        <SelectItem value="special_group">Special Group</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
