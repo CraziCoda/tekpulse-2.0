@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import supabase from "@/lib/supabase";
 const moment = require("moment");
+import React from "react";
 
 // Utility: map position to bg color
 const positionBg = (position: string | null) => {
@@ -30,6 +31,16 @@ const positionBg = (position: string | null) => {
   return "bg-muted text-muted-foreground";
 };
 
+// Helper to parse attachment info from message string
+function parseAttachment(message: string) {
+  const match = message.match(/^attachment\(([^)]+)\):\s*([^;]+);/i);
+  if (!match) return null;
+  return {
+    type: match[1],
+    id: match[2],
+  };
+}
+
 export default function MessagesPage() {
   const [user, setUser] = useState<any>(null);
   const [selectedConversation, setSelectedConversation] = useState(1);
@@ -41,12 +52,24 @@ export default function MessagesPage() {
   const [conversations, setConversations] = useState<any>([]);
   const [currentConversation, setCurrentConversation] = useState<any>(null);
   const [messages, setMessages] = useState<any>([]);
+  const [attachmentPreview, setAttachmentPreview] = useState<any>(null);
   const currentConversationRef = useRef<any>(null);
+
+  // Watch newMessage for attachment pattern and remove the string from input
+  useEffect(() => {
+    const parsed = parseAttachment(newMessage);
+    if (parsed) {
+      setAttachmentPreview(parsed);
+      setNewMessage(""); // Remove the string from the input
+    }
+    // Only set preview if pattern is present
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [newMessage]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!newMessage) {
+    if (!newMessage && !attachmentPreview) {
       alert("Please enter a message");
       return;
     }
@@ -55,17 +78,24 @@ export default function MessagesPage() {
       return;
     }
 
+    // If there's an attachment, prepend it to the message string
+    let content = newMessage;
+    if (attachmentPreview) {
+      content = `attachment(${attachmentPreview.type}): ${attachmentPreview.id};` + (newMessage ? " " + newMessage : "");
+    }
+
     const { error } = await supabase.from("messages").insert({
       chat_room_id: currentConversation.id,
       sender_id: user.id,
       receiver_id: currentConversation.otherUser.id,
-      content: newMessage,
+      content,
     });
 
     if (error) {
       console.error(error);
     } else {
       setNewMessage("");
+      setAttachmentPreview(null);
     }
   };
 
@@ -452,42 +482,95 @@ export default function MessagesPage() {
 
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {messages.map((message: any) => (
-                  <div
-                    key={message.id}
-                    className={cn(
-                      "flex",
-                      message.sender_id === user.id
-                        ? "justify-end"
-                        : "justify-start"
-                    )}
-                  >
+                {messages.map((message: any) => {
+                  const attachment = parseAttachment(message.content);
+                  // Remove the attachment string from the message content if present
+                  let messageText = message.content;
+                  if (attachment) {
+                    // Remove the attachment string from the start of the message
+                    messageText = messageText.replace(
+                      /^attachment\([^)]+\):\s*[^;]+;\s*/i,
+                      ""
+                    );
+                  }
+                  return (
                     <div
+                      key={message.id}
                       className={cn(
-                        "max-w-xs lg:max-w-md px-4 py-2 rounded-lg",
+                        "flex",
                         message.sender_id === user.id
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted"
+                          ? "justify-end"
+                          : "justify-start"
                       )}
                     >
-                      <p className="text-sm">{message.content}</p>
-                      <p
-                        className={cn(
-                          "text-xs mt-1",
-                          message.sender_id === user.id
-                            ? "text-primary-foreground/70"
-                            : "text-muted-foreground"
+                      <div>
+                        {/* Show attachment above message if exists */}
+                        {attachment && (
+                          <div className="mb-1">
+                            <AttachmentPreview type={attachment.type} id={attachment.id} />
+                          </div>
                         )}
-                      >
-                        {moment(message.created_at).fromNow()}
-                      </p>
+                        {/* Show message text if any */}
+                        {messageText.trim() && (
+                          <div
+                            className={cn(
+                              "max-w-xs lg:max-w-md px-4 py-2 rounded-lg",
+                              message.sender_id === user.id
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted"
+                            )}
+                          >
+                            <p className="text-sm">{messageText}</p>
+                            <p
+                              className={cn(
+                                "text-xs mt-1",
+                                message.sender_id === user.id
+                                  ? "text-primary-foreground/70"
+                                  : "text-muted-foreground"
+                              )}
+                            >
+                              {moment(message.created_at).fromNow()}
+                            </p>
+                          </div>
+                        )}
+                        {/* If only attachment, show time below */}
+                        {!messageText.trim() && attachment && (
+                          <p
+                            className={cn(
+                              "text-xs mt-1",
+                              message.sender_id === user.id
+                                ? "text-primary-foreground/70"
+                                : "text-muted-foreground"
+                            )}
+                          >
+                            {moment(message.created_at).fromNow()}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Message Input */}
               <div className="p-4 border-t bg-card">
+                {/* Attachment preview above input */}
+                {attachmentPreview && (
+                  <div className="mb-2 flex items-center">
+                    <AttachmentPreview type={attachmentPreview.type} id={attachmentPreview.id} />
+                    <button
+                      type="button"
+                      className="ml-2 text-muted-foreground hover:text-destructive"
+                      aria-label="Remove attachment"
+                      onClick={() => {
+                        setAttachmentPreview(null);
+                        setNewMessage("");
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
                 <form onSubmit={handleSendMessage} className="flex space-x-2">
                   <Input
                     placeholder="Type a message..."
@@ -578,5 +661,16 @@ export default function MessagesPage() {
         </Dialog>
       </div>
     </ProtectedLayout>
+  );
+}
+
+// Simple attachment preview component
+function AttachmentPreview({ type, id }: { type: string; id: string }) {
+  // You can expand this to render images, files, etc. based on type
+  return (
+    <div className="flex items-center gap-2 p-2 rounded bg-muted border">
+      <span className="font-semibold capitalize">{type}</span>
+      <span className="text-xs text-muted-foreground">ID: {id}</span>
+    </div>
   );
 }
