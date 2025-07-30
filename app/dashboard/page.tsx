@@ -1,119 +1,148 @@
-'use client';
+"use client";
 
-import { ProtectedLayout } from '@/components/layout/protected-layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Calendar, Users, BookOpen, DollarSign, Bell, TrendingUp, Clock, MapPin } from 'lucide-react';
+import { ProtectedLayout } from "@/components/layout/protected-layout";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Calendar,
+  Users,
+  BookOpen,
+  DollarSign,
+  Bell,
+  TrendingUp,
+  Clock,
+  MapPin,
+  Tag,
+} from "lucide-react";
+import { useState } from "react";
+import supabase from "@/lib/supabase";
+import { useEffect } from "react";
 
 const upcomingEvents = [
   {
     id: 1,
-    title: 'Mid-term Examinations',
-    date: '2024-03-15',
-    time: '09:00 AM',
-    location: 'Various Halls',
-    type: 'academic',
+    title: "Mid-term Examinations",
+    date: "2024-03-15",
+    time: "09:00 AM",
+    location: "Various Halls",
+    type: "academic",
   },
   {
     id: 2,
-    title: 'Career Fair 2024',
-    date: '2024-03-20',
-    time: '10:00 AM',
-    location: 'Main Auditorium',
-    type: 'event',
+    title: "Career Fair 2024",
+    date: "2024-03-20",
+    time: "10:00 AM",
+    location: "Main Auditorium",
+    type: "event",
   },
   {
     id: 3,
-    title: 'Library Books Due',
-    date: '2024-03-18',
-    time: '11:59 PM',
-    location: 'Central Library',
-    type: 'deadline',
+    title: "Library Books Due",
+    date: "2024-03-18",
+    time: "11:59 PM",
+    location: "Central Library",
+    type: "deadline",
   },
 ];
 
 const quickStats = [
   {
-    title: 'Active Students',
-    value: '2,847',
+    title: "Active Students",
+    value: "2,847",
     icon: Users,
-    change: '+12%',
-    color: 'text-blue-600',
+    change: "+12%",
+    color: "text-blue-600",
   },
   {
-    title: 'Lost Items',
-    value: '23',
+    title: "Lost Items",
+    value: "23",
     icon: Clock,
-    change: '-8%',
-    color: 'text-orange-600',
+    change: "-8%",
+    color: "text-orange-600",
   },
   {
-    title: 'Marketplace Items',
-    value: '156',
+    title: "Marketplace Items",
+    value: "156",
     icon: DollarSign,
-    change: '+24%',
-    color: 'text-green-600',
+    change: "+24%",
+    color: "text-green-600",
   },
   {
-    title: 'Campus Events',
-    value: '8',
-    icon: Calendar,
-    change: '+3%',
-    color: 'text-purple-600',
+    title: "Found Items",
+    value: "8",
+    icon: Tag,
+    change: "+3%",
+    color: "text-purple-600",
   },
 ];
 
 const announcements = [
   {
     id: 1,
-    title: 'New Semester Registration Open',
-    content: 'Registration for Spring 2024 semester is now open. Deadline: March 30th.',
-    timestamp: '2 hours ago',
-    priority: 'high',
+    title: "New Semester Registration Open",
+    content:
+      "Registration for Spring 2024 semester is now open. Deadline: March 30th.",
+    timestamp: "2 hours ago",
+    priority: "high",
   },
   {
     id: 2,
-    title: 'Campus Wi-Fi Maintenance',
-    content: 'Scheduled maintenance on March 16th from 2:00 AM to 4:00 AM.',
-    timestamp: '1 day ago',
-    priority: 'medium',
+    title: "Campus Wi-Fi Maintenance",
+    content: "Scheduled maintenance on March 16th from 2:00 AM to 4:00 AM.",
+    timestamp: "1 day ago",
+    priority: "medium",
   },
   {
     id: 3,
-    title: 'Student Health Services Update',
-    content: 'New COVID-19 protocols are now in effect. Please review the guidelines.',
-    timestamp: '3 days ago',
-    priority: 'low',
+    title: "Student Health Services Update",
+    content:
+      "New COVID-19 protocols are now in effect. Please review the guidelines.",
+    timestamp: "3 days ago",
+    priority: "low",
   },
 ];
 
 export default function DashboardPage() {
+  const [platformSummary, setPlatformSummary] = useState({
+    totalUsers: 0,
+    totalItems: 0,
+    totalLostItems: 0,
+    totalFoundItems: 0,
+  });
   const getEventTypeColor = (type: string) => {
     switch (type) {
-      case 'academic':
-        return 'bg-blue-100 text-blue-800';
-      case 'event':
-        return 'bg-green-100 text-green-800';
-      case 'deadline':
-        return 'bg-red-100 text-red-800';
+      case "academic":
+        return "bg-blue-100 text-blue-800";
+      case "event":
+        return "bg-green-100 text-green-800";
+      case "deadline":
+        return "bg-red-100 text-red-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high':
-        return 'border-l-red-500';
-      case 'medium':
-        return 'border-l-yellow-500';
-      case 'low':
-        return 'border-l-green-500';
+      case "high":
+        return "border-l-red-500";
+      case "medium":
+        return "border-l-yellow-500";
+      case "low":
+        return "border-l-green-500";
       default:
-        return 'border-l-gray-500';
+        return "border-l-gray-500";
     }
   };
+
+  useEffect(() => {}, []);
 
   return (
     <ProtectedLayout>
@@ -143,8 +172,12 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex items-center mt-4">
                     <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
-                    <span className="text-sm text-green-600">{stat.change}</span>
-                    <span className="text-sm text-muted-foreground ml-1">from last month</span>
+                    <span className="text-sm text-green-600">
+                      {stat.change}
+                    </span>
+                    <span className="text-sm text-muted-foreground ml-1">
+                      from last month
+                    </span>
                   </div>
                 </CardContent>
               </Card>
@@ -166,7 +199,10 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               {upcomingEvents.map((event) => (
-                <div key={event.id} className="flex items-start space-x-4 p-3 rounded-lg border">
+                <div
+                  key={event.id}
+                  className="flex items-start space-x-4 p-3 rounded-lg border"
+                >
                   <div className="flex-shrink-0">
                     <Badge className={getEventTypeColor(event.type)}>
                       {event.type}
@@ -206,13 +242,21 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               {announcements.map((announcement) => (
-                <div 
+                <div
                   key={announcement.id}
-                  className={`p-3 rounded-lg border-l-4 ${getPriorityColor(announcement.priority)} bg-muted/50`}
+                  className={`p-3 rounded-lg border-l-4 ${getPriorityColor(
+                    announcement.priority
+                  )} bg-muted/50`}
                 >
-                  <h4 className="text-sm font-medium mb-1">{announcement.title}</h4>
-                  <p className="text-sm text-muted-foreground mb-2">{announcement.content}</p>
-                  <span className="text-xs text-muted-foreground">{announcement.timestamp}</span>
+                  <h4 className="text-sm font-medium mb-1">
+                    {announcement.title}
+                  </h4>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    {announcement.content}
+                  </p>
+                  <span className="text-xs text-muted-foreground">
+                    {announcement.timestamp}
+                  </span>
                 </div>
               ))}
               <Button variant="outline" className="w-full">
