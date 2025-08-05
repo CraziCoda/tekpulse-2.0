@@ -222,44 +222,78 @@ export default function LostFoundPage() {
     }
   };
   const ItemCard = ({ item }: { item: any }) => (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-3">
-          <h3 className="font-semibold text-lg">{item.title}</h3>
-          <Badge className={getCategoryColor(item.category)}>
-            {item.category}
+    <Card className="hover:shadow-lg transition-all duration-200 border-0 shadow-sm">
+      <div className="relative">
+        {/* Status Badge */}
+        <div className="absolute top-3 right-3 z-10">
+          <Badge 
+            variant={item.status === 'lost' ? 'destructive' : 'default'}
+            className="font-medium"
+          >
+            {item.status === 'lost' ? 'Lost' : 'Found'}
           </Badge>
         </div>
-
+        
         {/* Item Image */}
-        {item.image_url && (
-          <div className="mb-3 rounded-lg overflow-hidden">
+        {item.image_url ? (
+          <div className="aspect-video w-full overflow-hidden rounded-t-lg">
             <img
               src={item.image_url}
               alt={item.title}
-              className="w-full h-48 object-cover"
+              className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
             />
           </div>
+        ) : (
+          <div className="aspect-video w-full bg-gradient-to-br from-muted/50 to-muted rounded-t-lg flex items-center justify-center">
+            <Tag className="h-12 w-12 text-muted-foreground/50" />
+          </div>
         )}
+      </div>
+      
+      <CardContent className="p-5">
+        {/* Header */}
+        <div className="mb-3">
+          <div className="flex items-start justify-between mb-2">
+            <h3 className="font-bold text-xl leading-tight line-clamp-2">{item.title}</h3>
+            <Badge className={getCategoryColor(item.category)} variant="secondary">
+              {item.category}
+            </Badge>
+          </div>
+          <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
+            {item.description}
+          </p>
+        </div>
 
-        <p className="text-muted-foreground mb-3">{item.description}</p>
-        <div className="space-y-2 text-sm">
-          <div className="flex items-center text-muted-foreground">
-            <MapPin className="h-4 w-4 mr-2" />
-            <span>{item.location}</span>
+        {/* Details */}
+        <div className="space-y-3 mb-4">
+          <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-50">
+              <MapPin className="h-4 w-4 text-blue-600" />
+            </div>
+            <span className="font-medium text-foreground">{item.location}</span>
           </div>
-          <div className="flex items-center text-muted-foreground">
-            <Clock className="h-4 w-4 mr-2" />
-            <span>{moment(item.created_at).fromNow()}</span>
+          
+          <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-50">
+              <Clock className="h-4 w-4 text-green-600" />
+            </div>
+            <span className="text-muted-foreground">{moment(item.created_at).fromNow()}</span>
           </div>
-          <div className="flex items-center text-muted-foreground">
-            <User className="h-4 w-4 mr-2" />
-            <span>Reported by {item.author.full_name}</span>
+          
+          <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-50">
+              <User className="h-4 w-4 text-purple-600" />
+            </div>
+            <span className="text-muted-foreground">
+              {item.author.id === user?.id ? 'You' : item.author.full_name}
+            </span>
           </div>
         </div>
+
+        {/* Action Button */}
         <Button
-          className="w-full mt-4"
-          variant="outline"
+          className="w-full font-medium"
+          variant={item.author.id === user?.id ? "secondary" : "default"}
           onClick={(e) => {
             if (item.author.id === user?.id) {
               handleResolved(item.id);
