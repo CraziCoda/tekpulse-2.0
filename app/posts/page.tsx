@@ -410,22 +410,11 @@ export default function PostsPage() {
 
         {/* Post Content */}
         <div className="mb-4">
-          <p className="text-sm leading-relaxed">{post.content}</p>
-
-          {/* Post Image */}
-          {post.image_url && (
-            <div className="mt-3 rounded-lg overflow-hidden">
-              <img
-                src={post.image_url}
-                alt="Post image"
-                className="w-full max-h-96 object-cover"
-              />
-            </div>
-          )}
-
+          <p className="text-sm leading-relaxed mb-3">{post.content}</p>
+          
           {/* Tags */}
           {getTags(post.content).length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-3">
+            <div className="flex flex-wrap gap-2 mb-3">
               {getTags(post.content).map((tag: string) => (
                 <Badge key={tag} variant="secondary" className="text-xs">
                   #{tag}
@@ -433,27 +422,38 @@ export default function PostsPage() {
               ))}
             </div>
           )}
-
-          {/* Event Card */}
-          {post.event && (
-            <Card className="mt-3 border-l-4 border-l-primary">
-              <CardContent className="p-3">
-                <div className="flex items-start space-x-2">
-                  <Calendar className="h-4 w-4 text-primary mt-0.5" />
-                  <div>
-                    <h5 className="font-medium text-sm">{post.event.title}</h5>
-                    <p className="text-xs text-muted-foreground">
-                      {post.event.date}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {post.event.location}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
+        
+        {/* Post Image */}
+        {post.image_url && (
+          <div className="mb-4 rounded-lg overflow-hidden">
+            <img 
+              src={post.image_url} 
+              alt="Post image" 
+              className="w-full max-h-96 object-cover"
+            />
+          </div>
+        )}
+        
+        {/* Event Card */}
+        {post.event && (
+          <Card className="mb-4 border-l-4 border-l-primary">
+            <CardContent className="p-3">
+              <div className="flex items-start space-x-2">
+                <Calendar className="h-4 w-4 text-primary mt-0.5" />
+                <div>
+                  <h5 className="font-medium text-sm">{post.event.title}</h5>
+                  <p className="text-xs text-muted-foreground">
+                    {post.event.date}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {post.event.location}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Post Actions */}
         <div className="flex items-center justify-between pt-3 border-t">
@@ -477,7 +477,7 @@ export default function PostsPage() {
                   ) && "fill-current"
                 )}
               />
-              <span className="text-sm">{post.likes?.[0]?.count}</span>
+              <span className="text-sm">{post.likes?.[0]?.count || 0}</span>
             </Button>
 
             <Button
@@ -487,7 +487,7 @@ export default function PostsPage() {
               className="flex items-center space-x-2 hover:text-blue-500"
             >
               <MessageCircle className="h-4 w-4" />
-              <span className="text-sm">{post.comments?.[0]?.count}</span>
+              <span className="text-sm">{post.comments?.[0]?.count || 0}</span>
             </Button>
 
             <Button
@@ -497,7 +497,7 @@ export default function PostsPage() {
               className="flex items-center space-x-2 hover:text-green-500"
             >
               <Share className="h-4 w-4" />
-              <span className="text-sm">{0}</span>
+              <span className="text-sm">0</span>
             </Button>
           </div>
 
