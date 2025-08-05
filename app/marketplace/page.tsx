@@ -214,7 +214,8 @@ export default function MarketplacePage() {
         `*,
         author:profiles (
           id,
-          full_name
+          full_name,
+          profile_pic
         )`
       )
       .order("created_at", { ascending: false });

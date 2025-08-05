@@ -979,7 +979,11 @@ export default function CommunitiesPage() {
                 <div className="flex items-center justify-between p-2 border rounded">
                   <div className="flex items-center space-x-2">
                     <Avatar className="h-8 w-8">
-                      <AvatarFallback>JD</AvatarFallback>
+                      {user?.profile_pic ? (
+                        <img src={user.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <AvatarFallback>JD</AvatarFallback>
+                      )}
                     </Avatar>
                     <div>
                       <p className="text-sm font-medium">John Doe</p>

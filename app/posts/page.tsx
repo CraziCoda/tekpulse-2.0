@@ -295,7 +295,8 @@ export default function PostsPage() {
         author:profiles (
           id,
           full_name,
-          student_id
+          student_id,
+          profile_pic
         ),
         likes(count),
         comments(count),
@@ -335,7 +336,8 @@ export default function PostsPage() {
         author:profiles (
           id,
           full_name,
-          student_id
+          student_id,
+          profile_pic
         )
         `
       )
@@ -360,9 +362,13 @@ export default function PostsPage() {
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-start space-x-3">
             <Avatar>
-              <AvatarFallback>
-                {post.author?.full_name?.charAt(0)}
-              </AvatarFallback>
+              {post.author?.profile_pic ? (
+                <img src={post.author.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <AvatarFallback>
+                  {post.author?.full_name?.charAt(0)}
+                </AvatarFallback>
+              )}
             </Avatar>
             <div>
               <div className="flex items-center space-x-2 mb-1">
@@ -560,9 +566,13 @@ export default function PostsPage() {
               <div className="space-y-4 pt-4">
                 <div className="flex items-start space-x-3">
                   <Avatar>
-                    <AvatarFallback>
-                      {user?.full_name?.charAt(0)}
-                    </AvatarFallback>
+                    {user?.profile_pic ? (
+                      <img src={user.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <AvatarFallback>
+                        {user?.full_name?.charAt(0)}
+                      </AvatarFallback>
+                    )}
                   </Avatar>
                   <div className="flex-1">
                     <Textarea
@@ -644,7 +654,11 @@ export default function PostsPage() {
           <CardContent className="p-4">
             <div className="flex items-start space-x-3">
               <Avatar>
-                <AvatarFallback>{user?.full_name?.charAt(0)}</AvatarFallback>
+                {user?.profile_pic ? (
+                  <img src={user.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <AvatarFallback>{user?.full_name?.charAt(0)}</AvatarFallback>
+                )}
               </Avatar>
               <div className="flex-1">
                 <Textarea
@@ -697,9 +711,13 @@ export default function PostsPage() {
                       className="flex items-start space-x-3 p-3 rounded-lg bg-muted/50"
                     >
                       <Avatar className="h-8 w-8">
-                        <AvatarFallback>
-                          {comment.author.full_name.charAt(0)}
-                        </AvatarFallback>
+                        {comment.author.profile_pic ? (
+                          <img src={comment.author.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                          <AvatarFallback>
+                            {comment.author.full_name.charAt(0)}
+                          </AvatarFallback>
+                        )}
                       </Avatar>
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-1">
@@ -719,7 +737,11 @@ export default function PostsPage() {
                 {/* Add Comment */}
                 <div className="flex items-start space-x-3 pt-4 border-t">
                   <Avatar className="h-8 w-8">
-                    <AvatarFallback>JD</AvatarFallback>
+                    {user?.profile_pic ? (
+                      <img src={user.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <AvatarFallback>{user?.full_name?.charAt(0)}</AvatarFallback>
+                    )}
                   </Avatar>
                   <div className="flex-1 flex space-x-2">
                     <Input

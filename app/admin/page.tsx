@@ -600,14 +600,24 @@ export default function AdminPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {recentUsers.map((user) => (
+                  {recentUsers.map((user: any) => (
                     <div
                       key={user.id}
                       className="flex items-center justify-between p-4 border rounded-lg"
                     >
                       <div className="flex items-center space-x-3">
                         <Avatar>
-                          <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                          {user.profile_pic ? (
+                            <img
+                              src={user.profile_pic}
+                              alt="Profile"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <AvatarFallback>
+                              {user.name.charAt(0)}
+                            </AvatarFallback>
+                          )}
                         </Avatar>
                         <div className="flex-1">
                           <div className="flex items-center space-x-2">
@@ -712,16 +722,24 @@ export default function AdminPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {leaders.map((leader) => {
+                  {leaders.map((leader: any) => {
                     const LevelIcon = getLevelIcon(leader.level);
                     return (
                       <div key={leader.id} className="p-4 border rounded-lg">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-start space-x-3">
                             <Avatar>
-                              <AvatarFallback>
-                                {leader.name.charAt(0)}
-                              </AvatarFallback>
+                              {leader.profile_pic ? (
+                                <img
+                                  src={leader.profile_pic}
+                                  alt="Profile"
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <AvatarFallback>
+                                  {leader.name.charAt(0)}
+                                </AvatarFallback>
+                              )}
                             </Avatar>
                             <div>
                               <div className="flex items-center space-x-2 mb-1">
@@ -753,7 +771,7 @@ export default function AdminPage() {
                           </Button>
                         </div>
                         <div className="flex flex-wrap gap-1">
-                          {leader.communities.map((community) => (
+                          {leader.communities.map((community: string) => (
                             <Badge
                               key={community}
                               variant="secondary"
@@ -781,7 +799,7 @@ export default function AdminPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {applications.map((application) => {
+                  {applications.map((application: any) => {
                     const LevelIcon = getLevelIcon(application.level);
                     return (
                       <div
@@ -791,9 +809,17 @@ export default function AdminPage() {
                         <div className="flex justify-between items-start mb-3">
                           <div className="flex items-start space-x-3">
                             <Avatar>
-                              <AvatarFallback>
-                                {application.applicant.name.charAt(0)}
-                              </AvatarFallback>
+                              {application.applicant.profile_pic ? (
+                                <img
+                                  src={application.applicant.profile_pic}
+                                  alt="Profile"
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <AvatarFallback>
+                                  {application.applicant.name.charAt(0)}
+                                </AvatarFallback>
+                              )}
                             </Avatar>
                             <div className="flex-1">
                               <div className="flex items-center space-x-2 mb-1">

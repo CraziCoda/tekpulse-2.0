@@ -131,7 +131,8 @@ export default function MessagesPage() {
             profile:profiles (
               id,
               full_name,
-              student_id
+              student_id,
+              profile_pic
             )
           ),
           messages (
@@ -201,7 +202,8 @@ export default function MessagesPage() {
           user_id,
           profile:profiles (
             id,
-            full_name
+            full_name,
+            profile_pic
           )
         )
       `
@@ -328,6 +330,7 @@ export default function MessagesPage() {
     const { data, error } = await supabase.from("profiles").select(`
     id,
     full_name,
+    profile_pic,
     community_members (
       member_positions (
         position:position_id (
@@ -354,6 +357,7 @@ export default function MessagesPage() {
         return {
           id: profile.id,
           full_name: profile.full_name,
+          profile_pic: profile.profile_pic,
           positions: positions.slice(0, 3),
         };
       });
@@ -441,9 +445,13 @@ export default function MessagesPage() {
                 <div className="flex items-center space-x-3">
                   <div className="relative">
                     <Avatar className="h-12 w-12">
-                      <AvatarFallback className="text-base font-semibold">
-                        {conversation.name.charAt(0)}
-                      </AvatarFallback>
+                      {conversation.otherUser?.profile_pic ? (
+                        <img src={conversation.otherUser.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <AvatarFallback className="text-base font-semibold">
+                          {conversation.name.charAt(0)}
+                        </AvatarFallback>
+                      )}
                     </Avatar>
                     {conversation.online && (
                       <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-green-500 rounded-full border-2 border-white" />
@@ -498,9 +506,13 @@ export default function MessagesPage() {
                 <div className="flex items-center space-x-3">
                   <div className="relative">
                     <Avatar>
-                      <AvatarFallback>
-                        {currentConversation?.name?.charAt(0)}
-                      </AvatarFallback>
+                      {currentConversation?.otherUser?.profile_pic ? (
+                        <img src={currentConversation.otherUser.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <AvatarFallback>
+                          {currentConversation?.name?.charAt(0)}
+                        </AvatarFallback>
+                      )}
                     </Avatar>
                     {currentConversation.online && (
                       <Circle className="absolute -bottom-1 -right-1 h-3 w-3 fill-green-500 text-green-500" />
@@ -539,9 +551,13 @@ export default function MessagesPage() {
                     >
                       {!isOwn && (
                         <Avatar className="h-8 w-8 flex-shrink-0">
-                          <AvatarFallback className="text-xs">
-                            {currentConversation?.name?.charAt(0)}
-                          </AvatarFallback>
+                          {currentConversation?.otherUser?.profile_pic ? (
+                            <img src={currentConversation.otherUser.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+                          ) : (
+                            <AvatarFallback className="text-xs">
+                              {currentConversation?.name?.charAt(0)}
+                            </AvatarFallback>
+                          )}
                         </Avatar>
                       )}
                       <div className={cn("max-w-xs lg:max-w-md flex flex-col", isOwn && "items-end")}>
@@ -580,9 +596,13 @@ export default function MessagesPage() {
                       </div>
                       {isOwn && (
                         <Avatar className="h-8 w-8 flex-shrink-0">
-                          <AvatarFallback className="text-xs">
-                            {user?.full_name?.charAt(0)}
-                          </AvatarFallback>
+                          {user?.profile_pic ? (
+                            <img src={user.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+                          ) : (
+                            <AvatarFallback className="text-xs">
+                              {user?.full_name?.charAt(0)}
+                            </AvatarFallback>
+                          )}
                         </Avatar>
                       )}
                     </div>
@@ -684,14 +704,18 @@ export default function MessagesPage() {
                     }}
                   >
                     <Avatar className="h-8 w-8">
-                      <AvatarFallback>
-                        {student.full_name
-                          .split(" ")
-                          .map((n: string) => n[0])
-                          .join("")
-                          .toUpperCase()
-                          .slice(0, 2)}
-                      </AvatarFallback>
+                      {student.profile_pic ? (
+                        <img src={student.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <AvatarFallback>
+                          {student.full_name
+                            .split(" ")
+                            .map((n: string) => n[0])
+                            .join("")
+                            .toUpperCase()
+                            .slice(0, 2)}
+                        </AvatarFallback>
+                      )}
                     </Avatar>
                     <span className="font-medium">{student.full_name}</span>
                     {/* {student.position && (

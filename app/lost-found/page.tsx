@@ -208,7 +208,8 @@ export default function LostFoundPage() {
         *,
         author:profiles (
           id,
-          full_name
+          full_name,
+          profile_pic
         ) 
         `
       )
