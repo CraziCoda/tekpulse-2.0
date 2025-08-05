@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Plus, DollarSign, User, Clock, Tag } from "lucide-react";
+import { Search, Plus, DollarSign, User, Clock, Tag, Image as ImageIcon, X } from "lucide-react";
 import supabase from "@/lib/supabase";
 import moment from "moment";
 import { useRouter } from "next/navigation";
@@ -43,6 +43,8 @@ export default function MarketplacePage() {
   const [isCreatingListing, setIsCreatingListing] = useState(false);
   const [creatingListingError, setCreatingListingError] = useState("");
   const [listings, setListings] = useState<any>([]);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -53,6 +55,21 @@ export default function MarketplacePage() {
     category: "other",
     condition: "new",
   });
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = () => setImagePreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+  };
 
   const categories = [
     { value: "all", label: "All Categories" },
@@ -130,6 +147,39 @@ export default function MarketplacePage() {
 
     setIsCreatingListing(true);
 
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return;
+    }
+
+    let publicUrl: null | string = null;
+
+    if (selectedImage) {
+      const fileExt = selectedImage?.name.split(".").pop();
+      const { data: imageData, error: uploadError } =
+        await supabase.storage
+          .from("market")
+          .upload(
+            `${user.id}/${Date.now()}.${fileExt}`,
+            selectedImage as File
+          );
+
+      if (uploadError) {
+        setIsCreatingListing(false);
+        setCreatingListingError(uploadError.message);
+        return;
+      }
+
+      let data = supabase.storage
+        .from("market")
+        .getPublicUrl(imageData.path);
+
+      publicUrl = data.data.publicUrl;
+    }
+
     const { error } = await supabase.from("product_listings").insert([
       {
         title: listingItem.title,
@@ -138,6 +188,7 @@ export default function MarketplacePage() {
         category: listingItem.category,
         condition: listingItem.condition,
         user_id: user?.id,
+        image_url: publicUrl,
       },
     ]);
 
@@ -147,6 +198,8 @@ export default function MarketplacePage() {
       return;
     }
     setIsCreatingListing(false);
+    setListingItem({ title: "", price: 0, description: "", category: "other", condition: "new" });
+    removeImage();
     setIsListingDialogOpen(false);
     setCreatingListingError("");
     getProductListings();
@@ -292,6 +345,49 @@ export default function MarketplacePage() {
                     }
                   />
                 </div>
+                
+                {/* Image Upload */}
+                <div className="space-y-2">
+                  <Label>Item Photo (Optional)</Label>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" asChild>
+                      <label className="cursor-pointer">
+                        <ImageIcon className="h-4 w-4 mr-2" />
+                        Add Photo
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageSelect}
+                          className="hidden"
+                        />
+                      </label>
+                    </Button>
+                    {selectedImage && (
+                      <span className="text-sm text-muted-foreground">
+                        {selectedImage.name}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Image Preview */}
+                {imagePreview && (
+                  <div className="relative">
+                    <img 
+                      src={imagePreview} 
+                      alt="Preview" 
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={removeImage}
+                      className="absolute top-2 right-2"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
                 {creatingListingError && (
                   <p className="text-red-500">{creatingListingError}</p>
                 )}
@@ -335,69 +431,84 @@ export default function MarketplacePage() {
         {/* Items Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredItems.map((item: any) => (
-            <Card key={item.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg mb-1">{item.title}</CardTitle>
-                    <div className="flex items-center space-x-2">
-                      <Badge className={getCategoryColor(item.category)}>
-                        {item.category}
-                      </Badge>
-                      <Badge className={getConditionColor(item.condition)}>
-                        {item.condition}
-                      </Badge>
-                    </div>
+            <Card key={item.id} className="hover:shadow-lg transition-all duration-200 border-0 shadow-sm">
+              <div className="relative">
+                {/* Price Badge */}
+                <div className="absolute top-3 right-3 z-10">
+                  <Badge className="bg-primary text-primary-foreground font-bold text-base px-3 py-1">
+                    ₵{item.price}
+                  </Badge>
+                </div>
+                
+                {/* Item Image */}
+                {item.image_url ? (
+                  <div className="aspect-video w-full overflow-hidden rounded-t-lg">
+                    <img
+                      src={item.image_url}
+                      alt={item.title}
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
+                    />
                   </div>
-                  <div className="text-right">
-                    <div className="flex items-center text-2xl font-bold text-primary">
-                      {/* <DollarSign className="h-5 w-5" /> */}₵{item.price}
-                    </div>
+                ) : (
+                  <div className="aspect-video w-full bg-gradient-to-br from-muted/50 to-muted rounded-t-lg flex items-center justify-center">
+                    <Tag className="h-12 w-12 text-muted-foreground/50" />
+                  </div>
+                )}
+              </div>
+              
+              <CardContent className="p-5">
+                {/* Header */}
+                <div className="mb-3">
+                  <h3 className="font-bold text-xl leading-tight line-clamp-2 mb-2">{item.title}</h3>
+                  <div className="flex items-center space-x-2">
+                    <Badge className={getCategoryColor(item.category)} variant="secondary">
+                      {item.category}
+                    </Badge>
+                    <Badge className={getConditionColor(item.condition)} variant="secondary">
+                      {item.condition}
+                    </Badge>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="mb-4 line-clamp-2">
+                
+                <CardDescription className="mb-4 line-clamp-2 leading-relaxed">
                   {item.description}
                 </CardDescription>
 
-                <div className="space-y-2 text-sm text-muted-foreground mb-4">
-                  <div className="flex items-center">
-                    <User className="h-4 w-4 mr-2" />
-                    <span>
-                      Sold by{" "}
-                      {item?.author?.id === user?.id
-                        ? "You"
-                        : item?.author?.full_name}
+                {/* Details */}
+                <div className="space-y-3 mb-4">
+                  <div className="flex items-center gap-2 text-sm">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-50">
+                      <User className="h-4 w-4 text-purple-600" />
+                    </div>
+                    <span className="text-muted-foreground">
+                      {item?.author?.id === user?.id ? 'You' : item?.author?.full_name}
                     </span>
                   </div>
-                  <div className="flex items-center">
-                    <Clock className="h-4 w-4 mr-2" />
-                    <span>Posted {moment(item.created_at).fromNow()}</span>
+                  
+                  <div className="flex items-center gap-2 text-sm">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-50">
+                      <Clock className="h-4 w-4 text-green-600" />
+                    </div>
+                    <span className="text-muted-foreground">{moment(item.created_at).fromNow()}</span>
                   </div>
                 </div>
 
-                <div className="flex space-x-2">
-                  {item?.author?.id === user?.id ? (
-                    <Button
-                      className="flex-1 bg-red-500 hover:bg-red-600"
-                      onClick={() => handleDeleteListing(item.id)}
-                    >
-                      Remove Listing
-                    </Button>
-                  ) : (
-                    <Button
-                      className="flex-1"
-                      onClick={() => {
-                        router.push(
-                          `/messages?id=${item.id}&user=${item.author.id}&type=marketplace&name=${item.title}&description=${item.description}`
-                        );
-                      }}
-                    >
-                      Contact Seller
-                    </Button>
-                  )}
-                </div>
+                {/* Action Button */}
+                <Button
+                  className="w-full font-medium"
+                  variant={item?.author?.id === user?.id ? "destructive" : "default"}
+                  onClick={() => {
+                    if (item?.author?.id === user?.id) {
+                      handleDeleteListing(item.id);
+                    } else {
+                      router.push(
+                        `/messages?id=${item.id}&user=${item.author.id}&type=marketplace&name=${item.title}&description=${item.description}`
+                      );
+                    }
+                  }}
+                >
+                  {item?.author?.id === user?.id ? "Remove Listing" : "Contact Seller"}
+                </Button>
               </CardContent>
             </Card>
           ))}
