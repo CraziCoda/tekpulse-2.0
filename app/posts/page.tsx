@@ -39,7 +39,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-
 export default function PostsPage() {
   const [posts, setPosts] = useState<any>([]);
   const [comments, setComments] = useState<any>([]);
@@ -52,6 +51,8 @@ export default function PostsPage() {
   const [postingError, setPostingError] = useState<string | null>(null);
   const [postsToSkip, setPostsToSkip] = useState(0);
   const [user, setUser] = useState<any>(null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const getLevelIcon = (level: string) => {
     switch (level) {
@@ -132,7 +133,6 @@ export default function PostsPage() {
           : post
       )
     );
-
   };
 
   const handleBookmark = (postId: number) => {
@@ -171,8 +171,23 @@ export default function PostsPage() {
     }
   }
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = () => setImagePreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+  };
+
   const handleCreatePost = async () => {
-    if (newPost.trim()) {
+    if (newPost.trim() || selectedImage) {
       const content = newPost.trim();
       setIsPosting(true);
 
@@ -184,9 +199,35 @@ export default function PostsPage() {
         return;
       }
 
+      let publicUrl: null | string = null;
+
+      if (selectedImage) {
+        const fileExt = selectedImage?.name.split(".").pop();
+        const { data: imagePreview, error: uploadError } =
+          await supabase.storage
+            .from("post-images")
+            .upload(
+              `${user.id}/${Date.now()}.${fileExt}`,
+              selectedImage as File
+            );
+
+        if (uploadError) {
+          setIsPosting(false);
+          console.error(uploadError);
+          return;
+        }
+
+        let data = supabase.storage
+          .from("post-images")
+          .getPublicUrl(imagePreview.path);
+
+        publicUrl = data.data.publicUrl;
+      }
+
       const { data, error } = await supabase.from("posts").insert({
         content: content,
         author_id: user?.id,
+        image_url: publicUrl,
       });
 
       if (error) {
@@ -197,7 +238,9 @@ export default function PostsPage() {
 
       setIsPosting(false);
       setNewPost("");
+      removeImage();
       setIsCreateDialogOpen(false);
+      getPosts();
     }
   };
 
@@ -369,6 +412,17 @@ export default function PostsPage() {
         <div className="mb-4">
           <p className="text-sm leading-relaxed">{post.content}</p>
 
+          {/* Post Image */}
+          {post.image_url && (
+            <div className="mt-3 rounded-lg overflow-hidden">
+              <img
+                src={post.image_url}
+                alt="Post image"
+                className="w-full max-h-96 object-cover"
+              />
+            </div>
+          )}
+
           {/* Tags */}
           {getTags(post.content).length > 0 && (
             <div className="flex flex-wrap gap-2 mt-3">
@@ -521,14 +575,41 @@ export default function PostsPage() {
                   </div>
                 </div>
 
+                {/* Image Preview */}
+                {imagePreview && (
+                  <div className="relative mt-3">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-full max-h-64 object-cover rounded-lg"
+                    />
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={removeImage}
+                      className="absolute top-2 right-2"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+
                 {postingError && (
                   <p className="text-red-500 text-sm">{postingError}</p>
                 )}
 
                 <div className="flex items-center justify-between pt-4 border-t">
                   <div className="flex items-center space-x-2">
-                    <Button variant="ghost" size="sm">
-                      <ImageIcon className="h-4 w-4" />
+                    <Button variant="ghost" size="sm" asChild>
+                      <label className="cursor-pointer">
+                        <ImageIcon className="h-4 w-4" />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageSelect}
+                          className="hidden"
+                        />
+                      </label>
                     </Button>
                     <Button variant="ghost" size="sm">
                       <MapPin className="h-4 w-4" />
@@ -544,7 +625,9 @@ export default function PostsPage() {
                     <Button
                       onClick={handleCreatePost}
                       disabled={
-                        !newPost.trim() || newPost.length > 280 || isPosting
+                        (!newPost.trim() && !selectedImage) ||
+                        newPost.length > 280 ||
+                        isPosting
                       }
                     >
                       {isPosting ? "Posting..." : "Post"}
