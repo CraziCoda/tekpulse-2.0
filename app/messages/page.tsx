@@ -432,47 +432,60 @@ export default function MessagesPage() {
                 key={conversation.id}
                 onClick={() => setCurrentConversation(conversation)}
                 className={cn(
-                  "p-4 border-b cursor-pointer hover:bg-muted/50 transition-colors",
-                  currentConversation?.id === conversation.id && "bg-muted"
+                  "p-4 cursor-pointer transition-all duration-200 border-b border-border/50",
+                  currentConversation?.id === conversation.id 
+                    ? "bg-primary/10 border-l-4 border-l-primary" 
+                    : "hover:bg-muted/30"
                 )}
               >
-                <div className="flex items-start space-x-3">
+                <div className="flex items-center space-x-3">
                   <div className="relative">
-                    <Avatar>
-                      <AvatarFallback>
+                    <Avatar className="h-12 w-12">
+                      <AvatarFallback className="text-base font-semibold">
                         {conversation.name.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                     {conversation.online && (
-                      <Circle className="absolute -bottom-1 -right-1 h-3 w-3 fill-green-500 text-green-500" />
+                      <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-green-500 rounded-full border-2 border-white" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium truncate">
+                    <div className="flex items-center justify-between mb-1">
+                      <h4 className="font-semibold text-sm truncate">
                         {conversation.name}
-                      </p>
-                      <span className="text-xs text-muted-foreground">
-                        {conversation.timestamp}
-                      </span>
+                      </h4>
+                      <div className="flex items-center space-x-2">
+                        {conversation.timestamp && (
+                          <span className="text-xs text-muted-foreground">
+                            {conversation.timestamp}
+                          </span>
+                        )}
+                        {conversation.unread > 0 && (
+                          <Badge
+                            variant="default"
+                            className="h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-primary"
+                          >
+                            {conversation.unread}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between mt-1">
-                      <p className="text-sm text-muted-foreground truncate">
-                        {conversation.lastMessage || "No messages yet"}
-                      </p>
-                      {conversation.unread > 0 && (
-                        <Badge
-                          variant="default"
-                          className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
-                        >
-                          {conversation.unread}
-                        </Badge>
-                      )}
-                    </div>
+                    <p className="text-sm text-muted-foreground truncate leading-relaxed">
+                      {conversation.lastMessage || "Start a conversation..."}
+                    </p>
                   </div>
                 </div>
               </div>
             ))}
+            {conversations.length === 0 && (
+              <div className="p-8 text-center">
+                <div className="text-muted-foreground">
+                  <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-sm">No conversations yet</p>
+                  <p className="text-xs mt-1">Start a new conversation to get started</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -505,7 +518,7 @@ export default function MessagesPage() {
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
                 {messages.map((message: any) => {
                   const attachment = parseAttachment(message.content);
                   let messageText = message.content;
@@ -515,25 +528,32 @@ export default function MessagesPage() {
                       ""
                     );
                   }
+                  const isOwn = message.sender_id === user.id;
                   return (
                     <div
                       key={message.id}
                       className={cn(
-                        "flex",
-                        message.sender_id === user.id
-                          ? "justify-end"
-                          : "justify-start"
+                        "flex space-x-2",
+                        isOwn ? "justify-end" : "justify-start"
                       )}
                     >
-                      <div>
+                      {!isOwn && (
+                        <Avatar className="h-8 w-8 flex-shrink-0">
+                          <AvatarFallback className="text-xs">
+                            {currentConversation?.name?.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
+                      <div className={cn("max-w-xs lg:max-w-md flex flex-col", isOwn && "items-end")}>
                         {/* Show attachment above message if exists */}
                         {attachment && (
-                          <div className="mb-1">
+                          <div className="mb-2">
                             <AttachmentPreview
                               type={attachment.type}
                               id={attachment.id}
                               name={attachment.name}
                               description={attachment.description}
+                              isOwn={isOwn}
                             />
                           </div>
                         )}
@@ -541,39 +561,30 @@ export default function MessagesPage() {
                         {messageText.trim() && (
                           <div
                             className={cn(
-                              "max-w-xs lg:max-w-md px-4 py-2 rounded-lg",
-                              message.sender_id === user.id
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-muted"
+                              "px-4 py-3 rounded-2xl shadow-sm",
+                              isOwn
+                                ? "bg-primary text-primary-foreground rounded-br-md"
+                                : "bg-white border rounded-bl-md"
                             )}
                           >
-                            <p className="text-sm">{messageText}</p>
-                            <p
-                              className={cn(
-                                "text-xs mt-1",
-                                message.sender_id === user.id
-                                  ? "text-primary-foreground/70"
-                                  : "text-muted-foreground"
-                              )}
-                            >
-                              {moment(message.created_at).fromNow()}
-                            </p>
+                            <p className="text-sm leading-relaxed">{messageText}</p>
                           </div>
                         )}
-                        {/* If only attachment, show time below */}
-                        {!messageText.trim() && attachment && (
-                          <p
-                            className={cn(
-                              "text-xs mt-1",
-                              message.sender_id === user.id
-                                ? "text-primary-foreground/70"
-                                : "text-muted-foreground"
-                            )}
-                          >
-                            {moment(message.created_at).fromNow()}
-                          </p>
-                        )}
+                        {/* Timestamp */}
+                        <p className={cn(
+                          "text-xs text-muted-foreground mt-1 px-1",
+                          isOwn ? "text-right" : "text-left"
+                        )}>
+                          {moment(message.created_at).format('HH:mm')}
+                        </p>
                       </div>
+                      {isOwn && (
+                        <Avatar className="h-8 w-8 flex-shrink-0">
+                          <AvatarFallback className="text-xs">
+                            {user?.full_name?.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
                     </div>
                   );
                 })}
@@ -583,34 +594,45 @@ export default function MessagesPage() {
               <div className="p-4 border-t bg-card">
                 {/* Attachment preview above input */}
                 {attachmentPreview && (
-                  <div className="mb-2 flex items-center">
-                    <AttachmentPreview
-                      type={attachmentPreview.type}
-                      id={attachmentPreview.id}
-                      name={attachmentPreview.name}
-                      description={attachmentPreview.description}
-                    />
-                    <button
-                      type="button"
-                      className="ml-2 text-muted-foreground hover:text-destructive"
-                      aria-label="Remove attachment"
-                      onClick={() => {
-                        setAttachmentPreview(null);
-                        setNewMessage("");
-                      }}
-                    >
-                      ×
-                    </button>
+                  <div className="mb-3 p-3 bg-muted/50 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <AttachmentPreview
+                        type={attachmentPreview.type}
+                        id={attachmentPreview.id}
+                        name={attachmentPreview.name}
+                        description={attachmentPreview.description}
+                        isOwn={true}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setAttachmentPreview(null);
+                          setNewMessage("");
+                        }}
+                        className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+                      >
+                        ×
+                      </Button>
+                    </div>
                   </div>
                 )}
-                <form onSubmit={handleSendMessage} className="flex space-x-2">
-                  <Input
-                    placeholder="Type a message..."
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button type="submit" size="icon">
+                <form onSubmit={handleSendMessage} className="flex items-end space-x-2">
+                  <div className="flex-1 relative">
+                    <Input
+                      placeholder="Type a message..."
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      className="pr-12 py-3 rounded-full border-2 focus:border-primary"
+                    />
+                  </div>
+                  <Button 
+                    type="submit" 
+                    size="icon" 
+                    className="rounded-full h-10 w-10 shrink-0"
+                    disabled={!newMessage.trim() && !attachmentPreview}
+                  >
                     <Send className="h-4 w-4" />
                   </Button>
                 </form>
@@ -696,27 +718,72 @@ export default function MessagesPage() {
   );
 }
 
-// Simple attachment preview component
+// Enhanced attachment preview component
 function AttachmentPreview({
   type,
   id,
   name,
   description,
+  isOwn = false,
 }: {
   type: string;
   id: string;
   name?: string | null;
   description?: string | null;
+  isOwn?: boolean;
 }) {
+  const getTypeIcon = () => {
+    switch (type) {
+      case 'marketplace':
+        return '🛒';
+      case 'lost-found':
+        return '🔍';
+      default:
+        return '📎';
+    }
+  };
+
+  const getTypeColor = () => {
+    switch (type) {
+      case 'marketplace':
+        return 'bg-green-50 border-green-200 text-green-800';
+      case 'lost-found':
+        return 'bg-blue-50 border-blue-200 text-blue-800';
+      default:
+        return 'bg-gray-50 border-gray-200 text-gray-800';
+    }
+  };
+
   return (
-    <div className="flex items-center gap-3 p-2 rounded bg-muted border">
-      <div>
-        <div className="font-semibold capitalize">{type}</div>
-        <div className="text-xs text-muted-foreground">ID: {id}</div>
-        {name && <div className="text-xs font-medium text-primary">{name}</div>}
-        {description && (
-          <div className="text-xs text-muted-foreground">{description}</div>
-        )}
+    <div className={cn(
+      "max-w-sm p-3 rounded-xl border-2 shadow-sm transition-all hover:shadow-md",
+      isOwn ? "bg-primary/5 border-primary/20" : getTypeColor()
+    )}>
+      <div className="flex items-start gap-3">
+        <div className="text-2xl">{getTypeIcon()}</div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className={cn(
+              "text-xs font-semibold uppercase tracking-wide px-2 py-1 rounded-full",
+              isOwn ? "bg-primary/20 text-primary" : "bg-current/20"
+            )}>
+              {type}
+            </span>
+          </div>
+          {name && (
+            <h4 className="font-semibold text-sm leading-tight mb-1 line-clamp-2">
+              {name}
+            </h4>
+          )}
+          {description && (
+            <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+              {description}
+            </p>
+          )}
+          <p className="text-xs text-muted-foreground/70 mt-2">
+            ID: {id}
+          </p>
+        </div>
       </div>
     </div>
   );
