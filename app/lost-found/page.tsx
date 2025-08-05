@@ -23,7 +23,16 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, Plus, MapPin, Clock, User, Tag, Image as ImageIcon, X } from "lucide-react";
+import {
+  Search,
+  Plus,
+  MapPin,
+  Clock,
+  User,
+  Tag,
+  Image as ImageIcon,
+  X,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import supabase from "@/lib/supabase";
 import moment from "moment";
@@ -122,6 +131,35 @@ export default function LostFoundPage() {
     }
     setIsReporting(true);
 
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return;
+    }
+
+    let publicUrl: null | string = null;
+
+    if (selectedImage) {
+      const fileExt = selectedImage?.name.split(".").pop();
+      const { data: imageData, error: uploadError } = await supabase.storage
+        .from("lost-found")
+        .upload(`${user.id}/${Date.now()}.${fileExt}`, selectedImage as File);
+
+      if (uploadError) {
+        setIsReporting(false);
+        setCreateReportError(uploadError.message);
+        return;
+      }
+
+      let data = supabase.storage
+        .from("lost-found")
+        .getPublicUrl(imageData.path);
+
+      publicUrl = data.data.publicUrl;
+    }
+
     const { error } = await supabase.from("lost_and_founds").insert([
       {
         title: reportItem.title,
@@ -130,7 +168,7 @@ export default function LostFoundPage() {
         category: reportItem.category,
         user_id: user?.id,
         status: reportType,
-        image_url: imagePreview, // In real app, upload to storage first
+        image_url: publicUrl,
       },
     ]);
 
@@ -139,7 +177,7 @@ export default function LostFoundPage() {
       setIsReporting(false);
       return;
     }
-    
+
     setCreateReportError("");
     setIsReporting(false);
     setReportItem({ title: "", description: "", location: "", category: "" });
@@ -192,18 +230,18 @@ export default function LostFoundPage() {
             {item.category}
           </Badge>
         </div>
-        
+
         {/* Item Image */}
         {item.image_url && (
           <div className="mb-3 rounded-lg overflow-hidden">
-            <img 
-              src={item.image_url} 
-              alt={item.title} 
+            <img
+              src={item.image_url}
+              alt={item.title}
               className="w-full h-48 object-cover"
             />
           </div>
         )}
-        
+
         <p className="text-muted-foreground mb-3">{item.description}</p>
         <div className="space-y-2 text-sm">
           <div className="flex items-center text-muted-foreground">
@@ -341,7 +379,7 @@ export default function LostFoundPage() {
                     }
                   />
                 </div>
-                
+
                 {/* Image Upload */}
                 <div className="space-y-2">
                   <Label>Item Photo (Optional)</Label>
@@ -365,13 +403,13 @@ export default function LostFoundPage() {
                     )}
                   </div>
                 </div>
-                
+
                 {/* Image Preview */}
                 {imagePreview && (
                   <div className="relative">
-                    <img 
-                      src={imagePreview} 
-                      alt="Preview" 
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
                       className="w-full h-48 object-cover rounded-lg"
                     />
                     <Button
@@ -427,8 +465,12 @@ export default function LostFoundPage() {
             {lostItems.length === 0 && (
               <div className="text-center py-12">
                 <Tag className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                <h3 className="text-lg font-medium mb-2">No lost items found</h3>
-                <p className="text-muted-foreground">Try adjusting your search criteria</p>
+                <h3 className="text-lg font-medium mb-2">
+                  No lost items found
+                </h3>
+                <p className="text-muted-foreground">
+                  Try adjusting your search criteria
+                </p>
               </div>
             )}
           </TabsContent>
@@ -442,7 +484,9 @@ export default function LostFoundPage() {
               <div className="text-center py-12">
                 <Tag className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
                 <h3 className="text-lg font-medium mb-2">No found items</h3>
-                <p className="text-muted-foreground">Try adjusting your search criteria</p>
+                <p className="text-muted-foreground">
+                  Try adjusting your search criteria
+                </p>
               </div>
             )}
           </TabsContent>
