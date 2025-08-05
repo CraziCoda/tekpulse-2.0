@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, Plus, MapPin, Clock, User, Tag } from "lucide-react";
+import { Search, Plus, MapPin, Clock, User, Tag, Image as ImageIcon, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import supabase from "@/lib/supabase";
 import moment from "moment";
@@ -36,6 +36,8 @@ export default function LostFoundPage() {
   const [isReporting, setIsReporting] = useState(false);
   const [createReportError, setCreateReportError] = useState("");
   const [reports, setReports] = useState<any>([]);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -56,6 +58,21 @@ export default function LostFoundPage() {
     location: "",
     category: "",
   });
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = () => setImagePreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+  };
 
   const getCategoryColor = (category: string) => {
     const colors: { [key: string]: string } = {
@@ -113,16 +130,22 @@ export default function LostFoundPage() {
         category: reportItem.category,
         user_id: user?.id,
         status: reportType,
+        image_url: imagePreview, // In real app, upload to storage first
       },
     ]);
 
-    setIsReportDialogOpen(false);
     if (error) {
       setCreateReportError(error.message);
+      setIsReporting(false);
       return;
-    } else {
-      setCreateReportError("");
     }
+    
+    setCreateReportError("");
+    setIsReporting(false);
+    setReportItem({ title: "", description: "", location: "", category: "" });
+    removeImage();
+    setIsReportDialogOpen(false);
+    getReports();
   };
 
   const handleResolved = async (id: any) => {
@@ -169,6 +192,18 @@ export default function LostFoundPage() {
             {item.category}
           </Badge>
         </div>
+        
+        {/* Item Image */}
+        {item.image_url && (
+          <div className="mb-3 rounded-lg overflow-hidden">
+            <img 
+              src={item.image_url} 
+              alt={item.title} 
+              className="w-full h-48 object-cover"
+            />
+          </div>
+        )}
+        
         <p className="text-muted-foreground mb-3">{item.description}</p>
         <div className="space-y-2 text-sm">
           <div className="flex items-center text-muted-foreground">
@@ -231,7 +266,7 @@ export default function LostFoundPage() {
                 Report Item
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Report an Item</DialogTitle>
                 <DialogDescription>
@@ -306,6 +341,49 @@ export default function LostFoundPage() {
                     }
                   />
                 </div>
+                
+                {/* Image Upload */}
+                <div className="space-y-2">
+                  <Label>Item Photo (Optional)</Label>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" asChild>
+                      <label className="cursor-pointer">
+                        <ImageIcon className="h-4 w-4 mr-2" />
+                        Add Photo
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageSelect}
+                          className="hidden"
+                        />
+                      </label>
+                    </Button>
+                    {selectedImage && (
+                      <span className="text-sm text-muted-foreground">
+                        {selectedImage.name}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Image Preview */}
+                {imagePreview && (
+                  <div className="relative">
+                    <img 
+                      src={imagePreview} 
+                      alt="Preview" 
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={removeImage}
+                      className="absolute top-2 right-2"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
                 {createReportError && (
                   <p className="text-red-500">{createReportError}</p>
                 )}
@@ -321,7 +399,7 @@ export default function LostFoundPage() {
           </Dialog>
         </div>
 
-        <div className="relative">
+        <div className="relative max-w-md">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search for items..."
@@ -346,6 +424,13 @@ export default function LostFoundPage() {
                 <ItemCard key={item.id} item={item} />
               ))}
             </div>
+            {lostItems.length === 0 && (
+              <div className="text-center py-12">
+                <Tag className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
+                <h3 className="text-lg font-medium mb-2">No lost items found</h3>
+                <p className="text-muted-foreground">Try adjusting your search criteria</p>
+              </div>
+            )}
           </TabsContent>
           <TabsContent value="found" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -353,6 +438,13 @@ export default function LostFoundPage() {
                 <ItemCard key={item.id} item={item} />
               ))}
             </div>
+            {foundItems.length === 0 && (
+              <div className="text-center py-12">
+                <Tag className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
+                <h3 className="text-lg font-medium mb-2">No found items</h3>
+                <p className="text-muted-foreground">Try adjusting your search criteria</p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
