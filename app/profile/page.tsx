@@ -25,6 +25,7 @@ import {
   Edit,
   Save,
   X,
+  Camera,
 } from "lucide-react";
 import supabase from "@/lib/supabase";
 
@@ -33,10 +34,24 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState<any>({});
   const [userStats, setUserStats] = useState<any>([]);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     getUserProfile();
   }, []);
+
+  useEffect(() => {
+    if (user && !isEditing) {
+      setEditedUser({
+        phone_number: user.phone_number,
+        major: user.major,
+        year: user.year,
+        bio: user.bio,
+      });
+    }
+  }, [user, isEditing]);
 
   useEffect(() => {
     if (user) {
@@ -85,14 +100,79 @@ export default function ProfilePage() {
     }
   }
 
-  const handleSave = () => {
-    localStorage.setItem("user", JSON.stringify(editedUser));
-    setUser(editedUser);
-    setIsEditing(false);
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = () => setImagePreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleImageUpload = async () => {
+    if (!selectedImage || !user) return;
+
+    setIsUploading(true);
+
+    const fileExt = selectedImage.name.split(".").pop();
+    const { data: imageData, error: uploadError } = await supabase.storage
+      .from("profile-pic")
+      .upload(`${user.id}/${Date.now()}.${fileExt}`, selectedImage);
+
+    if (uploadError) {
+      console.error(uploadError);
+      setIsUploading(false);
+      return;
+    }
+
+    const { data } = supabase.storage
+      .from("profile-pic")
+      .getPublicUrl(imageData.path);
+
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({ profile_pic: data.publicUrl })
+      .eq("id", user.id);
+
+    if (updateError) {
+      console.error(updateError);
+    } else {
+      setUser({ ...user, profile_pic: data.publicUrl });
+    }
+
+    setIsUploading(false);
+    setSelectedImage(null);
+    setImagePreview(null);
+    await getUserProfile();
+  };
+
+  const handleSave = async () => {
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        phone_number: editedUser.phone_number,
+        major: editedUser.major,
+        year: editedUser.year,
+        bio: editedUser.bio,
+      })
+      .eq("id", user.id);
+
+    if (error) {
+      console.error(error);
+    } else {
+      setUser({ ...user, ...editedUser });
+      setIsEditing(false);
+    }
   };
 
   const handleCancel = () => {
-    setEditedUser(user);
+    setEditedUser({
+      phone_number: user.phone_number,
+      major: user.major,
+      year: user.year,
+      bio: user.bio,
+    });
     setIsEditing(false);
   };
 
@@ -159,11 +239,71 @@ export default function ProfilePage() {
           <Card className="lg:col-span-1">
             <CardContent className="p-6">
               <div className="text-center space-y-4">
-                <Avatar className="h-24 w-24 mx-auto">
-                  <AvatarFallback className="text-2xl">
-                    {user.name?.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="relative">
+                  <Avatar className="h-24 w-24 mx-auto">
+                    {user.profile_pic ? (
+                      <img
+                        src={user.profile_pic}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <AvatarFallback className="text-2xl">
+                        {user.full_name?.charAt(0) || user.name?.charAt(0)}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  {isEditing && (
+                    <div className="absolute -bottom-2 -right-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="rounded-full h-8 w-8 p-0"
+                        asChild
+                      >
+                        <label className="cursor-pointer">
+                          <Camera className="h-4 w-4" />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageSelect}
+                            className="hidden"
+                          />
+                        </label>
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Image Preview and Upload */}
+                {imagePreview && (
+                  <div className="space-y-2">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-20 h-20 object-cover rounded-full mx-auto"
+                    />
+                    <div className="flex space-x-2 justify-center">
+                      <Button
+                        size="sm"
+                        onClick={handleImageUpload}
+                        disabled={isUploading}
+                      >
+                        {isUploading ? "Uploading..." : "Upload"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedImage(null);
+                          setImagePreview(null);
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <h2 className="text-xl font-semibold">{user.name}</h2>
@@ -212,55 +352,30 @@ export default function ProfilePage() {
                         <Label htmlFor="name">Full Name</Label>
                         <Input
                           id="name"
-                          value={
-                            isEditing
-                              ? editedUser.name || ""
-                              : user.full_name || ""
-                          }
-                          onChange={(e) =>
-                            setEditedUser({
-                              ...editedUser,
-                              name: e.target.value,
-                            })
-                          }
-                          readOnly={!isEditing}
+                          value={user.full_name || ""}
+                          readOnly
                           disabled
+                          className="bg-muted"
                         />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
                         <Input
                           id="email"
-                          value={
-                            isEditing
-                              ? editedUser.email || ""
-                              : user.email || ""
-                          }
-                          onChange={(e) =>
-                            setEditedUser({
-                              ...editedUser,
-                              email: e.target.value,
-                            })
-                          }
-                          readOnly={!isEditing}
+                          value={user.email || ""}
+                          readOnly
+                          disabled
+                          className="bg-muted"
                         />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="studentId">Student ID</Label>
                         <Input
                           id="studentId"
-                          value={
-                            isEditing
-                              ? editedUser.studentId || ""
-                              : user.student_id || ""
-                          }
-                          onChange={(e) =>
-                            setEditedUser({
-                              ...editedUser,
-                              studentId: e.target.value,
-                            })
-                          }
-                          readOnly={!isEditing}
+                          value={user.student_id || ""}
+                          readOnly
+                          disabled
+                          className="bg-muted"
                         />
                       </div>
                       <div className="space-y-2">
@@ -269,13 +384,13 @@ export default function ProfilePage() {
                           id="phone"
                           value={
                             isEditing
-                              ? editedUser.phone || ""
-                              : user.phone || ""
+                              ? editedUser.phone_number || ""
+                              : user.phone_number || ""
                           }
                           onChange={(e) =>
                             setEditedUser({
                               ...editedUser,
-                              phone: e.target.value,
+                              phone_number: e.target.value,
                             })
                           }
                           readOnly={!isEditing}
