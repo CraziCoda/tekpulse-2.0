@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Search, Send, Plus, Circle } from "lucide-react";
+import { Search, Send, Plus, Circle, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
