@@ -282,6 +282,14 @@ export default function CommunitiesPage() {
   const [manageCommunityId, setManageCommunityId] = useState<number | null>(
     null
   );
+  const [positionApplication, setPositionApplication] = useState({
+    title: "",
+    community_id: "",
+    level: "",
+    reason: ""
+  });
+  const [isApplying, setIsApplying] = useState(false);
+  const [applicationError, setApplicationError] = useState("");
 
   const [isCreatingCommunity, setIsCreatingCommunity] = useState(false);
   const [creatingCommunityError, setCreatingCommunityError] = useState("");
@@ -405,9 +413,42 @@ export default function CommunitiesPage() {
     );
   };
 
-  const handleApplyForLeadership = () => {
-    // In a real app, this would submit the application
-    console.log("Applying for leadership position");
+  const handleApplyForLeadership = async () => {
+    if (!positionApplication.title.trim()) {
+      setApplicationError("Position title is required");
+      return;
+    }
+    if (!positionApplication.community_id) {
+      setApplicationError("Please select a community");
+      return;
+    }
+    if (!positionApplication.level) {
+      setApplicationError("Please select a leadership level");
+      return;
+    }
+    if (!positionApplication.reason.trim()) {
+      setApplicationError("Please provide a reason");
+      return;
+    }
+
+    setIsApplying(true);
+    setApplicationError("");
+
+    const { error } = await supabase.from("member_positions").insert({
+      community_id: positionApplication.community_id,
+      title: positionApplication.title,
+      level: positionApplication.level,
+      reason: positionApplication.reason
+    });
+
+    if (error) {
+      setApplicationError(error.message);
+      setIsApplying(false);
+      return;
+    }
+
+    setIsApplying(false);
+    setPositionApplication({ title: "", community_id: "", level: "", reason: "" });
     setIsApplyDialogOpen(false);
   };
 
@@ -643,11 +684,13 @@ export default function CommunitiesPage() {
                     <Input
                       id="position"
                       placeholder="e.g., CS Department President"
+                      value={positionApplication.title}
+                      onChange={(e) => setPositionApplication({...positionApplication, title: e.target.value})}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="community">Community</Label>
-                    <Select>
+                    <Select value={positionApplication.community_id} onValueChange={(value) => setPositionApplication({...positionApplication, community_id: value})}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select community" />
                       </SelectTrigger>
@@ -662,7 +705,7 @@ export default function CommunitiesPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="level">Leadership Level</Label>
-                    <Select>
+                    <Select value={positionApplication.level} onValueChange={(value) => setPositionApplication({...positionApplication, level: value})}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select level" />
                       </SelectTrigger>
@@ -683,10 +726,15 @@ export default function CommunitiesPage() {
                       id="reason"
                       placeholder="Explain your motivation and qualifications..."
                       rows={4}
+                      value={positionApplication.reason}
+                      onChange={(e) => setPositionApplication({...positionApplication, reason: e.target.value})}
                     />
                   </div>
-                  <Button className="w-full" onClick={handleApplyForLeadership}>
-                    Submit Application
+                  {applicationError && (
+                    <p className="text-red-500 text-sm">{applicationError}</p>
+                  )}
+                  <Button className="w-full" onClick={handleApplyForLeadership} disabled={isApplying}>
+                    {isApplying ? "Submitting..." : "Submit Application"}
                   </Button>
                 </div>
               </DialogContent>
