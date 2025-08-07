@@ -215,6 +215,12 @@ export default function AdminPage() {
   const [user, setUser] = useState<any>(null);
   const [applications, setApplications] = useState<any>([]);
   const [leaders, setLeaders] = useState<any>([]);
+  const [users, setUsers] = useState<any>([]);
+  const [allUsers, setAllUsers] = useState<any>([]);
+  const [isUsersDialogOpen, setIsUsersDialogOpen] = useState(false);
+  const [isUserDetailDialogOpen, setIsUserDetailDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [userSearchTerm, setUserSearchTerm] = useState("");
   const [isAppointDialogOpen, setIsAppointDialogOpen] = useState(false);
   const [isAnnouncementDialogOpen, setIsAnnouncementDialogOpen] =
     useState(false);
@@ -281,10 +287,38 @@ export default function AdminPage() {
     }
   };
 
+  const getUsers = async () => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(4);
+      
+    if (error) {
+      console.error(error);
+    } else {
+      setUsers(data || []);
+    }
+  };
+
+  const getAllUsers = async () => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .order("created_at", { ascending: false });
+      
+    if (error) {
+      console.error(error);
+    } else {
+      setAllUsers(data || []);
+    }
+  };
+
   useEffect(() => {
     getUserProfile();
     getPositionApplications();
     getApprovedLeaders();
+    getUsers();
   }, []);
 
   if (!user || !user.is_admin) {
@@ -644,55 +678,63 @@ export default function AdminPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {recentUsers.map((user: any) => (
+                  {users.map((userData: any) => (
                     <div
-                      key={user.id}
+                      key={userData.id}
                       className="flex items-center justify-between p-4 border rounded-lg"
                     >
                       <div className="flex items-center space-x-3">
                         <Avatar>
-                          {user.profile_pic ? (
+                          {userData.profile_pic ? (
                             <img
-                              src={user.profile_pic}
+                              src={userData.profile_pic}
                               alt="Profile"
                               className="w-full h-full object-cover"
                             />
                           ) : (
                             <AvatarFallback>
-                              {user.name.charAt(0)}
+                              {userData.full_name?.charAt(0) || 'U'}
                             </AvatarFallback>
                           )}
                         </Avatar>
                         <div className="flex-1">
                           <div className="flex items-center space-x-2">
-                            <h4 className="font-medium">{user.name}</h4>
-                            {user.position && (
-                              <Badge variant="outline" className="text-xs">
-                                {user.position.title}
-                              </Badge>
-                            )}
+                            <h4 className="font-medium">{userData.full_name}</h4>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            {user.email}
+                            {userData.student_id}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Student ID: {user.studentId} • Joined{" "}
-                            {user.joinDate}
+                            Joined {new Date(userData.created_at).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Badge className={getStatusColor(user.status)}>
-                          {user.status}
+                        <Badge className="bg-green-100 text-green-800">
+                          active
                         </Badge>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setSelectedUser(userData);
+                            setIsUserDetailDialogOpen(true);
+                          }}
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
                   ))}
                 </div>
-                <Button className="w-full mt-4" variant="outline">
+                <Button 
+                  className="w-full mt-4" 
+                  variant="outline"
+                  onClick={() => {
+                    getAllUsers();
+                    setIsUsersDialogOpen(true);
+                  }}
+                >
                   View All Users
                 </Button>
               </CardContent>
@@ -1039,6 +1081,128 @@ export default function AdminPage() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* All Users Dialog */}
+        <Dialog open={isUsersDialogOpen} onOpenChange={setIsUsersDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[80vh]">
+            <DialogHeader>
+              <DialogTitle>All Users</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search users..."
+                  value={userSearchTerm}
+                  onChange={(e) => setUserSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <div className="max-h-96 overflow-y-auto space-y-2">
+                {allUsers
+                  .filter((userData: any) => 
+                    userData.full_name?.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+                    userData.student_id?.toLowerCase().includes(userSearchTerm.toLowerCase())
+                  )
+                  .map((userData: any) => (
+                    <div
+                      key={userData.id}
+                      className="flex items-center justify-between p-3 border rounded-lg"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Avatar>
+                          {userData.profile_pic ? (
+                            <img
+                              src={userData.profile_pic}
+                              alt="Profile"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <AvatarFallback>
+                              {userData.full_name?.charAt(0) || 'U'}
+                            </AvatarFallback>
+                          )}
+                        </Avatar>
+                        <div>
+                          <h4 className="font-medium">{userData.full_name}</h4>
+                          <p className="text-sm text-muted-foreground">{userData.student_id}</p>
+                        </div>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setSelectedUser(userData);
+                          setIsUserDetailDialogOpen(true);
+                        }}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* User Detail Dialog */}
+        <Dialog open={isUserDetailDialogOpen} onOpenChange={setIsUserDetailDialogOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>User Details</DialogTitle>
+            </DialogHeader>
+            {selectedUser && (
+              <div className="space-y-6">
+                <div className="flex items-center space-x-4">
+                  <Avatar className="h-16 w-16">
+                    {selectedUser.profile_pic ? (
+                      <img
+                        src={selectedUser.profile_pic}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <AvatarFallback className="text-xl">
+                        {selectedUser.full_name?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  <div>
+                    <h3 className="text-xl font-semibold">{selectedUser.full_name}</h3>
+                    <p className="text-muted-foreground">{selectedUser.student_id}</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Phone Number</Label>
+                    <p className="text-sm">{selectedUser.phone_number || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Major</Label>
+                    <p className="text-sm">{selectedUser.major || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Year</Label>
+                    <p className="text-sm">{selectedUser.year || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Joined</Label>
+                    <p className="text-sm">{new Date(selectedUser.created_at).toLocaleDateString()}</p>
+                  </div>
+                </div>
+                
+                {selectedUser.bio && (
+                  <div>
+                    <Label className="text-sm font-medium">Bio</Label>
+                    <p className="text-sm mt-1">{selectedUser.bio}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </ProtectedLayout>
   );
