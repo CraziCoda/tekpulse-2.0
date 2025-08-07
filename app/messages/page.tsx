@@ -328,37 +328,28 @@ export default function MessagesPage() {
 
   const getUsers = async () => {
     const { data, error } = await supabase.from("profiles").select(`
-    id,
-    full_name,
-    profile_pic,
-    community_members (
-      member_positions (
-        position:position_id (
-          title
-        )
+      id,
+      full_name,
+      profile_pic,
+      positions:member_positions(
+        id,
+        title,
+        level,
+        approved
       )
-    )
-  `);
+    `);
 
     if (error) {
       console.error(error);
     } else {
       let formatted = data.map((profile: any) => {
-        const positions: any[] = [];
-
-        profile.community_members?.forEach((member: any) => {
-          member.member_positions?.forEach((mp: any) => {
-            if (mp.position?.title && !positions.includes(mp.position.title)) {
-              positions.push(mp.position.title);
-            }
-          });
-        });
-
+        const approvedPositions = profile.positions?.filter((pos: any) => pos.approved) || [];
+        
         return {
           id: profile.id,
           full_name: profile.full_name,
           profile_pic: profile.profile_pic,
-          positions: positions.slice(0, 3),
+          positions: approvedPositions.slice(0, 3),
         };
       });
       formatted = formatted.filter((_user: any) => _user.id !== user.id);
@@ -717,16 +708,18 @@ export default function MessagesPage() {
                         </AvatarFallback>
                       )}
                     </Avatar>
-                    <span className="font-medium">{student.full_name}</span>
-                    {/* {student.position && (
-                      <span
-                        className={`ml-2 text-xs px-2 py-0.5 rounded font-semibold ${positionBg(
-                          student.position
-                        )}`}
-                      >
-                        {student.position}
-                      </span>
-                    )} */}
+                    <div className="flex-1">
+                      <span className="font-medium">{student.full_name}</span>
+                      {student.positions?.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {student.positions.map((position: any, index: number) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {position.title}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))
               ) : (

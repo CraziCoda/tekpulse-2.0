@@ -511,12 +511,25 @@ export default function CommunitiesPage() {
   async function getCommunities() {
     const { data, error } = await supabase
       .from("community_details")
-      .select("*");
+      .select(`
+        *,
+        leaders:member_positions(
+          id,
+          title,
+          level,
+          user_id,
+          leader:profiles(id, full_name, student_id, profile_pic)
+        )
+      `);
 
     if (error) {
       console.error("Error:", error);
     } else {
-      setCommunities(data);
+      const formattedData = data?.map((community: any) => ({
+        ...community,
+        leaders: community.leaders?.filter((pos: any) => pos.approved !== false) || []
+      }));
+      setCommunities(formattedData);
     }
   }
 
@@ -566,9 +579,9 @@ export default function CommunitiesPage() {
                           <LevelIcon
                             className={`h-3 w-3 ${getLevelColor(leader.level)}`}
                           />
-                          <span className="font-medium">{leader.name}</span>
+                          <span className="font-medium">{leader.leader?.full_name}</span>
                           <span className="text-muted-foreground">
-                            ({leader.position})
+                            ({leader.title})
                           </span>
                         </div>
                       );

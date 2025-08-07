@@ -296,7 +296,13 @@ export default function PostsPage() {
           id,
           full_name,
           student_id,
-          profile_pic
+          profile_pic,
+          positions:member_positions(
+            id,
+            title,
+            level,
+            approved
+          )
         ),
         likes(count),
         comments(count),
@@ -306,6 +312,7 @@ export default function PostsPage() {
       )
       .eq("users_liked.user_id", user.id)
       .eq("users_bookmarked.user_id", user.id)
+      .eq("author.positions.approved", true)
       .order("created_at", { ascending: false })
       .range(postsToSkip, postsToSkip + 10);
 
@@ -315,7 +322,14 @@ export default function PostsPage() {
     }
 
     if (data) {
-      setPosts(data);
+      const formattedPosts = data.map((post: any) => ({
+        ...post,
+        author: {
+          ...post.author,
+          position: post.author.positions?.[0] || null
+        }
+      }));
+      setPosts(formattedPosts);
     }
   };
 
@@ -337,11 +351,18 @@ export default function PostsPage() {
           id,
           full_name,
           student_id,
-          profile_pic
+          profile_pic,
+          positions:member_positions(
+            id,
+            title,
+            level,
+            approved
+          )
         )
         `
       )
       .eq("post_id", selectedPost)
+      .eq("author.positions.approved", true)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -350,8 +371,14 @@ export default function PostsPage() {
     }
 
     if (data) {
-      console.log(data);
-      setComments(data);
+      const formattedComments = data.map((comment: any) => ({
+        ...comment,
+        author: {
+          ...comment.author,
+          position: comment.author.positions?.[0] || null
+        }
+      }));
+      setComments(formattedComments);
     }
   };
 
