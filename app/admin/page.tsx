@@ -222,6 +222,15 @@ export default function AdminPage() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [userSearchTerm, setUserSearchTerm] = useState("");
   const [isAppointDialogOpen, setIsAppointDialogOpen] = useState(false);
+  const [communities, setCommunities] = useState<any>([]);
+  const [appointmentData, setAppointmentData] = useState({
+    student_id: "",
+    title: "",
+    community_id: "",
+    level: ""
+  });
+  const [isAppointing, setIsAppointing] = useState(false);
+  const [appointmentError, setAppointmentError] = useState("");
   const [isAnnouncementDialogOpen, setIsAnnouncementDialogOpen] =
     useState(false);
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
@@ -314,11 +323,25 @@ export default function AdminPage() {
     }
   };
 
+  const getCommunities = async () => {
+    const { data, error } = await supabase
+      .from("communities")
+      .select("id, name")
+      .order("name", { ascending: true });
+      
+    if (error) {
+      console.error(error);
+    } else {
+      setCommunities(data || []);
+    }
+  };
+
   useEffect(() => {
     getUserProfile();
     getPositionApplications();
     getApprovedLeaders();
     getUsers();
+    getCommunities();
   }, []);
 
   if (!user || !user.is_admin) {
@@ -374,6 +397,61 @@ export default function AdminPage() {
 
   const handleRemoveLeader = (leaderId: number) => {
     setLeaders(leaders.filter((leader: any) => leader.id !== leaderId));
+  };
+
+  const handleAppointLeader = async () => {
+    if (!appointmentData.student_id.trim()) {
+      setAppointmentError("Student ID is required");
+      return;
+    }
+    if (!appointmentData.title.trim()) {
+      setAppointmentError("Position title is required");
+      return;
+    }
+    if (!appointmentData.community_id) {
+      setAppointmentError("Please select a community");
+      return;
+    }
+    if (!appointmentData.level) {
+      setAppointmentError("Please select a leadership level");
+      return;
+    }
+
+    setIsAppointing(true);
+    setAppointmentError("");
+
+    // Find user by student_id
+    const { data: userData, error: userError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("student_id", appointmentData.student_id)
+      .single();
+
+    if (userError || !userData) {
+      setAppointmentError("Student not found");
+      setIsAppointing(false);
+      return;
+    }
+
+    const { error } = await supabase.from("member_positions").insert({
+      community_id: appointmentData.community_id,
+      title: appointmentData.title,
+      level: appointmentData.level,
+      reason: "Directly appointed by admin",
+      user_id: userData.id,
+      approved: true
+    });
+
+    if (error) {
+      setAppointmentError(error.message);
+      setIsAppointing(false);
+      return;
+    }
+
+    setIsAppointing(false);
+    setAppointmentData({ student_id: "", title: "", community_id: "", level: "" });
+    setIsAppointDialogOpen(false);
+    getApprovedLeaders();
   };
 
   const getStatusColor = (status: string) => {
@@ -770,25 +848,40 @@ export default function AdminPage() {
                     <div className="space-y-4 pt-4">
                       <div className="space-y-2">
                         <Label htmlFor="studentId">Student ID</Label>
-                        <Input id="studentId" placeholder="ST001" />
+                        <Input 
+                          id="studentId" 
+                          placeholder="ST001" 
+                          value={appointmentData.student_id}
+                          onChange={(e) => setAppointmentData({...appointmentData, student_id: e.target.value})}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="position">Position Title</Label>
                         <Input
                           id="position"
                           placeholder="e.g., Class Representative"
+                          value={appointmentData.title}
+                          onChange={(e) => setAppointmentData({...appointmentData, title: e.target.value})}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="department">Department/Faculty</Label>
-                        <Input
-                          id="department"
-                          placeholder="e.g., Computer Science"
-                        />
+                        <Label htmlFor="community">Community</Label>
+                        <Select value={appointmentData.community_id} onValueChange={(value) => setAppointmentData({...appointmentData, community_id: value})}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select community" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {communities.map((community: any) => (
+                              <SelectItem key={community.id} value={community.id}>
+                                {community.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="level">Leadership Level</Label>
-                        <Select>
+                        <Select value={appointmentData.level} onValueChange={(value) => setAppointmentData({...appointmentData, level: value})}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select level" />
                           </SelectTrigger>
@@ -801,7 +894,12 @@ export default function AdminPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <Button className="w-full">Appoint Leader</Button>
+                      {appointmentError && (
+                        <p className="text-red-500 text-sm">{appointmentError}</p>
+                      )}
+                      <Button className="w-full" onClick={handleAppointLeader} disabled={isAppointing}>
+                        {isAppointing ? "Appointing..." : "Appoint Leader"}
+                      </Button>
                     </div>
                   </DialogContent>
                 </Dialog>
