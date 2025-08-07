@@ -438,7 +438,8 @@ export default function CommunitiesPage() {
       community_id: positionApplication.community_id,
       title: positionApplication.title,
       level: positionApplication.level,
-      reason: positionApplication.reason
+      reason: positionApplication.reason,
+      user_id: user.id
     });
 
     if (error) {

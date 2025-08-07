@@ -213,8 +213,8 @@ const reportedContent = [
 
 export default function AdminPage() {
   const [user, setUser] = useState<any>(null);
-  const [applications, setApplications] = useState(leadershipApplications);
-  const [leaders, setLeaders] = useState(currentLeaders);
+  const [applications, setApplications] = useState<any>([]);
+  const [leaders, setLeaders] = useState<any>([]);
   const [isAppointDialogOpen, setIsAppointDialogOpen] = useState(false);
   const [isAnnouncementDialogOpen, setIsAnnouncementDialogOpen] =
     useState(false);
@@ -228,10 +228,6 @@ export default function AdminPage() {
   const [eventLocation, setEventLocation] = useState("");
   const [eventType, setEventType] = useState("academic");
   const router = useRouter();
-
-  useEffect(() => {
-    getUserProfile();
-  }, []);
 
   async function getUserProfile() {
     const { data: userData } = await supabase.auth.getUser();
@@ -249,6 +245,48 @@ export default function AdminPage() {
     }
   }
 
+  const getPositionApplications = async () => {
+    const { data, error } = await supabase
+      .from("member_positions")
+      .select(`
+        *,
+        community:communities(name),
+        applicant:profiles(id, full_name, student_id, profile_pic)
+      `)
+      .eq("approved", false)
+      .order("created_at", { ascending: false });
+      
+    if (error) {
+      console.error(error);
+    } else {
+      setApplications(data || []);
+    }
+  };
+
+  const getApprovedLeaders = async () => {
+    const { data, error } = await supabase
+      .from("member_positions")
+      .select(`
+        *,
+        community:communities(name),
+        leader:profiles(id, full_name, student_id, profile_pic)
+      `)
+      .eq("approved", true)
+      .order("created_at", { ascending: false });
+      
+    if (error) {
+      console.error(error);
+    } else {
+      setLeaders(data || []);
+    }
+  };
+
+  useEffect(() => {
+    getUserProfile();
+    getPositionApplications();
+    getApprovedLeaders();
+  }, []);
+
   if (!user || !user.is_admin) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -263,39 +301,45 @@ export default function AdminPage() {
     );
   }
 
-  const handleApplicationAction = (
+
+
+  const handleApplicationAction = async (
     applicationId: number,
     action: "approve" | "reject"
   ) => {
-    setApplications(
-      applications.map((app) =>
-        app.id === applicationId
-          ? { ...app, status: action === "approve" ? "approved" : "rejected" }
-          : app
-      )
-    );
-
     if (action === "approve") {
-      const application = applications.find((app) => app.id === applicationId);
-      if (application) {
-        const newLeader = {
-          id: leaders.length + 1,
-          name: application.applicant.name,
-          email: application.applicant.email,
-          studentId: application.applicant.studentId,
-          position: application.position,
-          department: application.department,
-          level: application.level,
-          appointedDate: new Date().toISOString().split("T")[0],
-          communities: [application.department],
-        };
-        setLeaders([...leaders, newLeader]);
+      const { error } = await supabase
+        .from("member_positions")
+        .update({ approved: true })
+        .eq("id", applicationId);
+
+      if (error) {
+        console.error(error);
+        return;
       }
+    } else {
+      const { error } = await supabase
+        .from("member_positions")
+        .delete()
+        .eq("id", applicationId);
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+    }
+
+    setApplications(
+      applications.filter((app: any) => app.id !== applicationId)
+    );
+    
+    if (action === "approve") {
+      getApprovedLeaders();
     }
   };
 
   const handleRemoveLeader = (leaderId: number) => {
-    setLeaders(leaders.filter((leader) => leader.id !== leaderId));
+    setLeaders(leaders.filter((leader: any) => leader.id !== leaderId));
   };
 
   const getStatusColor = (status: string) => {
@@ -729,21 +773,21 @@ export default function AdminPage() {
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-start space-x-3">
                             <Avatar>
-                              {leader.profile_pic ? (
+                              {leader.leader?.profile_pic ? (
                                 <img
-                                  src={leader.profile_pic}
+                                  src={leader.leader.profile_pic}
                                   alt="Profile"
                                   className="w-full h-full object-cover"
                                 />
                               ) : (
                                 <AvatarFallback>
-                                  {leader.name.charAt(0)}
+                                  {leader.leader?.full_name?.charAt(0) || 'L'}
                                 </AvatarFallback>
                               )}
                             </Avatar>
                             <div>
                               <div className="flex items-center space-x-2 mb-1">
-                                <h4 className="font-medium">{leader.name}</h4>
+                                <h4 className="font-medium">{leader.leader?.full_name || 'Unknown'}</h4>
                                 <LevelIcon
                                   className={`h-4 w-4 ${getLevelColor(
                                     leader.level
@@ -751,14 +795,14 @@ export default function AdminPage() {
                                 />
                               </div>
                               <p className="text-sm font-medium text-primary">
-                                {leader.position}
+                                {leader.title}
                               </p>
                               <p className="text-sm text-muted-foreground">
-                                {leader.department}
+                                {leader.community?.name || 'Unknown Community'}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                Appointed: {leader.appointedDate} •{" "}
-                                {leader.studentId}
+                                Appointed: {new Date(leader.created_at).toLocaleDateString()} •{" "}
+                                {leader.leader?.student_id || 'N/A'}
                               </p>
                             </div>
                           </div>
@@ -771,19 +815,21 @@ export default function AdminPage() {
                           </Button>
                         </div>
                         <div className="flex flex-wrap gap-1">
-                          {leader.communities.map((community: string) => (
-                            <Badge
-                              key={community}
-                              variant="secondary"
-                              className="text-xs"
-                            >
-                              {community}
-                            </Badge>
-                          ))}
+                          <Badge
+                            variant="secondary"
+                            className="text-xs"
+                          >
+                            {leader.community?.name || 'Unknown Community'}
+                          </Badge>
                         </div>
                       </div>
                     );
                   })}
+                  {leaders.length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No approved leaders yet
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -809,7 +855,7 @@ export default function AdminPage() {
                         <div className="flex justify-between items-start mb-3">
                           <div className="flex items-start space-x-3">
                             <Avatar>
-                              {application.applicant.profile_pic ? (
+                              {application.applicant?.profile_pic ? (
                                 <img
                                   src={application.applicant.profile_pic}
                                   alt="Profile"
@@ -817,14 +863,17 @@ export default function AdminPage() {
                                 />
                               ) : (
                                 <AvatarFallback>
-                                  {application.applicant.name.charAt(0)}
+                                  {application.applicant?.full_name?.charAt(
+                                    0
+                                  ) || "U"}
                                 </AvatarFallback>
                               )}
                             </Avatar>
                             <div className="flex-1">
                               <div className="flex items-center space-x-2 mb-1">
                                 <h4 className="font-medium">
-                                  {application.applicant.name}
+                                  {application.applicant?.full_name ||
+                                    "Unknown"}
                                 </h4>
                                 <LevelIcon
                                   className={`h-4 w-4 ${getLevelColor(
@@ -833,19 +882,23 @@ export default function AdminPage() {
                                 />
                               </div>
                               <p className="text-sm font-medium text-primary">
-                                {application.position}
+                                {application.title}
                               </p>
                               <p className="text-sm text-muted-foreground">
-                                {application.department}
+                                {application.community?.name ||
+                                  "Unknown Community"}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                Applied: {application.appliedDate} •{" "}
-                                {application.applicant.studentId}
+                                Applied:{" "}
+                                {new Date(
+                                  application.created_at
+                                ).toLocaleDateString()}{" "}
+                                • {application.applicant?.student_id || "N/A"}
                               </p>
                             </div>
                           </div>
-                          <Badge className={getStatusColor(application.status)}>
-                            {application.status}
+                          <Badge className="bg-yellow-100 text-yellow-800">
+                            pending
                           </Badge>
                         </div>
                         <div className="mb-3">
@@ -853,38 +906,35 @@ export default function AdminPage() {
                             <strong>Reason:</strong> {application.reason}
                           </p>
                         </div>
-                        {application.status === "pending" && (
-                          <div className="flex space-x-2">
-                            <Button
-                              size="sm"
-                              onClick={() =>
-                                handleApplicationAction(
-                                  application.id,
-                                  "approve"
-                                )
-                              }
-                            >
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              Approve
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() =>
-                                handleApplicationAction(
-                                  application.id,
-                                  "reject"
-                                )
-                              }
-                            >
-                              <XCircle className="h-4 w-4 mr-1" />
-                              Reject
-                            </Button>
-                          </div>
-                        )}
+                        <div className="flex space-x-2">
+                          <Button
+                            size="sm"
+                            onClick={() =>
+                              handleApplicationAction(application.id, "approve")
+                            }
+                          >
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              handleApplicationAction(application.id, "reject")
+                            }
+                          >
+                            <XCircle className="h-4 w-4 mr-1" />
+                            Reject
+                          </Button>
+                        </div>
                       </div>
                     );
                   })}
+                  {applications.length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No pending applications
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
