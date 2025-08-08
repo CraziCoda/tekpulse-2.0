@@ -200,6 +200,19 @@ export default function LostFoundPage() {
     }
   };
 
+  const handleDeleteReport = async (reportId: any) => {
+    const { error } = await supabase
+      .from("lost_and_founds")
+      .delete()
+      .eq("id", reportId);
+
+    if (error) {
+      console.error(error);
+    } else {
+      getReports();
+    }
+  };
+
   const getReports = async () => {
     const { data, error } = await supabase
       .from("lost_and_founds")
@@ -223,7 +236,9 @@ export default function LostFoundPage() {
     }
   };
   const ItemCard = ({ item }: { item: any }) => (
-    <Card className="hover:shadow-lg transition-all duration-200 border-0 shadow-sm">
+    <Card className={`hover:shadow-lg transition-all duration-200 border-0 shadow-sm ${
+      user?.is_admin ? 'border-l-4 border-l-red-500' : ''
+    }`}>
       <div className="relative">
         {/* Status Badge */}
         <div className="absolute top-3 right-3 z-10">
@@ -291,25 +306,38 @@ export default function LostFoundPage() {
           </div>
         </div>
 
-        {/* Action Button */}
-        <Button
-          className="w-full font-medium"
-          variant={item.author.id === user?.id ? "secondary" : "default"}
-          onClick={(e) => {
-            if (item.author.id === user?.id) {
-              handleResolved(item.id);
-              e.currentTarget.disabled = true;
-            } else {
-              router.push(
-                `/messages?id=${item.id}&user=${item.author.id}&type=lost-found&name=${item.title}&description=${item.description}`
-              );
-            }
-          }}
-        >
-          {item.author.id === user?.id
-            ? "Mark as Resolved"
-            : "Contact Reporter"}
-        </Button>
+        {/* Action Buttons */}
+        <div className="space-y-2">
+          <Button
+            className="w-full font-medium"
+            variant={item.author.id === user?.id ? "secondary" : "default"}
+            onClick={(e) => {
+              if (item.author.id === user?.id) {
+                handleResolved(item.id);
+                e.currentTarget.disabled = true;
+              } else {
+                router.push(
+                  `/messages?id=${item.id}&user=${item.author.id}&type=lost-found&name=${item.title}&description=${item.description}`
+                );
+              }
+            }}
+          >
+            {item.author.id === user?.id
+              ? "Mark as Resolved"
+              : "Contact Reporter"}
+          </Button>
+          
+          {user?.is_admin && item.author.id !== user?.id && (
+            <Button
+              className="w-full font-medium"
+              variant="destructive"
+              size="sm"
+              onClick={() => handleDeleteReport(item.id)}
+            >
+              Admin: Remove Report
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

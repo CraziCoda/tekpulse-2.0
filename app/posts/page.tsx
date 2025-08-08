@@ -15,6 +15,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import supabase from "@/lib/supabase";
@@ -36,6 +42,7 @@ import {
   Crown,
   Star,
   UserCheck,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -153,6 +160,19 @@ export default function PostsPage() {
     );
     // In a real app, this would open a share dialog
     console.log("Sharing post:", postId);
+  };
+
+  const handleDeletePost = async (postId: number) => {
+    const { error } = await supabase
+      .from("posts")
+      .delete()
+      .eq("id", postId);
+
+    if (error) {
+      console.error(error);
+    } else {
+      setPosts(posts.filter((post: any) => post.id !== postId));
+    }
   };
 
   async function getUserProfile() {
@@ -436,9 +456,24 @@ export default function PostsPage() {
               </div>
             </div>
           </div>
-          <Button variant="ghost" size="sm">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {user?.is_admin && (
+                <DropdownMenuItem
+                  onClick={() => handleDeletePost(post.id)}
+                  className="text-red-600 focus:text-red-600"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Remove Post
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Post Content */}
