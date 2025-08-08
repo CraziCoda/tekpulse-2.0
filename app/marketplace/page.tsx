@@ -205,7 +205,18 @@ export default function MarketplacePage() {
     getProductListings();
   };
 
-  const handleDeleteListing = async (listingId: any) => {};
+  const handleDeleteListing = async (listingId: any) => {
+    const { error } = await supabase
+      .from("product_listings")
+      .delete()
+      .eq("id", listingId);
+
+    if (error) {
+      console.error(error);
+    } else {
+      getProductListings();
+    }
+  };
 
   const getProductListings = async () => {
     const { data, error } = await supabase
@@ -432,7 +443,9 @@ export default function MarketplacePage() {
         {/* Items Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredItems.map((item: any) => (
-            <Card key={item.id} className="hover:shadow-lg transition-all duration-200 border-0 shadow-sm">
+            <Card key={item.id} className={`hover:shadow-lg transition-all duration-200 border-0 shadow-sm ${
+              user?.is_admin ? 'border-l-4 border-l-red-500' : ''
+            }`}>
               <div className="relative">
                 {/* Price Badge */}
                 <div className="absolute top-3 right-3 z-10">
@@ -494,22 +507,35 @@ export default function MarketplacePage() {
                   </div>
                 </div>
 
-                {/* Action Button */}
-                <Button
-                  className="w-full font-medium"
-                  variant={item?.author?.id === user?.id ? "destructive" : "default"}
-                  onClick={() => {
-                    if (item?.author?.id === user?.id) {
-                      handleDeleteListing(item.id);
-                    } else {
-                      router.push(
-                        `/messages?id=${item.id}&user=${item.author.id}&type=marketplace&name=${item.title}&description=${item.description}`
-                      );
-                    }
-                  }}
-                >
-                  {item?.author?.id === user?.id ? "Remove Listing" : "Contact Seller"}
-                </Button>
+                {/* Action Buttons */}
+                <div className="space-y-2">
+                  <Button
+                    className="w-full font-medium"
+                    variant={item?.author?.id === user?.id ? "destructive" : "default"}
+                    onClick={() => {
+                      if (item?.author?.id === user?.id) {
+                        handleDeleteListing(item.id);
+                      } else {
+                        router.push(
+                          `/messages?id=${item.id}&user=${item.author.id}&type=marketplace&name=${item.title}&description=${item.description}`
+                        );
+                      }
+                    }}
+                  >
+                    {item?.author?.id === user?.id ? "Remove Listing" : "Contact Seller"}
+                  </Button>
+                  
+                  {user?.is_admin && item?.author?.id !== user?.id && (
+                    <Button
+                      className="w-full font-medium"
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDeleteListing(item.id)}
+                    >
+                      Admin: Remove Listing
+                    </Button>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}

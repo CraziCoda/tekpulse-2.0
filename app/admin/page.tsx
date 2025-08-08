@@ -52,36 +52,7 @@ import {
 import { useRouter } from "next/navigation";
 import supabase from "@/lib/supabase";
 
-const adminStats = [
-  {
-    title: "Total Users",
-    value: "2,847",
-    change: "+12%",
-    icon: Users,
-    color: "text-blue-600",
-  },
-  {
-    title: "Lost and Found",
-    value: "1,234",
-    change: "+8%",
-    icon: Search,
-    color: "text-green-600",
-  },
-  {
-    title: "Marketplace Items",
-    value: "156",
-    change: "+24%",
-    icon: ShoppingBag,
-    color: "text-purple-600",
-  },
-  {
-    title: "Leadership Applications",
-    value: "8",
-    change: "+3%",
-    icon: Crown,
-    color: "text-orange-600",
-  },
-];
+
 
 
 const reportedContent = [
@@ -111,6 +82,7 @@ export default function AdminPage() {
   const [leaders, setLeaders] = useState<any>([]);
   const [users, setUsers] = useState<any>([]);
   const [allUsers, setAllUsers] = useState<any>([]);
+  const [adminStats, setAdminStats] = useState<any>(null);
   const [isUsersDialogOpen, setIsUsersDialogOpen] = useState(false);
   const [isUserDetailDialogOpen, setIsUserDetailDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -230,12 +202,26 @@ export default function AdminPage() {
     }
   };
 
+  const getAdminStats = async () => {
+    const { data, error } = await supabase
+      .from("admin_stats")
+      .select("*")
+      .single();
+      
+    if (error) {
+      console.error(error);
+    } else {
+      setAdminStats(data);
+    }
+  };
+
   useEffect(() => {
     getUserProfile();
     getPositionApplications();
     getApprovedLeaders();
     getUsers();
     getCommunities();
+    getAdminStats();
   }, []);
 
   if (!user || !user.is_admin) {
@@ -602,7 +588,32 @@ export default function AdminPage() {
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {adminStats.map((stat) => {
+          {adminStats && [
+            {
+              title: "Total Users",
+              value: adminStats.total_users,
+              icon: Users,
+              color: "text-blue-600",
+            },
+            {
+              title: "Lost & Found Items",
+              value: adminStats.lost_found_items,
+              icon: Search,
+              color: "text-green-600",
+            },
+            {
+              title: "Marketplace Items",
+              value: adminStats.marketplace_items,
+              icon: ShoppingBag,
+              color: "text-purple-600",
+            },
+            {
+              title: "Leadership Applications",
+              value: adminStats.leadership_applications,
+              icon: Crown,
+              color: "text-orange-600",
+            },
+          ].map((stat) => {
             const Icon = stat.icon;
             return (
               <Card key={stat.title}>
@@ -615,15 +626,6 @@ export default function AdminPage() {
                       <p className="text-2xl font-bold">{stat.value}</p>
                     </div>
                     <Icon className={`h-8 w-8 ${stat.color}`} />
-                  </div>
-                  <div className="flex items-center mt-4">
-                    <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
-                    <span className="text-sm text-green-600">
-                      {stat.change}
-                    </span>
-                    <span className="text-sm text-muted-foreground ml-1">
-                      from last month
-                    </span>
                   </div>
                 </CardContent>
               </Card>
