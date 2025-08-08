@@ -61,10 +61,10 @@ const adminStats = [
     color: "text-blue-600",
   },
   {
-    title: "Active Messages",
+    title: "Lost and Found",
     value: "1,234",
     change: "+8%",
-    icon: MessageSquare,
+    icon: Search,
     color: "text-green-600",
   },
   {
@@ -83,112 +83,6 @@ const adminStats = [
   },
 ];
 
-const recentUsers = [
-  {
-    id: 1,
-    name: "John Smith",
-    email: "john.smith@university.edu",
-    studentId: "ST001",
-    joinDate: "2024-03-10",
-    status: "active",
-    position: null,
-  },
-  {
-    id: 2,
-    name: "Sarah Johnson",
-    email: "sarah.johnson@university.edu",
-    studentId: "ST002",
-    joinDate: "2024-03-12",
-    status: "active",
-    position: {
-      title: "Class Representative",
-      department: "Computer Science",
-      level: "representative",
-    },
-  },
-  {
-    id: 3,
-    name: "Mike Davis",
-    email: "mike.davis@university.edu",
-    studentId: "ST003",
-    joinDate: "2024-03-08",
-    status: "pending",
-    position: null,
-  },
-];
-
-const leadershipApplications = [
-  {
-    id: 1,
-    applicant: {
-      name: "Emma Wilson",
-      email: "emma.wilson@university.edu",
-      studentId: "ST004",
-    },
-    position: "Student Council President",
-    department: "Student Government",
-    level: "president",
-    reason:
-      "I have been actively involved in student activities for 3 years and want to represent all students.",
-    appliedDate: "2024-03-10",
-    status: "pending",
-  },
-  {
-    id: 2,
-    applicant: {
-      name: "Alex Brown",
-      email: "alex.brown@university.edu",
-      studentId: "ST005",
-    },
-    position: "CS Department Representative",
-    department: "Computer Science",
-    level: "representative",
-    reason:
-      "As a senior CS student, I want to help bridge communication between students and faculty.",
-    appliedDate: "2024-03-12",
-    status: "pending",
-  },
-  {
-    id: 3,
-    applicant: {
-      name: "Lisa Chen",
-      email: "lisa.chen@university.edu",
-      studentId: "ST006",
-    },
-    position: "Engineering Faculty Secretary",
-    department: "Engineering & Technology",
-    level: "secretary",
-    reason:
-      "I have excellent organizational skills and want to support engineering students.",
-    appliedDate: "2024-03-08",
-    status: "approved",
-  },
-];
-
-const currentLeaders = [
-  {
-    id: 1,
-    name: "David Kim",
-    email: "david.kim@university.edu",
-    studentId: "ST007",
-    position: "Student Body President",
-    department: "Student Government",
-    level: "president",
-    appointedDate: "2024-01-15",
-    communities: ["Student Government", "All Campus"],
-  },
-  {
-    id: 2,
-    name: "Maria Garcia",
-    email: "maria.garcia@university.edu",
-    studentId: "ST008",
-    position: "Business Faculty President",
-    department: "Business & Economics",
-    level: "president",
-    appointedDate: "2024-02-01",
-    communities: ["Business Administration", "Business Faculty"],
-  },
-];
 
 const reportedContent = [
   {

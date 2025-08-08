@@ -29,7 +29,7 @@ const navItems = [
   { href: "/lost-found", icon: Search, label: "Lost & Found" },
   { href: "/messages", icon: MessageSquare, label: "Messages" },
   { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
-  { href: "/campus-map", icon: Map, label: "Campus Map" },
+  // { href: "/campus-map", icon: Map, label: "Campus Map" },
   { href: "/profile", icon: User, label: "Profile" },
 ];
 
