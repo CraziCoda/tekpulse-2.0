@@ -215,7 +215,9 @@ export default function MessagesPage() {
       return;
     }
 
-    if (chatRooms?.length == 0) {
+    console.log(chatRooms);
+
+    if (chatRooms?.[0]?.chat_members?.length  <= 1) {
       const { data: newRoom, error: roomError } = await supabase
         .from("chat_rooms")
         .insert({})
@@ -687,7 +689,7 @@ export default function MessagesPage() {
                         (c: any) => c.name === student.full_name
                       );
                       if (existing) {
-                        setSelectedConversation(existing.id);
+                        setCurrentConversation(existing);
                       } else {
                         // alert(`Start conversation with ${student.full_name}`);
                         startConversation(student.id);
