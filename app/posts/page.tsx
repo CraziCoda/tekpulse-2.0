@@ -1153,7 +1153,7 @@ export default function PostsPage() {
                       </div>
                     ))}
                     {recentActivity.length === 0 && (
-                      <div className="text-center py-4 text-muted-foreground text-sm">
+                      <div className="w-64 text-center py-4 text-muted-foreground text-sm">
                         No recent activity
                       </div>
                     )}
