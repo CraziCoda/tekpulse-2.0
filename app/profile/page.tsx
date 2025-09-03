@@ -207,58 +207,67 @@ export default function ProfilePage() {
 
   return (
     <ProtectedLayout>
-      <div className="p-6 space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
-            <p className="text-muted-foreground">
-              Manage your account settings and preferences
-            </p>
-          </div>
-          {!isEditing ? (
-            <Button onClick={() => setIsEditing(true)}>
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Profile
-            </Button>
-          ) : (
-            <div className="flex space-x-2">
-              <Button onClick={handleSave}>
-                <Save className="h-4 w-4 mr-2" />
-                Save
-              </Button>
-              <Button variant="outline" onClick={handleCancel}>
-                <X className="h-4 w-4 mr-2" />
-                Cancel
-              </Button>
+      <div className=" bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white py-12">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-4xl font-bold tracking-tight mb-2">Profile</h1>
+                <p className="text-indigo-100 text-lg">
+                  Manage your account settings and preferences
+                </p>
+              </div>
+              {!isEditing ? (
+                <Button className="bg-white text-indigo-600 hover:bg-indigo-50 shadow-lg" onClick={() => setIsEditing(true)}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Profile
+                </Button>
+              ) : (
+                <div className="flex space-x-2">
+                  <Button className="bg-white text-indigo-600 hover:bg-indigo-50 shadow-lg" onClick={handleSave}>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save
+                  </Button>
+                  <Button variant="outline" className="border-white text-white hover:bg-white/10" onClick={handleCancel}>
+                    <X className="h-4 w-4 mr-2" />
+                    Cancel
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
+          </div>
+        </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Profile Overview */}
-          <Card className="lg:col-span-1">
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Profile Overview */}
+            <Card className="lg:col-span-1 bg-white/70 backdrop-blur-sm border-white/20 shadow-xl">
             <CardContent className="p-6">
               <div className="text-center space-y-4">
                 <div className="relative">
-                  <Avatar className="h-24 w-24 mx-auto">
-                    {user.profile_pic ? (
-                      <img
-                        src={user.profile_pic}
-                        alt="Profile"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <AvatarFallback className="text-2xl">
-                        {user.full_name?.charAt(0) || user.name?.charAt(0)}
-                      </AvatarFallback>
-                    )}
-                  </Avatar>
+                  <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-r from-indigo-400 to-purple-400 p-1 shadow-xl">
+                    <Avatar className="h-full w-full">
+                      {user.profile_pic ? (
+                        <img
+                          src={user.profile_pic}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <AvatarFallback className="text-2xl bg-gradient-to-r from-indigo-100 to-purple-100">
+                          {user.full_name?.charAt(0) || user.name?.charAt(0)}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+                  </div>
                   {isEditing && (
                     <div className="absolute -bottom-2 -right-2">
                       <Button
                         size="sm"
-                        variant="outline"
-                        className="rounded-full h-8 w-8 p-0"
+                        className="rounded-full h-8 w-8 p-0 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg"
                         asChild
                       >
                         <label className="cursor-pointer">
@@ -286,6 +295,7 @@ export default function ProfilePage() {
                     <div className="flex space-x-2 justify-center">
                       <Button
                         size="sm"
+                        className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg"
                         onClick={handleImageUpload}
                         disabled={isUploading}
                       >
@@ -294,6 +304,7 @@ export default function ProfilePage() {
                       <Button
                         size="sm"
                         variant="outline"
+                        className="border-indigo-200 text-indigo-600 hover:bg-indigo-50"
                         onClick={() => {
                           setSelectedImage(null);
                           setImagePreview(null);
@@ -306,20 +317,20 @@ export default function ProfilePage() {
                 )}
 
                 <div>
-                  <h2 className="text-xl font-semibold">{user.name}</h2>
-                  <p className="text-muted-foreground">{user.email}</p>
-                  <Badge variant="secondary" className="mt-2">
+                  <h2 className="text-xl font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">{user.name}</h2>
+                  <p className="text-gray-600">{user.email}</p>
+                  <Badge className="mt-2 bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 border-0">
                     Student ID: {user.student_id}
                   </Badge>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 pt-4">
                   {userStats.map((stat: any) => (
-                    <div key={stat.label} className="text-center">
-                      <div className="text-2xl font-bold text-primary">
+                    <div key={stat.label} className="text-center p-3 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg border border-white/50">
+                      <div className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                         {stat.value}
                       </div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-sm text-gray-600">
                         {stat.label}
                       </div>
                     </div>
@@ -329,23 +340,23 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Profile Details */}
-          <div className="lg:col-span-2 space-y-6">
-            <Tabs defaultValue="personal" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="personal">Personal Info</TabsTrigger>
-                <TabsTrigger value="activity">Activity</TabsTrigger>
-                <TabsTrigger value="settings">Settings</TabsTrigger>
-              </TabsList>
+            {/* Profile Details */}
+            <div className="lg:col-span-2 space-y-6">
+              <Tabs defaultValue="personal" className="w-full">
+                <TabsList className="grid w-full grid-cols-3 bg-white/70 backdrop-blur-sm border-white/20">
+                  <TabsTrigger value="personal" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-purple-600 data-[state=active]:text-white">Personal Info</TabsTrigger>
+                  <TabsTrigger value="activity" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-purple-600 data-[state=active]:text-white">Activity</TabsTrigger>
+                  <TabsTrigger value="settings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-purple-600 data-[state=active]:text-white">Settings</TabsTrigger>
+                </TabsList>
 
-              <TabsContent value="personal" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Personal Information</CardTitle>
-                    <CardDescription>
-                      Update your personal details and contact information
-                    </CardDescription>
-                  </CardHeader>
+                <TabsContent value="personal" className="space-y-4">
+                  <Card className="bg-white/70 backdrop-blur-sm border-white/20 shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Personal Information</CardTitle>
+                      <CardDescription className="text-gray-600">
+                        Update your personal details and contact information
+                      </CardDescription>
+                    </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
@@ -355,7 +366,7 @@ export default function ProfilePage() {
                           value={user.full_name || ""}
                           readOnly
                           disabled
-                          className="bg-muted"
+                          className="bg-gradient-to-r from-gray-50 to-gray-100 border-gray-200"
                         />
                       </div>
                       <div className="space-y-2">
@@ -365,7 +376,7 @@ export default function ProfilePage() {
                           value={user.email || ""}
                           readOnly
                           disabled
-                          className="bg-muted"
+                          className="bg-gradient-to-r from-gray-50 to-gray-100 border-gray-200"
                         />
                       </div>
                       <div className="space-y-2">
@@ -375,7 +386,7 @@ export default function ProfilePage() {
                           value={user.student_id || ""}
                           readOnly
                           disabled
-                          className="bg-muted"
+                          className="bg-gradient-to-r from-gray-50 to-gray-100 border-gray-200"
                         />
                       </div>
                       <div className="space-y-2">
@@ -395,6 +406,7 @@ export default function ProfilePage() {
                           }
                           readOnly={!isEditing}
                           placeholder="(555) 123-4567"
+                          className={isEditing ? "border-indigo-200 focus:border-indigo-500" : ""}
                         />
                       </div>
                       <div className="space-y-2">
@@ -414,6 +426,7 @@ export default function ProfilePage() {
                           }
                           readOnly={!isEditing}
                           placeholder="Computer Science"
+                          className={isEditing ? "border-indigo-200 focus:border-indigo-500" : ""}
                         />
                       </div>
                       <div className="space-y-2">
@@ -431,6 +444,7 @@ export default function ProfilePage() {
                           }
                           readOnly={!isEditing}
                           placeholder="Junior"
+                          className={isEditing ? "border-indigo-200 focus:border-indigo-500" : ""}
                         />
                       </div>
                     </div>
@@ -446,27 +460,28 @@ export default function ProfilePage() {
                         }
                         readOnly={!isEditing}
                         placeholder="Tell other students about yourself..."
+                        className={isEditing ? "border-indigo-200 focus:border-indigo-500" : ""}
                         rows={3}
                       />
                     </div>
                   </CardContent>
-                </Card>
-              </TabsContent>
+                  </Card>
+                </TabsContent>
 
-              <TabsContent value="activity" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Recent Activity</CardTitle>
-                    <CardDescription>
-                      Your recent actions and interactions on the platform
-                    </CardDescription>
-                  </CardHeader>
+                <TabsContent value="activity" className="space-y-4">
+                  <Card className="bg-white/70 backdrop-blur-sm border-white/20 shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Recent Activity</CardTitle>
+                      <CardDescription className="text-gray-600">
+                        Your recent actions and interactions on the platform
+                      </CardDescription>
+                    </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       {recentActivity.map((activity) => (
                         <div
                           key={activity.id}
-                          className="flex items-center space-x-4 p-3 rounded-lg border"
+                          className="flex items-center space-x-4 p-3 rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 border border-white/50"
                         >
                           <div className="flex-shrink-0">
                             {activity.type === "message" && (
@@ -491,59 +506,59 @@ export default function ProfilePage() {
                       ))}
                     </div>
                   </CardContent>
-                </Card>
-              </TabsContent>
+                  </Card>
+                </TabsContent>
 
-              <TabsContent value="settings" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Account Settings</CardTitle>
-                    <CardDescription>
-                      Manage your account preferences and privacy settings
-                    </CardDescription>
-                  </CardHeader>
+                <TabsContent value="settings" className="space-y-4">
+                  <Card className="bg-white/70 backdrop-blur-sm border-white/20 shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Account Settings</CardTitle>
+                      <CardDescription className="text-gray-600">
+                        Manage your account preferences and privacy settings
+                      </CardDescription>
+                    </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-4">
-                      <div className="p-4 border rounded-lg">
-                        <h4 className="font-medium mb-2">
+                      <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 border border-white/50 rounded-lg">
+                        <h4 className="font-medium mb-2 text-gray-900">
                           Email Notifications
                         </h4>
-                        <p className="text-sm text-muted-foreground mb-3">
+                        <p className="text-sm text-gray-600 mb-3">
                           Receive email notifications for messages and important
                           updates
                         </p>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" className="border-indigo-200 text-indigo-600 hover:bg-indigo-50">
                           Configure Notifications
                         </Button>
                       </div>
 
-                      <div className="p-4 border rounded-lg">
-                        <h4 className="font-medium mb-2">Privacy Settings</h4>
-                        <p className="text-sm text-muted-foreground mb-3">
+                      <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 border border-white/50 rounded-lg">
+                        <h4 className="font-medium mb-2 text-gray-900">Privacy Settings</h4>
+                        <p className="text-sm text-gray-600 mb-3">
                           Control who can see your profile and contact you
                         </p>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" className="border-indigo-200 text-indigo-600 hover:bg-indigo-50">
                           Manage Privacy
                         </Button>
                       </div>
 
-                      <div className="p-4 border rounded-lg">
-                        <h4 className="font-medium mb-2">Change Password</h4>
-                        <p className="text-sm text-muted-foreground mb-3">
+                      <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 border border-white/50 rounded-lg">
+                        <h4 className="font-medium mb-2 text-gray-900">Change Password</h4>
+                        <p className="text-sm text-gray-600 mb-3">
                           Update your account password for security
                         </p>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" className="border-indigo-200 text-indigo-600 hover:bg-indigo-50">
                           Change Password
                         </Button>
                       </div>
                     </div>
                   </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            </div>
           </div>
         </div>
-      </div>
     </ProtectedLayout>
   );
 }
