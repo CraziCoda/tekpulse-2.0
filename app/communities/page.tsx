@@ -53,6 +53,7 @@ import {
   X,
 } from "lucide-react";
 import supabase from "@/lib/supabase";
+import moment from "moment";
 
 // const communities = [
 //   {
@@ -302,6 +303,7 @@ export default function CommunitiesPage() {
   const [isCreatingPost, setIsCreatingPost] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [recentPosts, setRecentPosts] = useState<any>([]);
 
   const [newCommunity, setNewCommunity] = useState<{
     name: string;
@@ -541,6 +543,50 @@ export default function CommunitiesPage() {
     }
   }
 
+  async function getRecentPosts() {
+    const { data, error } = await supabase
+      .from("posts")
+      .select(`
+        *,
+        author:profiles(
+          id,
+          full_name,
+          student_id,
+          profile_pic,
+          positions:member_positions(
+            id,
+            title,
+            level,
+            approved
+          )
+        ),
+        community:communities(
+          id,
+          name,
+          type
+        ),
+        likes(count),
+        comments(count)
+      `)
+      .not("community_id", "is", null)
+      .eq("author.positions.approved", true)
+      .order("created_at", { ascending: false })
+      .limit(10);
+
+    if (error) {
+      console.error("Error:", error);
+    } else {
+      const formattedPosts = data?.map((post: any) => ({
+        ...post,
+        author: {
+          ...post.author,
+          position: post.author.positions?.[0] || null
+        }
+      })) || [];
+      setRecentPosts(formattedPosts);
+    }
+  }
+
   const CommunityCard = ({ community }: { community: any }) => {
     const TypeIcon = getTypeIcon(community.type);
 
@@ -682,6 +728,7 @@ export default function CommunitiesPage() {
   useEffect(() => {
     getUserProfile();
     getCommunities();
+    getRecentPosts();
   }, []);
 
   return (
@@ -968,8 +1015,8 @@ export default function CommunitiesPage() {
           </TabsContent>
 
           <TabsContent value="feed" className="space-y-4">
-            <div className="space-y-4">
-              {recentPosts.map((post) => (
+            <div className="max-w-2xl mx-auto space-y-4">
+              {recentPosts.map((post: any) => (
                 <Card
                   key={post.id}
                   className="hover:shadow-md transition-shadow"
@@ -977,64 +1024,80 @@ export default function CommunitiesPage() {
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-2">
-                        {post.isPinned && (
-                          <Pin className="h-4 w-4 text-primary" />
-                        )}
                         <Badge variant="outline" className="text-xs">
-                          {post.communityName}
+                          {post.community?.name}
                         </Badge>
                         <span className="text-sm text-muted-foreground">•</span>
                         <div className="flex items-center space-x-1">
                           <span className="text-sm font-medium">
-                            {post.author}
+                            {post.author?.full_name}
                           </span>
-                          {post.authorPosition && (
+                          {post.author?.position && (
                             <>
                               {(() => {
                                 const LevelIcon = getLevelIcon(
-                                  post.authorPosition.level
+                                  post.author.position.level
                                 );
                                 return (
                                   <LevelIcon
                                     className={`h-3 w-3 ${getLevelColor(
-                                      post.authorPosition.level
+                                      post.author.position.level
                                     )}`}
                                   />
                                 );
                               })()}
                               <Badge variant="outline" className="text-xs">
-                                {post.authorPosition.title}
+                                {post.author.position.title}
                               </Badge>
                             </>
                           )}
                         </div>
                         <span className="text-sm text-muted-foreground">•</span>
                         <span className="text-sm text-muted-foreground">
-                          {post.timestamp}
+                          {moment(post.created_at).fromNow()}
                         </span>
                       </div>
                     </div>
 
                     <p className="text-sm mb-3">{post.content}</p>
+                    
+                    {/* Post Image */}
+                    {post.image_url && (
+                      <div className="mb-4 rounded-lg overflow-hidden">
+                        <img
+                          src={post.image_url}
+                          alt="Post image"
+                          className="w-full max-h-96 object-cover"
+                        />
+                      </div>
+                    )}
 
                     <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                       <div className="flex items-center space-x-1">
                         <TrendingUp className="h-4 w-4" />
-                        <span>{post.likes} likes</span>
+                        <span>{post.likes?.[0]?.count || 0} likes</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <MessageSquare className="h-4 w-4" />
-                        <span>{post.comments} comments</span>
+                        <span>{post.comments?.[0]?.count || 0} comments</span>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
-
-            <div className="text-center">
-              <Button variant="outline">Load More Posts</Button>
-            </div>
+            
+            {recentPosts.length === 0 && (
+              <div className="text-center py-12">
+                <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
+                <h3 className="text-lg font-medium mb-2">
+                  No community posts yet
+                </h3>
+                <p className="text-muted-foreground">
+                  Join communities and start posting to see content here
+                </p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
 
@@ -1144,6 +1207,7 @@ export default function CommunitiesPage() {
                       setSelectedImage(null);
                       setImagePreview(null);
                       setIsPostDialogOpen(false);
+                      getRecentPosts();
                     }
                     setIsCreatingPost(false);
                   }}
