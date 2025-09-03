@@ -289,7 +289,7 @@ export default function CommunitiesPage() {
     title: "",
     community_id: "",
     level: "",
-    reason: ""
+    reason: "",
   });
   const [isApplying, setIsApplying] = useState(false);
   const [applicationError, setApplicationError] = useState("");
@@ -298,7 +298,8 @@ export default function CommunitiesPage() {
   const [creatingCommunityError, setCreatingCommunityError] = useState("");
   const [communities, setCommunities] = useState<any>([]);
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
-  const [selectedCommunityForPost, setSelectedCommunityForPost] = useState<any>(null);
+  const [selectedCommunityForPost, setSelectedCommunityForPost] =
+    useState<any>(null);
   const [newPost, setNewPost] = useState("");
   const [isCreatingPost, setIsCreatingPost] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -449,7 +450,7 @@ export default function CommunitiesPage() {
       title: positionApplication.title,
       level: positionApplication.level,
       reason: positionApplication.reason,
-      user_id: user.id
+      user_id: user.id,
     });
 
     if (error) {
@@ -459,7 +460,12 @@ export default function CommunitiesPage() {
     }
 
     setIsApplying(false);
-    setPositionApplication({ title: "", community_id: "", level: "", reason: "" });
+    setPositionApplication({
+      title: "",
+      community_id: "",
+      level: "",
+      reason: "",
+    });
     setIsApplyDialogOpen(false);
   };
 
@@ -519,9 +525,7 @@ export default function CommunitiesPage() {
   }
 
   async function getCommunities() {
-    const { data, error } = await supabase
-      .from("community_details")
-      .select(`
+    const { data, error } = await supabase.from("community_details").select(`
         *,
         leaders:member_positions(
           id,
@@ -537,7 +541,8 @@ export default function CommunitiesPage() {
     } else {
       const formattedData = data?.map((community: any) => ({
         ...community,
-        leaders: community.leaders?.filter((pos: any) => pos.approved !== false) || []
+        leaders:
+          community.leaders?.filter((pos: any) => pos.approved !== false) || [],
       }));
       setCommunities(formattedData);
     }
@@ -546,7 +551,8 @@ export default function CommunitiesPage() {
   async function getRecentPosts() {
     const { data, error } = await supabase
       .from("posts")
-      .select(`
+      .select(
+        `
         *,
         author:profiles(
           id,
@@ -567,7 +573,8 @@ export default function CommunitiesPage() {
         ),
         likes(count),
         comments(count)
-      `)
+      `
+      )
       .not("community_id", "is", null)
       .eq("author.positions.approved", true)
       .order("created_at", { ascending: false })
@@ -576,13 +583,14 @@ export default function CommunitiesPage() {
     if (error) {
       console.error("Error:", error);
     } else {
-      const formattedPosts = data?.map((post: any) => ({
-        ...post,
-        author: {
-          ...post.author,
-          position: post.author.positions?.[0] || null
-        }
-      })) || [];
+      const formattedPosts =
+        data?.map((post: any) => ({
+          ...post,
+          author: {
+            ...post.author,
+            position: post.author.positions?.[0] || null,
+          },
+        })) || [];
       setRecentPosts(formattedPosts);
     }
   }
@@ -591,31 +599,37 @@ export default function CommunitiesPage() {
     const TypeIcon = getTypeIcon(community.type);
 
     return (
-      <Card className="hover:shadow-md transition-shadow">
+      <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex items-start space-x-3">
-              <Avatar className="h-12 w-12">
-                <AvatarFallback className="text-lg font-bold">
+              <Avatar className="h-12 w-12 ring-2 ring-blue-200 shadow-lg">
+                <AvatarFallback className="text-lg font-bold bg-gradient-to-r from-blue-500 to-purple-500 text-white">
                   {community.name.charAt(0) +
                     community.name.split(" ")?.[1]?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-1">
-                  <CardTitle className="text-lg">{community.name}</CardTitle>
+                  <CardTitle className="text-xl font-bold">
+                    {community.name}
+                  </CardTitle>
                   {community.isPrivate && (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-sm text-xs">
                       Private
                     </Badge>
                   )}
                 </div>
                 <div className="flex items-center space-x-2 mb-2">
-                  <Badge className={getTypeColor(community.type)}>
+                  <Badge
+                    className={`${getTypeColor(
+                      community.type
+                    )} shadow-sm font-medium`}
+                  >
                     <TypeIcon className="h-3 w-3 mr-1" />
                     {community.type}
                   </Badge>
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-sm text-muted-foreground font-medium">
                     {community.faculty}
                   </span>
                 </div>
@@ -628,12 +642,14 @@ export default function CommunitiesPage() {
                       return (
                         <div
                           key={index}
-                          className="flex items-center space-x-1 text-xs"
+                          className="flex items-center space-x-1 text-xs bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-slate-700 dark:to-slate-600 px-2 py-1 rounded-full"
                         >
-                          <LevelIcon
-                            className={`h-3 w-3 ${getLevelColor(leader.level)}`}
-                          />
-                          <span className="font-medium">{leader.leader?.full_name}</span>
+                          <div className="p-0.5 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500">
+                            <LevelIcon className="h-2 w-2 text-white" />
+                          </div>
+                          <span className="font-medium">
+                            {leader.leader?.full_name}
+                          </span>
                           <span className="text-muted-foreground">
                             ({leader.title})
                           </span>
@@ -671,15 +687,15 @@ export default function CommunitiesPage() {
                 </Button>
               )}
               <Button
-                variant={
+                className={
                   community.member_ids.includes(user?.id)
-                    ? "secondary"
-                    : "default"
+                    ? "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white border-0 shadow-lg"
+                    : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0 shadow-lg"
                 }
                 size="sm"
                 onClick={() => handleJoinCommunity(community.id)}
               >
-                {community.isJoined ? "Joined" : "Join"}
+                {community.member_ids.includes(user?.id) ? "Joined" : "Join"}
               </Button>
             </div>
           </div>
@@ -689,9 +705,12 @@ export default function CommunitiesPage() {
             {community.description}
           </CardDescription>
 
-          <div className="flex flex-wrap gap-1 mb-4">
+          <div className="flex flex-wrap gap-2 mb-4">
             {community.tags.split(",").map((tag: string) => (
-              <Badge key={tag} variant="outline" className="text-xs">
+              <Badge
+                key={tag}
+                className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0 shadow-sm hover:shadow-md transition-shadow text-xs"
+              >
                 {tag}
               </Badge>
             ))}
@@ -699,13 +718,21 @@ export default function CommunitiesPage() {
 
           <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-1">
-                <Users className="h-4 w-4" />
-                <span>{community.member_count} members</span>
+              <div className="flex items-center space-x-2 bg-blue-50 dark:bg-slate-700 px-3 py-1 rounded-full">
+                <div className="p-1 rounded-full bg-gradient-to-r from-blue-500 to-purple-500">
+                  <Users className="h-3 w-3 text-white" />
+                </div>
+                <span className="font-medium">
+                  {community.member_count} members
+                </span>
               </div>
-              <div className="flex items-center space-x-1">
-                <MessageSquare className="h-4 w-4" />
-                <span>{community?.posts?.length} posts</span>
+              <div className="flex items-center space-x-2 bg-green-50 dark:bg-slate-700 px-3 py-1 rounded-full">
+                <div className="p-1 rounded-full bg-gradient-to-r from-green-500 to-emerald-500">
+                  <MessageSquare className="h-3 w-3 text-white" />
+                </div>
+                <span className="font-medium">
+                  {community?.posts?.length} posts
+                </span>
               </div>
             </div>
             {/* <div className="flex items-center space-x-1">
@@ -714,8 +741,8 @@ export default function CommunitiesPage() {
             </div> */}
           </div>
 
-          <div className="text-xs text-muted-foreground">
-            <span>
+          <div className="text-xs text-muted-foreground bg-gradient-to-r from-purple-50 to-pink-50 dark:from-slate-700 dark:to-slate-600 p-2 rounded-lg">
+            <span className="font-medium">
               Moderated by:{" "}
               {["Dr. Cheeks", "Dr. Binks", "Dr. Pinks"].join(", ")}
             </span>
@@ -733,555 +760,645 @@ export default function CommunitiesPage() {
 
   return (
     <ProtectedLayout>
-      <div className="p-6 space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Communities</h1>
-            <p className="text-muted-foreground">
-              Connect with students in your department, faculty, and college
-            </p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+        <div className="p-6 space-y-8">
+          {/* Hero Section */}
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 p-8 text-white">
+            <div className="absolute inset-0 bg-black/20"></div>
+            <div className="absolute top-4 right-4 opacity-30">
+              <Users className="h-24 w-24" />
+            </div>
+            <div className="relative z-10">
+              <h1 className="text-4xl font-bold tracking-tight mb-2">
+                Communities 🏛️
+              </h1>
+              <p className="text-blue-100 text-lg">
+                Connect with students in your department, faculty, and college
+              </p>
+            </div>
           </div>
-          <div className="flex space-x-2">
-            <Dialog
-              open={isApplyDialogOpen}
-              onOpenChange={setIsApplyDialogOpen}
-            >
-              <DialogTrigger asChild>
-                <Button variant="outline">
-                  <Crown className="h-4 w-4 mr-2" />
-                  Apply for Leadership
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                  <DialogTitle>Apply for Leadership Position</DialogTitle>
-                  <DialogDescription>
-                    Apply to become a leader in your department or faculty
-                    community.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 pt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="position">Position Title</Label>
-                    <Input
-                      id="position"
-                      placeholder="e.g., CS Department President"
-                      value={positionApplication.title}
-                      onChange={(e) => setPositionApplication({...positionApplication, title: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="community">Community</Label>
-                    <Select value={positionApplication.community_id} onValueChange={(value) => setPositionApplication({...positionApplication, community_id: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select community" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {communities.map((community: any) => (
-                          <SelectItem key={community.id} value={community.id}>
-                            {community.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="level">Leadership Level</Label>
-                    <Select value={positionApplication.level} onValueChange={(value) => setPositionApplication({...positionApplication, level: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select level" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="representative">
-                          Representative
-                        </SelectItem>
-                        <SelectItem value="secretary">Secretary</SelectItem>
-                        <SelectItem value="president">President</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reason">
-                      Why do you want this position?
-                    </Label>
-                    <Textarea
-                      id="reason"
-                      placeholder="Explain your motivation and qualifications..."
-                      rows={4}
-                      value={positionApplication.reason}
-                      onChange={(e) => setPositionApplication({...positionApplication, reason: e.target.value})}
-                    />
-                  </div>
-                  {applicationError && (
-                    <p className="text-red-500 text-sm">{applicationError}</p>
-                  )}
-                  <Button className="w-full" onClick={handleApplyForLeadership} disabled={isApplying}>
-                    {isApplying ? "Submitting..." : "Submit Application"}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
 
-            <Dialog
-              open={isCreateDialogOpen}
-              onOpenChange={setIsCreateDialogOpen}
-            >
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Community
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                  <DialogTitle>Create New Community</DialogTitle>
-                  <DialogDescription>
-                    Start a new community for your department, club, or interest
-                    group.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 pt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Community Name</Label>
-                    <Input
-                      id="name"
-                      placeholder="e.g., Photography Club"
-                      value={newCommunity.name}
-                      onChange={(e) =>
-                        setNewCommunity({
-                          ...newCommunity,
-                          name: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="type">Community Type</Label>
-                    <Select
-                      defaultValue={newCommunity.type}
-                      onValueChange={(value) =>
-                        setNewCommunity({ ...newCommunity, type: value })
-                      }
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex space-x-2">
+              <Dialog
+                open={isApplyDialogOpen}
+                onOpenChange={setIsApplyDialogOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 border-0 shadow-lg hover:shadow-xl transition-all duration-200">
+                    <Crown className="h-4 w-4 mr-2" />
+                    Apply for Leadership
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px]">
+                  <DialogHeader>
+                    <DialogTitle>Apply for Leadership Position</DialogTitle>
+                    <DialogDescription>
+                      Apply to become a leader in your department or faculty
+                      community.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 pt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="position">Position Title</Label>
+                      <Input
+                        id="position"
+                        placeholder="e.g., CS Department President"
+                        value={positionApplication.title}
+                        onChange={(e) =>
+                          setPositionApplication({
+                            ...positionApplication,
+                            title: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="community">Community</Label>
+                      <Select
+                        value={positionApplication.community_id}
+                        onValueChange={(value) =>
+                          setPositionApplication({
+                            ...positionApplication,
+                            community_id: value,
+                          })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select community" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {communities.map((community: any) => (
+                            <SelectItem key={community.id} value={community.id}>
+                              {community.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="level">Leadership Level</Label>
+                      <Select
+                        value={positionApplication.level}
+                        onValueChange={(value) =>
+                          setPositionApplication({
+                            ...positionApplication,
+                            level: value,
+                          })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="representative">
+                            Representative
+                          </SelectItem>
+                          <SelectItem value="secretary">Secretary</SelectItem>
+                          <SelectItem value="president">President</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="reason">
+                        Why do you want this position?
+                      </Label>
+                      <Textarea
+                        id="reason"
+                        placeholder="Explain your motivation and qualifications..."
+                        rows={4}
+                        value={positionApplication.reason}
+                        onChange={(e) =>
+                          setPositionApplication({
+                            ...positionApplication,
+                            reason: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    {applicationError && (
+                      <p className="text-red-500 text-sm">{applicationError}</p>
+                    )}
+                    <Button
+                      className="w-full"
+                      onClick={handleApplyForLeadership}
+                      disabled={isApplying}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="department">Department</SelectItem>
-                        <SelectItem value="faculty">Faculty</SelectItem>
-                        <SelectItem value="college">College</SelectItem>
-                        <SelectItem value="special_group">Special Group</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      {isApplying ? "Submitting..." : "Submit Application"}
+                    </Button>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="parent">Parent Community</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select parent community" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {communities.map((community: any) => (
-                          <SelectItem key={community.id} value={community.id}>
-                            {community.name}
+                </DialogContent>
+              </Dialog>
+
+              <Dialog
+                open={isCreateDialogOpen}
+                onOpenChange={setIsCreateDialogOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 border-0 shadow-lg hover:shadow-xl transition-all duration-200">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Community
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px]">
+                  <DialogHeader>
+                    <DialogTitle>Create New Community</DialogTitle>
+                    <DialogDescription>
+                      Start a new community for your department, club, or
+                      interest group.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 pt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Community Name</Label>
+                      <Input
+                        id="name"
+                        placeholder="e.g., Photography Club"
+                        value={newCommunity.name}
+                        onChange={(e) =>
+                          setNewCommunity({
+                            ...newCommunity,
+                            name: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="type">Community Type</Label>
+                      <Select
+                        defaultValue={newCommunity.type}
+                        onValueChange={(value) =>
+                          setNewCommunity({ ...newCommunity, type: value })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="department">Department</SelectItem>
+                          <SelectItem value="faculty">Faculty</SelectItem>
+                          <SelectItem value="college">College</SelectItem>
+                          <SelectItem value="special_group">
+                            Special Group
                           </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="parent">Parent Community</Label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select parent community" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {communities.map((community: any) => (
+                            <SelectItem key={community.id} value={community.id}>
+                              {community.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="description">Description</Label>
+                      <Textarea
+                        id="description"
+                        placeholder="Describe the purpose and goals of this community..."
+                        value={newCommunity.description}
+                        onChange={(e) =>
+                          setNewCommunity({
+                            ...newCommunity,
+                            description: e.target.value,
+                          })
+                        }
+                        rows={3}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="tags">Tags (comma-separated)</Label>
+                      <Input
+                        id="tags"
+                        placeholder="e.g., photography, art, creative"
+                        value={newCommunity.tags}
+                        onChange={(e) =>
+                          setNewCommunity({
+                            ...newCommunity,
+                            tags: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    {creatingCommunityError && (
+                      <p className="text-red-500">{creatingCommunityError}</p>
+                    )}
+                    <Button
+                      className="w-full"
+                      onClick={handleCreateCommunity}
+                      disabled={isCreatingCommunity}
+                    >
+                      {isCreatingCommunity ? "Creating..." : "Create Community"}
+                    </Button>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea
-                      id="description"
-                      placeholder="Describe the purpose and goals of this community..."
-                      value={newCommunity.description}
-                      onChange={(e) =>
-                        setNewCommunity({
-                          ...newCommunity,
-                          description: e.target.value,
-                        })
-                      }
-                      rows={3}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="tags">Tags (comma-separated)</Label>
-                    <Input
-                      id="tags"
-                      placeholder="e.g., photography, art, creative"
-                      value={newCommunity.tags}
-                      onChange={(e) =>
-                        setNewCommunity({
-                          ...newCommunity,
-                          tags: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  {creatingCommunityError && (
-                    <p className="text-red-500">{creatingCommunityError}</p>
-                  )}
-                  <Button
-                    className="w-full"
-                    onClick={handleCreateCommunity}
-                    disabled={isCreatingCommunity}
-                  >
-                    {isCreatingCommunity ? "Creating..." : "Create Community"}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
-        </div>
 
-        <Tabs defaultValue="discover" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="discover">Discover</TabsTrigger>
-            <TabsTrigger value="joined">
-              My Communities ({joinedCommunities.length})
-            </TabsTrigger>
-            <TabsTrigger value="feed">Recent Posts</TabsTrigger>
-          </TabsList>
+          <Tabs defaultValue="discover" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 bg-white/50 backdrop-blur-sm border-0 shadow-lg">
+              <TabsTrigger
+                value="discover"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white"
+              >
+                Discover
+              </TabsTrigger>
+              <TabsTrigger
+                value="joined"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white"
+              >
+                My Communities ({joinedCommunities.length})
+              </TabsTrigger>
+              <TabsTrigger
+                value="feed"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white"
+              >
+                Recent Posts
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="discover" className="space-y-4">
-            {/* Search and Filter */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search communities..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+            <TabsContent value="discover" className="space-y-4">
+              {/* Search and Filter */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search communities..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {communityTypes.map((type) => (
+                    <Button
+                      key={type.value}
+                      variant={
+                        selectedType === type.value ? "default" : "outline"
+                      }
+                      size="sm"
+                      onClick={() => setSelectedType(type.value)}
+                    >
+                      {type.label}
+                    </Button>
+                  ))}
+                </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {communityTypes.map((type) => (
-                  <Button
-                    key={type.value}
-                    variant={
-                      selectedType === type.value ? "default" : "outline"
-                    }
-                    size="sm"
-                    onClick={() => setSelectedType(type.value)}
-                  >
-                    {type.label}
-                  </Button>
+
+              {/* Communities Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredCommunities.map((community: any) => (
+                  <CommunityCard key={community.id} community={community} />
                 ))}
               </div>
-            </div>
 
-            {/* Communities Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filteredCommunities.map((community: any) => (
-                <CommunityCard key={community.id} community={community} />
-              ))}
-            </div>
-
-            {filteredCommunities.length === 0 && (
-              <div className="text-center py-12">
-                <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                <h3 className="text-lg font-medium mb-2">
-                  No communities found
-                </h3>
-                <p className="text-muted-foreground">
-                  Try adjusting your search or filter criteria
-                </p>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="joined" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {joinedCommunities.map((community: any) => (
-                <CommunityCard key={community.id} community={community} />
-              ))}
-            </div>
-
-            {joinedCommunities.length === 0 && (
-              <div className="text-center py-12">
-                <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                <h3 className="text-lg font-medium mb-2">
-                  No communities joined yet
-                </h3>
-                <p className="text-muted-foreground">
-                  Discover and join communities to connect with fellow students
-                </p>
-                <Button className="mt-4" onClick={() => setSelectedType("all")}>
-                  Discover Communities
-                </Button>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="feed" className="space-y-4">
-            <div className="max-w-2xl mx-auto space-y-4">
-              {recentPosts.map((post: any) => (
-                <Card
-                  key={post.id}
-                  className="hover:shadow-md transition-shadow"
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center space-x-2">
-                        <Badge variant="outline" className="text-xs">
-                          {post.community?.name}
-                        </Badge>
-                        <span className="text-sm text-muted-foreground">•</span>
-                        <div className="flex items-center space-x-1">
-                          <span className="text-sm font-medium">
-                            {post.author?.full_name}
-                          </span>
-                          {post.author?.position && (
-                            <>
-                              {(() => {
-                                const LevelIcon = getLevelIcon(
-                                  post.author.position.level
-                                );
-                                return (
-                                  <LevelIcon
-                                    className={`h-3 w-3 ${getLevelColor(
-                                      post.author.position.level
-                                    )}`}
-                                  />
-                                );
-                              })()}
-                              <Badge variant="outline" className="text-xs">
-                                {post.author.position.title}
-                              </Badge>
-                            </>
-                          )}
-                        </div>
-                        <span className="text-sm text-muted-foreground">•</span>
-                        <span className="text-sm text-muted-foreground">
-                          {moment(post.created_at).fromNow()}
-                        </span>
-                      </div>
-                    </div>
-
-                    <p className="text-sm mb-3">{post.content}</p>
-                    
-                    {/* Post Image */}
-                    {post.image_url && (
-                      <div className="mb-4 rounded-lg overflow-hidden">
-                        <img
-                          src={post.image_url}
-                          alt="Post image"
-                          className="w-full max-h-96 object-cover"
-                        />
-                      </div>
-                    )}
-
-                    <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                      <div className="flex items-center space-x-1">
-                        <TrendingUp className="h-4 w-4" />
-                        <span>{post.likes?.[0]?.count || 0} likes</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <MessageSquare className="h-4 w-4" />
-                        <span>{post.comments?.[0]?.count || 0} comments</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            
-            {recentPosts.length === 0 && (
-              <div className="text-center py-12">
-                <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                <h3 className="text-lg font-medium mb-2">
-                  No community posts yet
-                </h3>
-                <p className="text-muted-foreground">
-                  Join communities and start posting to see content here
-                </p>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-
-        {/* Create Community Post Dialog */}
-        <Dialog open={isPostDialogOpen} onOpenChange={setIsPostDialogOpen}>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Create Post in {selectedCommunityForPost?.name}</DialogTitle>
-              <DialogDescription>
-                Share something with your community members
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 pt-4">
-              <Textarea
-                placeholder="What's happening in your community?"
-                value={newPost}
-                onChange={(e) => setNewPost(e.target.value)}
-                rows={4}
-              />
-              
-              {/* Image Upload */}
-              <div className="space-y-2">
-                <Button variant="outline" size="sm" asChild>
-                  <label className="cursor-pointer">
-                    <ImageIcon className="h-4 w-4 mr-2" />
-                    Add Photo
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setSelectedImage(file);
-                          const reader = new FileReader();
-                          reader.onload = () => setImagePreview(reader.result as string);
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                      className="hidden"
-                    />
-                  </label>
-                </Button>
-              </div>
-              
-              {/* Image Preview */}
-              {imagePreview && (
-                <div className="relative">
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="w-full max-h-64 object-cover rounded-lg"
-                  />
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedImage(null);
-                      setImagePreview(null);
-                    }}
-                    className="absolute top-2 right-2"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+              {filteredCommunities.length === 0 && (
+                <div className="text-center py-12">
+                  <div className="p-6 rounded-3xl bg-gradient-to-r from-blue-50 to-purple-50 dark:from-slate-800 dark:to-slate-700 mx-auto max-w-md">
+                    <Users className="h-16 w-16 mx-auto text-muted-foreground mb-4 opacity-50" />
+                    <h3 className="text-xl font-bold mb-2">
+                      No communities found
+                    </h3>
+                    <p className="text-muted-foreground">
+                      Try adjusting your search or filter criteria
+                    </p>
+                  </div>
                 </div>
               )}
-              
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => {
-                  setIsPostDialogOpen(false);
-                  setSelectedImage(null);
-                  setImagePreview(null);
-                  setNewPost("");
-                }}>
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={async () => {
-                    if (!newPost.trim() && !selectedImage) return;
-                    
-                    setIsCreatingPost(true);
-                    
-                    let publicUrl: null | string = null;
-                    
-                    if (selectedImage) {
-                      const fileExt = selectedImage.name.split(".").pop();
-                      const { data: imageData, error: uploadError } = await supabase.storage
-                        .from("post-images")
-                        .upload(`${user.id}/${Date.now()}.${fileExt}`, selectedImage);
-                      
-                      if (!uploadError) {
-                        const { data } = supabase.storage
-                          .from("post-images")
-                          .getPublicUrl(imageData.path);
-                        publicUrl = data.publicUrl;
-                      }
-                    }
-                    
-                    const { error } = await supabase.from("posts").insert({
-                      content: newPost,
-                      author_id: user.id,
-                      community_id: selectedCommunityForPost.id,
-                      image_url: publicUrl
-                    });
-                    
-                    if (!error) {
-                      setNewPost("");
+            </TabsContent>
+
+            <TabsContent value="joined" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {joinedCommunities.map((community: any) => (
+                  <CommunityCard key={community.id} community={community} />
+                ))}
+              </div>
+
+              {joinedCommunities.length === 0 && (
+                <div className="text-center py-12">
+                  <div className="p-6 rounded-3xl bg-gradient-to-r from-green-50 to-emerald-50 dark:from-slate-800 dark:to-slate-700 mx-auto max-w-md">
+                    <Users className="h-16 w-16 mx-auto text-muted-foreground mb-4 opacity-50" />
+                    <h3 className="text-xl font-bold mb-2">
+                      No communities joined yet
+                    </h3>
+                    <p className="text-muted-foreground mb-4">
+                      Discover and join communities to connect with fellow
+                      students
+                    </p>
+                    <Button
+                      className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 border-0 shadow-lg"
+                      onClick={() => setSelectedType("all")}
+                    >
+                      Discover Communities
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="feed" className="space-y-4">
+              <div className="max-w-2xl mx-auto space-y-4">
+                {recentPosts.map((post: any) => (
+                  <Card
+                    key={post.id}
+                    className="hover:shadow-md transition-shadow"
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center space-x-2">
+                          <Badge variant="outline" className="text-xs">
+                            {post.community?.name}
+                          </Badge>
+                          <span className="text-sm text-muted-foreground">
+                            •
+                          </span>
+                          <div className="flex items-center space-x-1">
+                            <span className="text-sm font-medium">
+                              {post.author?.full_name}
+                            </span>
+                            {post.author?.position && (
+                              <>
+                                {(() => {
+                                  const LevelIcon = getLevelIcon(
+                                    post.author.position.level
+                                  );
+                                  return (
+                                    <LevelIcon
+                                      className={`h-3 w-3 ${getLevelColor(
+                                        post.author.position.level
+                                      )}`}
+                                    />
+                                  );
+                                })()}
+                                <Badge variant="outline" className="text-xs">
+                                  {post.author.position.title}
+                                </Badge>
+                              </>
+                            )}
+                          </div>
+                          <span className="text-sm text-muted-foreground">
+                            •
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            {moment(post.created_at).fromNow()}
+                          </span>
+                        </div>
+                      </div>
+
+                      <p className="text-sm mb-3">{post.content}</p>
+
+                      {/* Post Image */}
+                      {post.image_url && (
+                        <div className="mb-4 rounded-lg overflow-hidden">
+                          <img
+                            src={post.image_url}
+                            alt="Post image"
+                            className="w-full max-h-96 object-cover"
+                          />
+                        </div>
+                      )}
+
+                      <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                        <div className="flex items-center space-x-1">
+                          <TrendingUp className="h-4 w-4" />
+                          <span>{post.likes?.[0]?.count || 0} likes</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <MessageSquare className="h-4 w-4" />
+                          <span>{post.comments?.[0]?.count || 0} comments</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {recentPosts.length === 0 && (
+                <div className="text-center py-12">
+                  <div className="p-6 rounded-3xl bg-gradient-to-r from-purple-50 to-pink-50 dark:from-slate-800 dark:to-slate-700 mx-auto max-w-md">
+                    <MessageSquare className="h-16 w-16 mx-auto text-muted-foreground mb-4 opacity-50" />
+                    <h3 className="text-xl font-bold mb-2">
+                      No community posts yet
+                    </h3>
+                    <p className="text-muted-foreground">
+                      Join communities and start posting to see content here
+                    </p>
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+
+          {/* Create Community Post Dialog */}
+          <Dialog open={isPostDialogOpen} onOpenChange={setIsPostDialogOpen}>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>
+                  Create Post in {selectedCommunityForPost?.name}
+                </DialogTitle>
+                <DialogDescription>
+                  Share something with your community members
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                <Textarea
+                  placeholder="What's happening in your community?"
+                  value={newPost}
+                  onChange={(e) => setNewPost(e.target.value)}
+                  rows={4}
+                />
+
+                {/* Image Upload */}
+                <div className="space-y-2">
+                  <Button variant="outline" size="sm" asChild>
+                    <label className="cursor-pointer">
+                      <ImageIcon className="h-4 w-4 mr-2" />
+                      Add Photo
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setSelectedImage(file);
+                            const reader = new FileReader();
+                            reader.onload = () =>
+                              setImagePreview(reader.result as string);
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                        className="hidden"
+                      />
+                    </label>
+                  </Button>
+                </div>
+
+                {/* Image Preview */}
+                {imagePreview && (
+                  <div className="relative">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-full max-h-64 object-cover rounded-lg"
+                    />
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedImage(null);
+                        setImagePreview(null);
+                      }}
+                      className="absolute top-2 right-2"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsPostDialogOpen(false);
                       setSelectedImage(null);
                       setImagePreview(null);
-                      setIsPostDialogOpen(false);
-                      getRecentPosts();
+                      setNewPost("");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      if (!newPost.trim() && !selectedImage) return;
+
+                      setIsCreatingPost(true);
+
+                      let publicUrl: null | string = null;
+
+                      if (selectedImage) {
+                        const fileExt = selectedImage.name.split(".").pop();
+                        const { data: imageData, error: uploadError } =
+                          await supabase.storage
+                            .from("post-images")
+                            .upload(
+                              `${user.id}/${Date.now()}.${fileExt}`,
+                              selectedImage
+                            );
+
+                        if (!uploadError) {
+                          const { data } = supabase.storage
+                            .from("post-images")
+                            .getPublicUrl(imageData.path);
+                          publicUrl = data.publicUrl;
+                        }
+                      }
+
+                      const { error } = await supabase.from("posts").insert({
+                        content: newPost,
+                        author_id: user.id,
+                        community_id: selectedCommunityForPost.id,
+                        image_url: publicUrl,
+                      });
+
+                      if (!error) {
+                        setNewPost("");
+                        setSelectedImage(null);
+                        setImagePreview(null);
+                        setIsPostDialogOpen(false);
+                        getRecentPosts();
+                      }
+                      setIsCreatingPost(false);
+                    }}
+                    disabled={
+                      (!newPost.trim() && !selectedImage) || isCreatingPost
                     }
-                    setIsCreatingPost(false);
-                  }}
-                  disabled={(!newPost.trim() && !selectedImage) || isCreatingPost}
-                >
-                  {isCreatingPost ? "Posting..." : "Post"}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Community Management Dialog */}
-        <Dialog open={isManageDialogOpen} onOpenChange={setIsManageDialogOpen}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Manage Community</DialogTitle>
-              <DialogDescription>
-                Add or remove members from your community
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 pt-4">
-              <div className="flex space-x-2">
-                <Input
-                  placeholder="Search students by name or ID..."
-                  className="flex-1"
-                />
-                <Button>
-                  <Search className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                <div className="flex items-center justify-between p-2 border rounded">
-                  <div className="flex items-center space-x-2">
-                    <Avatar className="h-8 w-8">
-                      {user?.profile_pic ? (
-                        <img src={user.profile_pic} alt="Profile" className="w-full h-full object-cover" />
-                      ) : (
-                        <AvatarFallback>JD</AvatarFallback>
-                      )}
-                    </Avatar>
-                    <div>
-                      <p className="text-sm font-medium">John Doe</p>
-                      <p className="text-xs text-muted-foreground">ST001</p>
-                    </div>
-                  </div>
-                  <Button size="sm" variant="outline">
-                    <UserPlus className="h-4 w-4 mr-1" />
-                    Add
-                  </Button>
-                </div>
-
-                <div className="flex items-center justify-between p-2 border rounded">
-                  <div className="flex items-center space-x-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback>AB</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="text-sm font-medium">Alex Brown</p>
-                      <p className="text-xs text-muted-foreground">
-                        ST005 • Member
-                      </p>
-                    </div>
-                  </div>
-                  <Button size="sm" variant="outline">
-                    <UserMinus className="h-4 w-4 mr-1" />
-                    Remove
+                  >
+                    {isCreatingPost ? "Posting..." : "Post"}
                   </Button>
                 </div>
               </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+
+          {/* Community Management Dialog */}
+          <Dialog
+            open={isManageDialogOpen}
+            onOpenChange={setIsManageDialogOpen}
+          >
+            <DialogContent className="sm:max-w-[600px]">
+              <DialogHeader>
+                <DialogTitle>Manage Community</DialogTitle>
+                <DialogDescription>
+                  Add or remove members from your community
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                <div className="flex space-x-2">
+                  <Input
+                    placeholder="Search students by name or ID..."
+                    className="flex-1"
+                  />
+                  <Button>
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  <div className="flex items-center justify-between p-2 border rounded">
+                    <div className="flex items-center space-x-2">
+                      <Avatar className="h-8 w-8">
+                        {user?.profile_pic ? (
+                          <img
+                            src={user.profile_pic}
+                            alt="Profile"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <AvatarFallback>JD</AvatarFallback>
+                        )}
+                      </Avatar>
+                      <div>
+                        <p className="text-sm font-medium">John Doe</p>
+                        <p className="text-xs text-muted-foreground">ST001</p>
+                      </div>
+                    </div>
+                    <Button size="sm" variant="outline">
+                      <UserPlus className="h-4 w-4 mr-1" />
+                      Add
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center justify-between p-2 border rounded">
+                    <div className="flex items-center space-x-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback>AB</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-sm font-medium">Alex Brown</p>
+                        <p className="text-xs text-muted-foreground">
+                          ST005 • Member
+                        </p>
+                      </div>
+                    </div>
+                    <Button size="sm" variant="outline">
+                      <UserMinus className="h-4 w-4 mr-1" />
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
     </ProtectedLayout>
   );
