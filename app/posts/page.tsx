@@ -57,6 +57,8 @@ export default function PostsPage() {
   const [isCommenting, setIsCommenting] = useState(false);
   const [postingError, setPostingError] = useState<string | null>(null);
   const [postsToSkip, setPostsToSkip] = useState(0);
+  const [hasMorePosts, setHasMorePosts] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -163,10 +165,7 @@ export default function PostsPage() {
   };
 
   const handleDeletePost = async (postId: number) => {
-    const { error } = await supabase
-      .from("posts")
-      .delete()
-      .eq("id", postId);
+    const { error } = await supabase.from("posts").delete().eq("id", postId);
 
     if (error) {
       console.error(error);
@@ -260,6 +259,7 @@ export default function PostsPage() {
       setNewPost("");
       removeImage();
       setIsCreateDialogOpen(false);
+      setPostsToSkip(0);
       getPosts();
     }
   };
@@ -292,11 +292,19 @@ export default function PostsPage() {
 
       setNewComment("");
       getComments();
+      
+      // Update comment count in posts
+      setPosts(posts.map((post: any) => 
+        post.id === selectedPost 
+          ? { ...post, comments: [{ count: (post.comments?.[0]?.count || 0) + 1 }] }
+          : post
+      ));
+      
       setIsCommenting(false);
     }
   };
 
-  const getPosts = async () => {
+  const getPosts = async (loadMore = false) => {
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -306,6 +314,9 @@ export default function PostsPage() {
     }
 
     setUser(user);
+
+    const skip = loadMore ? postsToSkip : 0;
+    const limit = 5; // Show 5 posts per load
 
     const { data, error } = await supabase
       .from("posts")
@@ -334,7 +345,7 @@ export default function PostsPage() {
       .eq("users_bookmarked.user_id", user.id)
       .eq("author.positions.approved", true)
       .order("created_at", { ascending: false })
-      .range(postsToSkip, postsToSkip + 10);
+      .range(skip, skip + limit - 1);
 
     if (error) {
       console.error(error);
@@ -346,10 +357,17 @@ export default function PostsPage() {
         ...post,
         author: {
           ...post.author,
-          position: post.author.positions?.[0] || null
-        }
+          position: post.author.positions?.[0] || null,
+        },
       }));
-      setPosts(formattedPosts);
+
+      if (loadMore) {
+        setPosts((prev: any) => [...prev, ...formattedPosts]);
+      } else {
+        setPosts(formattedPosts);
+      }
+
+      setHasMorePosts(data.length === limit);
     }
   };
 
@@ -395,8 +413,8 @@ export default function PostsPage() {
         ...comment,
         author: {
           ...comment.author,
-          position: comment.author.positions?.[0] || null
-        }
+          position: comment.author.positions?.[0] || null,
+        },
       }));
       setComments(formattedComments);
     }
@@ -410,7 +428,11 @@ export default function PostsPage() {
           <div className="flex items-start space-x-3">
             <Avatar>
               {post.author?.profile_pic ? (
-                <img src={post.author.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+                <img
+                  src={post.author.profile_pic}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
               ) : (
                 <AvatarFallback>
                   {post.author?.full_name?.charAt(0)}
@@ -479,7 +501,7 @@ export default function PostsPage() {
         {/* Post Content */}
         <div className="mb-4">
           <p className="text-sm leading-relaxed mb-3">{post.content}</p>
-          
+
           {/* Tags */}
           {getTags(post.content).length > 0 && (
             <div className="flex flex-wrap gap-2 mb-3">
@@ -491,18 +513,18 @@ export default function PostsPage() {
             </div>
           )}
         </div>
-        
+
         {/* Post Image */}
         {post.image_url && (
           <div className="mb-4 rounded-lg overflow-hidden">
-            <img 
-              src={post.image_url} 
-              alt="Post image" 
+            <img
+              src={post.image_url}
+              alt="Post image"
               className="w-full max-h-96 object-cover"
             />
           </div>
         )}
-        
+
         {/* Event Card */}
         {post.event && (
           <Card className="mb-4 border-l-4 border-l-primary">
@@ -629,7 +651,11 @@ export default function PostsPage() {
                 <div className="flex items-start space-x-3">
                   <Avatar>
                     {user?.profile_pic ? (
-                      <img src={user.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+                      <img
+                        src={user.profile_pic}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
                       <AvatarFallback>
                         {user?.full_name?.charAt(0)}
@@ -717,7 +743,11 @@ export default function PostsPage() {
             <div className="flex items-start space-x-3">
               <Avatar>
                 {user?.profile_pic ? (
-                  <img src={user.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+                  <img
+                    src={user.profile_pic}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <AvatarFallback>{user?.full_name?.charAt(0)}</AvatarFallback>
                 )}
@@ -743,9 +773,21 @@ export default function PostsPage() {
         </div>
 
         {/* Load More */}
-        <div className="text-center">
-          <Button variant="outline">Load More Posts</Button>
-        </div>
+        {hasMorePosts && (
+          <div className="text-center">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setLoadingMore(true);
+                setPostsToSkip((prev) => prev + 5);
+                getPosts(true).finally(() => setLoadingMore(false));
+              }}
+              disabled={loadingMore}
+            >
+              {loadingMore ? "Loading..." : "Load More Posts"}
+            </Button>
+          </div>
+        )}
 
         {/* Comments Dialog */}
         <Dialog
@@ -774,7 +816,11 @@ export default function PostsPage() {
                     >
                       <Avatar className="h-8 w-8">
                         {comment.author.profile_pic ? (
-                          <img src={comment.author.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+                          <img
+                            src={comment.author.profile_pic}
+                            alt="Profile"
+                            className="w-full h-full object-cover"
+                          />
                         ) : (
                           <AvatarFallback>
                             {comment.author.full_name.charAt(0)}
@@ -800,9 +846,15 @@ export default function PostsPage() {
                 <div className="flex items-start space-x-3 pt-4 border-t">
                   <Avatar className="h-8 w-8">
                     {user?.profile_pic ? (
-                      <img src={user.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+                      <img
+                        src={user.profile_pic}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
-                      <AvatarFallback>{user?.full_name?.charAt(0)}</AvatarFallback>
+                      <AvatarFallback>
+                        {user?.full_name?.charAt(0)}
+                      </AvatarFallback>
                     )}
                   </Avatar>
                   <div className="flex-1 flex space-x-2">
