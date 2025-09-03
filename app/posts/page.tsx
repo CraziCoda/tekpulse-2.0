@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ProtectedLayout } from "@/components/layout/protected-layout";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -294,14 +294,19 @@ export default function PostsPage() {
 
       setNewComment("");
       getComments();
-      
+
       // Update comment count in posts
-      setPosts(posts.map((post: any) => 
-        post.id === selectedPost 
-          ? { ...post, comments: [{ count: (post.comments?.[0]?.count || 0) + 1 }] }
-          : post
-      ));
-      
+      setPosts(
+        posts.map((post: any) =>
+          post.id === selectedPost
+            ? {
+                ...post,
+                comments: [{ count: (post.comments?.[0]?.count || 0) + 1 }],
+              }
+            : post
+        )
+      );
+
       setIsCommenting(false);
     }
   };
@@ -470,11 +475,16 @@ export default function PostsPage() {
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <span className="font-medium">{post.author.student_id}</span>
                 <span>•</span>
-                <span className="font-medium">{moment(post.created_at).fromNow()}</span>
+                <span className="font-medium">
+                  {moment(post.created_at).fromNow()}
+                </span>
                 {post.community && (
                   <>
                     <span>•</span>
-                    <Badge variant="outline" className="text-xs border-purple-200 text-purple-700">
+                    <Badge
+                      variant="outline"
+                      className="text-xs border-purple-200 text-purple-700"
+                    >
                       {post.community.name}
                     </Badge>
                   </>
@@ -513,13 +523,18 @@ export default function PostsPage() {
 
         {/* Post Content */}
         <div className="mb-4">
-          <p className="text-base leading-relaxed mb-4 text-slate-700 dark:text-slate-200">{post.content}</p>
+          <p className="text-base leading-relaxed mb-4 text-slate-700 dark:text-slate-200">
+            {post.content}
+          </p>
 
           {/* Tags */}
           {getTags(post.content).length > 0 && (
             <div className="flex flex-wrap gap-2 mb-4">
               {getTags(post.content).map((tag: string) => (
-                <Badge key={tag} className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0 shadow-sm hover:shadow-md transition-shadow">
+                <Badge
+                  key={tag}
+                  className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0 shadow-sm hover:shadow-md transition-shadow"
+                >
                   #{tag}
                 </Badge>
               ))}
@@ -592,7 +607,9 @@ export default function PostsPage() {
               className="flex items-center space-x-2 hover:text-blue-500 hover:bg-blue-50 rounded-full px-3 py-2 transition-all"
             >
               <MessageCircle className="h-5 w-5" />
-              <span className="font-medium">{post.comments?.[0]?.count || 0}</span>
+              <span className="font-medium">
+                {post.comments?.[0]?.count || 0}
+              </span>
             </Button>
 
             <Button
@@ -638,42 +655,231 @@ export default function PostsPage() {
   return (
     <ProtectedLayout>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-        <div className="max-w-2xl mx-auto p-6 space-y-8">
-          {/* Hero Header */}
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 p-8 text-white">
-            <div className="absolute inset-0 bg-black/20"></div>
-            <div className="absolute top-4 right-4 opacity-30">
-              <Sparkles className="h-20 w-20" />
+        <div className="max-w-7xl mx-auto p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Left Sidebar */}
+            <div className="lg:block lg:col-span-3">
+              <div className="w-full sticky top-0 flex flex-col items-center h-[calc(100vh-2rem)] overflow-y-auto space-y-6">
+                {/* Trending Topics */}
+                <Card className="border-0 sticky w-64 shadow-xl bg-gradient-to-br from-white to-blue-50 dark:from-slate-800 dark:to-slate-900">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="flex items-center text-lg">
+                      <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 mr-3">
+                        <TrendingUp className="h-4 w-4 text-white" />
+                      </div>
+                      Trending
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {[
+                      { tag: "StudyTips", posts: 24 },
+                      { tag: "CampusLife", posts: 18 },
+                      { tag: "ExamPrep", posts: 15 },
+                      { tag: "TechTalk", posts: 12 },
+                      { tag: "Events", posts: 9 },
+                    ].map((trend, index) => (
+                      <div
+                        key={trend.tag}
+                        className="flex items-center justify-between p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm font-medium text-blue-600">
+                            #{trend.tag}
+                          </span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {trend.posts} posts
+                        </span>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+
+                {/* Quick Stats */}
+                <Card className="border-0 w-64 shadow-xl bg-gradient-to-br from-white to-green-50 dark:from-slate-800 dark:to-slate-900">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="flex items-center text-lg">
+                      <div className="p-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 mr-3">
+                        <Users className="h-4 w-4 text-white" />
+                      </div>
+                      Community
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="text-center p-4 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 dark:from-slate-700 dark:to-slate-600">
+                      <div className="text-2xl font-bold text-green-600 mb-1">
+                        1,247
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Active Students
+                      </div>
+                    </div>
+                    <div className="text-center p-4 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 dark:from-slate-700 dark:to-slate-600">
+                      <div className="text-2xl font-bold text-purple-600 mb-1">
+                        89
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Posts Today
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
-            <div className="relative z-10">
-              <h1 className="text-4xl font-bold tracking-tight mb-2">Campus Feed ✨</h1>
-              <p className="text-purple-100 text-lg">
-                Share updates and connect with fellow students
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex justify-end">
-            <Dialog
-              open={isCreateDialogOpen}
-              onOpenChange={setIsCreateDialogOpen}
-            >
-              <DialogTrigger asChild>
-                <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 shadow-lg hover:shadow-xl transition-all duration-200">
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Post
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px] border-0 shadow-2xl">
-                <DialogHeader>
-                  <DialogTitle className="text-xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Create a Post</DialogTitle>
-                  <DialogDescription className="text-base">
-                    Share something with your fellow students
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 pt-4">
-                  <div className="flex items-start space-x-3 p-4 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 dark:from-slate-800 dark:to-slate-700">
-                    <Avatar className="ring-2 ring-purple-200">
+
+            {/* Main Content */}
+            <div className="lg:col-span-6 space-y-8">
+              {/* Hero Header */}
+              <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 p-8 text-white">
+                <div className="absolute inset-0 bg-black/20"></div>
+                <div className="absolute top-4 right-4 opacity-30">
+                  <Sparkles className="h-20 w-20" />
+                </div>
+                <div className="relative z-10">
+                  <h1 className="text-4xl font-bold tracking-tight mb-2">
+                    Campus Feed ✨
+                  </h1>
+                  <p className="text-purple-100 text-lg">
+                    Share updates and connect with fellow students
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Dialog
+                  open={isCreateDialogOpen}
+                  onOpenChange={setIsCreateDialogOpen}
+                >
+                  <DialogTrigger asChild>
+                    <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 shadow-lg hover:shadow-xl transition-all duration-200">
+                      <Plus className="h-4 w-4 mr-2" />
+                      New Post
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[500px] border-0 shadow-2xl">
+                    <DialogHeader>
+                      <DialogTitle className="text-xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        Create a Post
+                      </DialogTitle>
+                      <DialogDescription className="text-base">
+                        Share something with your fellow students
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-4">
+                      <div className="flex items-start space-x-3 p-4 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 dark:from-slate-800 dark:to-slate-700">
+                        <Avatar className="ring-2 ring-purple-200">
+                          {user?.profile_pic ? (
+                            <img
+                              src={user.profile_pic}
+                              alt="Profile"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                              {user?.full_name?.charAt(0)}
+                            </AvatarFallback>
+                          )}
+                        </Avatar>
+                        <div className="flex-1">
+                          <Textarea
+                            placeholder="What's happening on campus? ✨"
+                            value={newPost}
+                            onChange={(e) => setNewPost(e.target.value)}
+                            rows={4}
+                            className="resize-none border-none p-0 focus-visible:ring-0 text-lg bg-transparent placeholder:text-muted-foreground/70"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Image Preview */}
+                      {imagePreview && (
+                        <div className="relative mt-3">
+                          <img
+                            src={imagePreview}
+                            alt="Preview"
+                            className="w-full max-h-64 object-cover rounded-xl shadow-lg"
+                          />
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={removeImage}
+                            className="absolute top-2 right-2 bg-white/90 hover:bg-white shadow-lg"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+
+                      {postingError && (
+                        <p className="text-red-500 text-sm">{postingError}</p>
+                      )}
+
+                      <div className="flex items-center justify-between pt-4 border-t border-purple-100">
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="hover:bg-purple-100"
+                            asChild
+                          >
+                            <label className="cursor-pointer">
+                              <ImageIcon className="h-4 w-4 text-purple-600" />
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageSelect}
+                                className="hidden"
+                              />
+                            </label>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="hover:bg-purple-100"
+                          >
+                            <MapPin className="h-4 w-4 text-purple-600" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="hover:bg-purple-100"
+                          >
+                            <Calendar className="h-4 w-4 text-purple-600" />
+                          </Button>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <span
+                            className={`text-sm font-medium ${
+                              280 - newPost.length < 20
+                                ? "text-red-500"
+                                : "text-muted-foreground"
+                            }`}
+                          >
+                            {280 - newPost.length}
+                          </span>
+                          <Button
+                            onClick={handleCreatePost}
+                            disabled={
+                              (!newPost.trim() && !selectedImage) ||
+                              newPost.length > 280 ||
+                              isPosting
+                            }
+                            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 shadow-lg"
+                          >
+                            {isPosting ? "Posting..." : "Post"}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              {/* Quick Post */}
+              <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-purple-50 dark:from-slate-800 dark:to-slate-900 hover:shadow-2xl transition-all duration-300">
+                <CardContent className="p-6">
+                  <div className="flex items-start space-x-4">
+                    <Avatar className="ring-2 ring-purple-200 shadow-lg">
                       {user?.profile_pic ? (
                         <img
                           src={user.profile_pic}
@@ -681,245 +887,319 @@ export default function PostsPage() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                        <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold">
                           {user?.full_name?.charAt(0)}
                         </AvatarFallback>
                       )}
                     </Avatar>
                     <div className="flex-1">
                       <Textarea
-                        placeholder="What's happening on campus? ✨"
-                        value={newPost}
-                        onChange={(e) => setNewPost(e.target.value)}
-                        rows={4}
-                        className="resize-none border-none p-0 focus-visible:ring-0 text-lg bg-transparent placeholder:text-muted-foreground/70"
+                        placeholder="What's happening on campus? Share your thoughts... ✨"
+                        onClick={() => setIsCreateDialogOpen(true)}
+                        readOnly
+                        className="resize-none cursor-pointer border-2 border-purple-100 hover:border-purple-200 focus:border-purple-300 transition-colors bg-white/50 backdrop-blur-sm"
+                        rows={3}
                       />
                     </div>
                   </div>
+                </CardContent>
+              </Card>
 
-                  {/* Image Preview */}
-                  {imagePreview && (
-                    <div className="relative mt-3">
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="w-full max-h-64 object-cover rounded-xl shadow-lg"
-                      />
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={removeImage}
-                        className="absolute top-2 right-2 bg-white/90 hover:bg-white shadow-lg"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-
-                {postingError && (
-                  <p className="text-red-500 text-sm">{postingError}</p>
-                )}
-
-                  <div className="flex items-center justify-between pt-4 border-t border-purple-100">
-                    <div className="flex items-center space-x-2">
-                      <Button variant="ghost" size="sm" className="hover:bg-purple-100" asChild>
-                        <label className="cursor-pointer">
-                          <ImageIcon className="h-4 w-4 text-purple-600" />
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageSelect}
-                            className="hidden"
-                          />
-                        </label>
-                      </Button>
-                      <Button variant="ghost" size="sm" className="hover:bg-purple-100">
-                        <MapPin className="h-4 w-4 text-purple-600" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="hover:bg-purple-100">
-                        <Calendar className="h-4 w-4 text-purple-600" />
-                      </Button>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <span className={`text-sm font-medium ${
-                        280 - newPost.length < 20 ? 'text-red-500' : 'text-muted-foreground'
-                      }`}>
-                        {280 - newPost.length}
-                      </span>
-                      <Button
-                        onClick={handleCreatePost}
-                        disabled={
-                          (!newPost.trim() && !selectedImage) ||
-                          newPost.length > 280 ||
-                          isPosting
-                        }
-                        className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 shadow-lg"
-                      >
-                        {isPosting ? "Posting..." : "Post"}
-                      </Button>
-                    </div>
-                  </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-          {/* Quick Post */}
-          <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-purple-50 dark:from-slate-800 dark:to-slate-900 hover:shadow-2xl transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-start space-x-4">
-                <Avatar className="ring-2 ring-purple-200 shadow-lg">
-                  {user?.profile_pic ? (
-                    <img
-                      src={user.profile_pic}
-                      alt="Profile"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold">
-                      {user?.full_name?.charAt(0)}
-                    </AvatarFallback>
-                  )}
-                </Avatar>
-                <div className="flex-1">
-                  <Textarea
-                    placeholder="What's happening on campus? Share your thoughts... ✨"
-                    onClick={() => setIsCreateDialogOpen(true)}
-                    readOnly
-                    className="resize-none cursor-pointer border-2 border-purple-100 hover:border-purple-200 focus:border-purple-300 transition-colors bg-white/50 backdrop-blur-sm"
-                    rows={3}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-        {/* Posts Feed */}
-        <div className="space-y-4">
-          {posts?.map((post: any) => (
-            <PostCard key={post.id} post={post} />
-          ))}
-        </div>
-
-          {/* Load More */}
-          {hasMorePosts && (
-            <div className="text-center">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setLoadingMore(true);
-                  setPostsToSkip((prev) => prev + 5);
-                  getPosts(true).finally(() => setLoadingMore(false));
-                }}
-                disabled={loadingMore}
-                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
-              >
-                {loadingMore ? (
-                  <>
-                    <TrendingUp className="h-4 w-4 mr-2 animate-spin" />
-                    Loading...
-                  </>
-                ) : (
-                  <>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Load More Posts
-                  </>
-                )}
-              </Button>
-            </div>
-          )}
-
-          {/* Comments Dialog */}
-          <Dialog
-            open={selectedPost !== null}
-            onOpenChange={() => setSelectedPost(null)}
-          >
-            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto border-0 shadow-2xl">
-              <DialogHeader>
-                <DialogTitle className="text-xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Comments</DialogTitle>
-              </DialogHeader>
-            {selectedPost && (
+              {/* Posts Feed */}
               <div className="space-y-4">
-                {/* Original Post */}
-                <div className="pb-4 border-b">
-                  <PostCard
-                    post={posts.find((p: any) => p.id === selectedPost)}
-                  />
-                </div>
+                {posts?.map((post: any) => (
+                  <PostCard key={post.id} post={post} />
+                ))}
+              </div>
 
-                {/* Comments */}
-                <div className="space-y-4">
-                  {comments?.map((comment: any) => (
-                    <div
-                      key={comment.id}
-                      className="flex items-start space-x-3 p-4 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 dark:from-slate-700 dark:to-slate-600 shadow-sm hover:shadow-md transition-shadow"
-                    >
-                      <Avatar className="h-8 w-8 ring-2 ring-purple-200">
-                        {comment.author.profile_pic ? (
-                          <img
-                            src={comment.author.profile_pic}
-                            alt="Profile"
-                            className="w-full h-full object-cover"
+              {/* Load More */}
+              {hasMorePosts && (
+                <div className="text-center">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setLoadingMore(true);
+                      setPostsToSkip((prev) => prev + 5);
+                      getPosts(true).finally(() => setLoadingMore(false));
+                    }}
+                    disabled={loadingMore}
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
+                  >
+                    {loadingMore ? (
+                      <>
+                        <TrendingUp className="h-4 w-4 mr-2 animate-spin" />
+                        Loading...
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Load More Posts
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+
+              {/* Comments Dialog */}
+              <Dialog
+                open={selectedPost !== null}
+                onOpenChange={() => setSelectedPost(null)}
+              >
+                <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto border-0 shadow-2xl">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                      Comments
+                    </DialogTitle>
+                  </DialogHeader>
+                  {selectedPost && (
+                    <div className="space-y-4">
+                      {/* Original Post */}
+                      <div className="pb-4 border-b">
+                        <PostCard
+                          post={posts.find((p: any) => p.id === selectedPost)}
+                        />
+                      </div>
+
+                      {/* Comments */}
+                      <div className="space-y-4">
+                        {comments?.map((comment: any) => (
+                          <div
+                            key={comment.id}
+                            className="flex items-start space-x-3 p-4 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 dark:from-slate-700 dark:to-slate-600 shadow-sm hover:shadow-md transition-shadow"
+                          >
+                            <Avatar className="h-8 w-8 ring-2 ring-purple-200">
+                              {comment.author.profile_pic ? (
+                                <img
+                                  src={comment.author.profile_pic}
+                                  alt="Profile"
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                                  {comment.author.full_name.charAt(0)}
+                                </AvatarFallback>
+                              )}
+                            </Avatar>
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <span className="font-semibold text-sm">
+                                  {comment.author.full_name}
+                                </span>
+                                <span className="text-xs text-muted-foreground font-medium">
+                                  {moment(comment.created_at).fromNow()}
+                                </span>
+                              </div>
+                              <p className="text-sm leading-relaxed">
+                                {comment.content}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Add Comment */}
+                      <div className="flex items-start space-x-3 pt-4 border-t border-purple-100">
+                        <Avatar className="h-8 w-8 ring-2 ring-purple-200">
+                          {user?.profile_pic ? (
+                            <img
+                              src={user.profile_pic}
+                              alt="Profile"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                              {user?.full_name?.charAt(0)}
+                            </AvatarFallback>
+                          )}
+                        </Avatar>
+                        <div className="flex-1 flex space-x-2">
+                          <Input
+                            placeholder="Write a comment... ✨"
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                            className="flex-1 border-2 border-purple-100 focus:border-purple-300 rounded-full"
                           />
-                        ) : (
-                          <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                            {comment.author.full_name.charAt(0)}
-                          </AvatarFallback>
-                        )}
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <span className="font-semibold text-sm">
-                            {comment.author.full_name}
-                          </span>
-                          <span className="text-xs text-muted-foreground font-medium">
-                            {moment(comment.created_at).fromNow()}
-                          </span>
+                          <Button
+                            size="sm"
+                            disabled={!newComment || isCommenting}
+                            onClick={() => {
+                              handleCreateComment();
+                            }}
+                            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 rounded-full shadow-lg"
+                          >
+                            <Send className="h-4 w-4" />
+                          </Button>
                         </div>
-                        <p className="text-sm leading-relaxed">{comment.content}</p>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  )}
+                </DialogContent>
+              </Dialog>
+            </div>
 
-                {/* Add Comment */}
-                <div className="flex items-start space-x-3 pt-4 border-t border-purple-100">
-                  <Avatar className="h-8 w-8 ring-2 ring-purple-200">
-                    {user?.profile_pic ? (
-                      <img
-                        src={user.profile_pic}
-                        alt="Profile"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                        {user?.full_name?.charAt(0)}
-                      </AvatarFallback>
-                    )}
-                  </Avatar>
-                  <div className="flex-1 flex space-x-2">
-                    <Input
-                      placeholder="Write a comment... ✨"
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      className="flex-1 border-2 border-purple-100 focus:border-purple-300 rounded-full"
-                    />
-                    <Button
-                      size="sm"
-                      disabled={!newComment || isCommenting}
-                      onClick={() => {
-                        handleCreateComment();
-                      }}
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 rounded-full shadow-lg"
-                    >
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+            {/* Right Sidebar */}
+            <div className="lg:block lg:col-span-3">
+              <div className="w-full sticky top-0 flex flex-col items-center h-[calc(100vh-2rem)] overflow-hidden hover:overflow-y-auto space-y-6">
+                {/* Quick Actions */}
+                <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-orange-50 dark:from-slate-800 dark:to-slate-900">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="flex items-center text-lg">
+                      <div className="p-2 rounded-lg bg-gradient-to-r from-orange-500 to-red-500 mr-3">
+                        <Sparkles className="h-4 w-4 text-white" />
+                      </div>
+                      Quick Actions
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {[
+                      {
+                        icon: Users,
+                        label: "Find Study Groups",
+                        color: "from-blue-500 to-cyan-500",
+                      },
+                      {
+                        icon: Calendar,
+                        label: "Campus Events",
+                        color: "from-green-500 to-emerald-500",
+                      },
+                      {
+                        icon: MapPin,
+                        label: "Lost & Found",
+                        color: "from-purple-500 to-pink-500",
+                      },
+                      {
+                        icon: MessageCircle,
+                        label: "Messages",
+                        color: "from-orange-500 to-red-500",
+                      },
+                    ].map((action, index) => {
+                      const Icon = action.icon;
+                      return (
+                        <Button
+                          key={action.label}
+                          variant="ghost"
+                          className="w-full justify-start p-3 h-auto hover:bg-orange-50 dark:hover:bg-slate-700 transition-all duration-200 group"
+                        >
+                          <div
+                            className={`p-2 rounded-lg bg-gradient-to-r ${action.color} mr-3 group-hover:scale-110 transition-transform`}
+                          >
+                            <Icon className="h-4 w-4 text-white" />
+                          </div>
+                          <span className="font-medium">{action.label}</span>
+                        </Button>
+                      );
+                    })}
+                  </CardContent>
+                </Card>
+
+                {/* Recent Activity */}
+                <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-pink-50 dark:from-slate-800 dark:to-slate-900">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="flex items-center text-lg">
+                      <div className="p-2 rounded-lg bg-gradient-to-r from-pink-500 to-purple-500 mr-3">
+                        <Heart className="h-4 w-4 text-white" />
+                      </div>
+                      Recent Activity
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {[
+                      {
+                        user: "Sarah J.",
+                        action: "liked your post",
+                        time: "2m",
+                      },
+                      {
+                        user: "Mike D.",
+                        action: "commented on your post",
+                        time: "5m",
+                      },
+                      {
+                        user: "Emma W.",
+                        action: "shared your post",
+                        time: "12m",
+                      },
+                      {
+                        user: "John S.",
+                        action: "started following you",
+                        time: "1h",
+                      },
+                    ].map((activity, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center space-x-3 p-2 rounded-lg hover:bg-pink-50 dark:hover:bg-slate-700 transition-colors"
+                      >
+                        <Avatar className="h-8 w-8 ring-2 ring-pink-200">
+                          <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs">
+                            {activity.user.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm">
+                            <span className="font-medium">{activity.user}</span>
+                            <span className="text-muted-foreground ml-1">
+                              {activity.action}
+                            </span>
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {activity.time} ago
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+
+                {/* Suggested Connections */}
+                <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-indigo-50 dark:from-slate-800 dark:to-slate-900">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="flex items-center text-lg">
+                      <div className="p-2 rounded-lg bg-gradient-to-r from-indigo-500 to-blue-500 mr-3">
+                        <Users className="h-4 w-4 text-white" />
+                      </div>
+                      Connect
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {[
+                      {
+                        name: "Alex Chen",
+                        dept: "Computer Science",
+                        mutual: 5,
+                      },
+                      { name: "Lisa Park", dept: "Business Admin", mutual: 3 },
+                      { name: "David Kim", dept: "Engineering", mutual: 8 },
+                    ].map((person, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 rounded-lg bg-indigo-50 dark:bg-slate-700"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <Avatar className="h-8 w-8 ring-2 ring-indigo-200">
+                            <AvatarFallback className="bg-gradient-to-r from-indigo-500 to-blue-500 text-white text-xs">
+                              {person.name.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium text-sm">{person.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {person.dept}
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          className="bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 border-0 text-xs px-3"
+                        >
+                          Follow
+                        </Button>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
               </div>
-            )}
-          </DialogContent>
-        </Dialog>
+            </div>
+          </div>
         </div>
       </div>
     </ProtectedLayout>
