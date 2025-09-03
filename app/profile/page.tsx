@@ -37,6 +37,7 @@ export default function ProfilePage() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [recentActivity, setRecentActivity] = useState<any>([]);
 
   useEffect(() => {
     getUserProfile();
@@ -56,6 +57,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (user) {
       userOverview();
+      getRecentActivity();
       supabase.auth.getUser().then(({ data }) => {
         setUser({
           ...user,
@@ -176,34 +178,27 @@ export default function ProfilePage() {
     setIsEditing(false);
   };
 
-  if (!user) return null;
+  async function getRecentActivity() {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from("activities")
+      .select(`
+        *,
+        actor:profiles!activities_actor_id_fkey(full_name)
+      `)
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(10);
 
-  const recentActivity = [
-    {
-      id: 1,
-      type: "message",
-      description: "Sent a message to Sarah Johnson",
-      timestamp: "2 hours ago",
-    },
-    {
-      id: 2,
-      type: "listing",
-      description: 'Listed "Calculus Textbook" in marketplace',
-      timestamp: "1 day ago",
-    },
-    {
-      id: 3,
-      type: "found",
-      description: "Reported found item: Blue Backpack",
-      timestamp: "3 days ago",
-    },
-    {
-      id: 4,
-      type: "message",
-      description: "Received message from Mike Davis",
-      timestamp: "5 days ago",
-    },
-  ];
+    if (error) {
+      console.error(error);
+    } else {
+      setRecentActivity(data || []);
+    }
+  }
+
+  if (!user) return null;
 
   return (
     <ProtectedLayout>
@@ -478,19 +473,19 @@ export default function ProfilePage() {
                     </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {recentActivity.map((activity) => (
+                      {recentActivity.map((activity: any) => (
                         <div
                           key={activity.id}
                           className="flex items-center space-x-4 p-3 rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 border border-white/50"
                         >
                           <div className="flex-shrink-0">
-                            {activity.type === "message" && (
+                            {activity.activity_type === "message_received" && (
                               <Mail className="h-5 w-5 text-blue-500" />
                             )}
-                            {activity.type === "listing" && (
+                            {activity.activity_type === "post_liked" && (
                               <GraduationCap className="h-5 w-5 text-green-500" />
                             )}
-                            {activity.type === "found" && (
+                            {activity.activity_type === "post_commented" && (
                               <MapPin className="h-5 w-5 text-orange-500" />
                             )}
                           </div>
@@ -499,11 +494,16 @@ export default function ProfilePage() {
                               {activity.description}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {activity.timestamp}
+                              {new Date(activity.created_at).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
                       ))}
+                      {recentActivity.length === 0 && (
+                        <div className="text-center py-8 text-muted-foreground">
+                          No recent activity
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                   </Card>
