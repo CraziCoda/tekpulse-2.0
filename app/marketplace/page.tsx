@@ -246,28 +246,31 @@ export default function MarketplacePage() {
 
   return (
     <ProtectedLayout>
-      <div className="p-6 space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Marketplace</h1>
-            <p className="text-muted-foreground">
-              Buy and sell items with fellow students
-            </p>
-          </div>
-          <Dialog
-            open={isListingDialogOpen}
-            onOpenChange={setIsListingDialogOpen}
-          >
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                List Item
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <div className="min-h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50">
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-600 text-white py-12">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h1 className="text-4xl font-bold tracking-tight mb-2">Marketplace</h1>
+                <p className="text-teal-100 text-lg">
+                  Buy and sell items with fellow students
+                </p>
+              </div>
+              <Dialog
+                open={isListingDialogOpen}
+                onOpenChange={setIsListingDialogOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button className="bg-white text-teal-600 hover:bg-teal-50 shadow-lg">
+                    <Plus className="h-4 w-4 mr-2" />
+                    List Item
+                  </Button>
+                </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto bg-gradient-to-br from-white to-teal-50 border-0 shadow-2xl">
               <DialogHeader>
-                <DialogTitle>List an Item</DialogTitle>
-                <DialogDescription>
+                <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">List an Item</DialogTitle>
+                <DialogDescription className="text-gray-600">
                   Create a listing to sell your item to other students.
                 </DialogDescription>
               </DialogHeader>
@@ -277,6 +280,7 @@ export default function MarketplacePage() {
                   <Input
                     id="title"
                     placeholder="e.g., Calculus Textbook - 8th Edition"
+                    className="border-teal-200 focus:border-teal-500"
                     value={listingItem.title}
                     onChange={(e) => {
                       setListingItem({
@@ -292,6 +296,7 @@ export default function MarketplacePage() {
                     id="price"
                     type="number"
                     placeholder="45"
+                    className="border-teal-200 focus:border-teal-500"
                     value={listingItem.price}
                     onChange={(e) =>
                       setListingItem({
@@ -310,7 +315,7 @@ export default function MarketplacePage() {
                       setListingItem({ ...listingItem, category: value })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="border-teal-200 focus:border-teal-500">
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                     <SelectContent>
@@ -331,7 +336,7 @@ export default function MarketplacePage() {
                       setListingItem({ ...listingItem, condition: value })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="border-teal-200 focus:border-teal-500">
                       <SelectValue placeholder="Select condition" />
                     </SelectTrigger>
                     <SelectContent>
@@ -347,6 +352,7 @@ export default function MarketplacePage() {
                   <Textarea
                     id="description"
                     placeholder="Provide detailed description of the item"
+                    className="min-h-[100px] border-teal-200 focus:border-teal-500"
                     rows={4}
                     value={listingItem.description}
                     onChange={(e) =>
@@ -401,155 +407,176 @@ export default function MarketplacePage() {
                   </div>
                 )}
                 {creatingListingError && (
-                  <p className="text-red-500">{creatingListingError}</p>
+                  <div className="text-red-500 text-sm bg-red-50 p-3 rounded-lg">
+                    {creatingListingError}
+                  </div>
                 )}
-                <Button
-                  className="w-full"
-                  onClick={handleAddListing}
-                  disabled={isCreatingListing}
-                >
-                  Create Listing
-                </Button>
+                <div className="flex justify-end space-x-2 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsListingDialogOpen(false)}
+                    className="border-teal-200 text-teal-600 hover:bg-teal-50"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleAddListing}
+                    disabled={isCreatingListing}
+                    className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 shadow-lg"
+                  >
+                    {isCreatingListing ? "Creating..." : "Create Listing"}
+                  </Button>
+                </div>
               </div>
             </DialogContent>
-          </Dialog>
-        </div>
-
-        {/* Search and Filter */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search for items..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-full sm:w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((category) => (
-                <SelectItem key={category.value} value={category.value}>
-                  {category.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Items Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredItems.map((item: any) => (
-            <Card key={item.id} className={`hover:shadow-lg transition-all duration-200 border-0 shadow-sm ${
-              user?.is_admin ? 'border-l-4 border-l-red-500' : ''
-            }`}>
-              <div className="relative">
-                {/* Price Badge */}
-                <div className="absolute top-3 right-3 z-10">
-                  <Badge className="bg-primary text-primary-foreground font-bold text-base px-3 py-1">
-                    ₵{item.price}
-                  </Badge>
-                </div>
-                
-                {/* Item Image */}
-                {item.image_url ? (
-                  <div className="aspect-video w-full overflow-hidden rounded-t-lg">
-                    <img
-                      src={item.image_url}
-                      alt={item.title}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
-                    />
-                  </div>
-                ) : (
-                  <div className="aspect-video w-full bg-gradient-to-br from-muted/50 to-muted rounded-t-lg flex items-center justify-center">
-                    <Tag className="h-12 w-12 text-muted-foreground/50" />
-                  </div>
-                )}
-              </div>
-              
-              <CardContent className="p-5">
-                {/* Header */}
-                <div className="mb-3">
-                  <h3 className="font-bold text-xl leading-tight line-clamp-2 mb-2">{item.title}</h3>
-                  <div className="flex items-center space-x-2">
-                    <Badge className={getCategoryColor(item.category)} variant="secondary">
-                      {item.category}
-                    </Badge>
-                    <Badge className={getConditionColor(item.condition)} variant="secondary">
-                      {item.condition}
-                    </Badge>
-                  </div>
-                </div>
-                
-                <CardDescription className="mb-4 line-clamp-2 leading-relaxed">
-                  {item.description}
-                </CardDescription>
-
-                {/* Details */}
-                <div className="space-y-3 mb-4">
-                  <div className="flex items-center gap-2 text-sm">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-50">
-                      <User className="h-4 w-4 text-purple-600" />
-                    </div>
-                    <span className="text-muted-foreground">
-                      {item?.author?.id === user?.id ? 'You' : item?.author?.full_name}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 text-sm">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-50">
-                      <Clock className="h-4 w-4 text-green-600" />
-                    </div>
-                    <span className="text-muted-foreground">{moment(item.created_at).fromNow()}</span>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="space-y-2">
-                  <Button
-                    className="w-full font-medium"
-                    variant={item?.author?.id === user?.id ? "destructive" : "default"}
-                    onClick={() => {
-                      if (item?.author?.id === user?.id) {
-                        handleDeleteListing(item.id);
-                      } else {
-                        router.push(
-                          `/messages?id=${item.id}&user=${item.author.id}&type=marketplace&name=${item.title}&description=${item.description}`
-                        );
-                      }
-                    }}
-                  >
-                    {item?.author?.id === user?.id ? "Remove Listing" : "Contact Seller"}
-                  </Button>
-                  
-                  {user?.is_admin && item?.author?.id !== user?.id && (
-                    <Button
-                      className="w-full font-medium"
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDeleteListing(item.id)}
-                    >
-                      Admin: Remove Listing
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {filteredItems.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-muted-foreground">
-              <Tag className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-medium mb-2">No items found</h3>
-              <p>Try adjusting your search or filter criteria</p>
+              </Dialog>
             </div>
           </div>
-        )}
+        </div>
+
+        {/* Search and Filters */}
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 mb-8">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-teal-400 h-4 w-4" />
+                <Input
+                  placeholder="Search items..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 border-teal-200 focus:border-teal-500 bg-white/50"
+                />
+              </div>
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-full sm:w-[200px] border-teal-200 focus:border-teal-500 bg-white/50">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category.value} value={category.value}>
+                      {category.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Listings Grid */}
+          {filteredItems.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-12 max-w-md mx-auto">
+                <DollarSign className="mx-auto h-16 w-16 text-teal-400 mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {searchTerm || selectedCategory !== "all"
+                    ? "No items found"
+                    : "No listings yet"}
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  {searchTerm || selectedCategory !== "all"
+                    ? "Try adjusting your search or filters"
+                    : "Be the first to list an item for sale!"}
+                </p>
+                <Button
+                  onClick={() => setIsListingDialogOpen(true)}
+                  className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 shadow-lg"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  List First Item
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredItems.map((item: any) => (
+                <Card key={item.id} className="group hover:shadow-2xl transition-all duration-300 bg-white/70 backdrop-blur-sm border-white/20 hover:scale-105">
+                  <div className="relative">
+                    {item.image_url ? (
+                      <img
+                        src={item.image_url}
+                        alt={item.title}
+                        className="w-full h-48 object-cover rounded-t-lg"
+                      />
+                    ) : (
+                      <div className="w-full h-48 bg-gradient-to-br from-teal-100 to-cyan-100 rounded-t-lg flex items-center justify-center">
+                        <DollarSign className="h-16 w-16 text-teal-400" />
+                      </div>
+                    )}
+                    <div className="absolute top-3 right-3 flex gap-2">
+                      <Badge className={`${getCategoryColor(item.category)} shadow-lg`}>
+                        {item.category}
+                      </Badge>
+                    </div>
+                    <div className="absolute top-3 left-3">
+                      <Badge className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-lg font-bold">
+                        ₵{item.price}
+                      </Badge>
+                    </div>
+                  </div>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg font-bold text-gray-900 group-hover:text-teal-600 transition-colors line-clamp-2">
+                      {item.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <CardDescription className="text-gray-600 mb-4 line-clamp-2">
+                      {item.description}
+                    </CardDescription>
+                    <div className="flex items-center justify-between mb-4">
+                      <Badge className={`${getConditionColor(item.condition)} shadow-sm`}>
+                        {item.condition}
+                      </Badge>
+                      <div className="flex items-center text-sm text-gray-500">
+                        <Clock className="h-4 w-4 mr-1" />
+                        {moment(item.created_at).fromNow()}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-teal-400 to-cyan-400 flex items-center justify-center ring-2 ring-white shadow-lg">
+                          {item.author?.profile_pic ? (
+                            <img
+                              src={item.author.profile_pic}
+                              alt={item.author.full_name}
+                              className="w-full h-full rounded-full object-cover"
+                            />
+                          ) : (
+                            <User className="h-4 w-4 text-white" />
+                          )}
+                        </div>
+                        <span className="text-sm font-medium text-gray-700">
+                          {item?.author?.id === user?.id ? 'You' : item?.author?.full_name || "Anonymous"}
+                        </span>
+                      </div>
+                      {user?.id === item.user_id ? (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteListing(item.id)}
+                          className="shadow-lg"
+                        >
+                          Delete
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            router.push(
+                              `/messages?id=${item.id}&user=${item.author.id}&type=marketplace&name=${item.title}&description=${item.description}`
+                            );
+                          }}
+                          className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 shadow-lg"
+                        >
+                          Contact
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </ProtectedLayout>
   );
