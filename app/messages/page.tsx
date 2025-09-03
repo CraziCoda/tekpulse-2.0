@@ -395,61 +395,62 @@ export default function MessagesPage() {
 
   return (
     <ProtectedLayout>
-      <div className="h-full flex">
-        {/* Conversations List */}
-        <div className="w-full md:w-80 border-r bg-card flex flex-col">
-          <div className="p-4 border-b">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Messages</h2>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  getUsers();
-                  setShowStudentModal(true);
-                }}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-green-50 to-blue-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+        <div className="h-full flex">
+          {/* Conversations List */}
+          <div className="w-full md:w-80 border-r border-0 bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 flex flex-col shadow-xl">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-green-500 to-blue-500 text-white">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold">Messages 💬</h2>
+                <Button
+                  size="sm"
+                  className="bg-white/20 hover:bg-white/30 border-0 text-white shadow-lg"
+                  onClick={() => {
+                    getUsers();
+                    setShowStudentModal(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-white/70" />
+                <Input
+                  placeholder="Search conversations..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 bg-white/20 border-white/30 text-white placeholder:text-white/70 focus:bg-white/30"
+                />
+              </div>
             </div>
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search conversations..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
 
-          <div className="flex-1 overflow-y-auto">
-            {conversations.map((conversation: any) => (
-              <div
-                key={conversation.id}
-                onClick={() => setCurrentConversation(conversation)}
-                className={cn(
-                  "p-4 cursor-pointer transition-all duration-200 border-b border-border/50",
-                  currentConversation?.id === conversation.id 
-                    ? "bg-primary/10 border-l-4 border-l-primary" 
-                    : "hover:bg-muted/30"
-                )}
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="relative">
-                    <Avatar className="h-12 w-12">
-                      {conversation.otherUser?.profile_pic ? (
-                        <img src={conversation.otherUser.profile_pic} alt="Profile" className="w-full h-full object-cover" />
-                      ) : (
-                        <AvatarFallback className="text-base font-semibold">
-                          {conversation.name.charAt(0)}
-                        </AvatarFallback>
+            <div className="flex-1 overflow-y-auto">
+              {conversations.map((conversation: any) => (
+                <div
+                  key={conversation.id}
+                  onClick={() => setCurrentConversation(conversation)}
+                  className={cn(
+                    "p-4 cursor-pointer transition-all duration-200 border-b border-border/50",
+                    currentConversation?.id === conversation.id 
+                      ? "bg-gradient-to-r from-green-50 to-blue-50 dark:from-slate-700 dark:to-slate-600 border-l-4 border-l-green-500 shadow-md" 
+                      : "hover:bg-gradient-to-r hover:from-slate-50 hover:to-blue-50 dark:hover:from-slate-700 dark:hover:to-slate-600"
+                  )}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="relative">
+                      <Avatar className="h-12 w-12 ring-2 ring-green-200 shadow-lg">
+                        {conversation.otherUser?.profile_pic ? (
+                          <img src={conversation.otherUser.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                          <AvatarFallback className="text-base font-semibold bg-gradient-to-r from-green-500 to-blue-500 text-white">
+                            {conversation.name.charAt(0)}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      {conversation.online && (
+                        <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-2 border-white shadow-lg" />
                       )}
-                    </Avatar>
-                    {conversation.online && (
-                      <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-green-500 rounded-full border-2 border-white" />
-                    )}
-                  </div>
+                    </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <h4 className="font-semibold text-sm truncate">
@@ -463,8 +464,7 @@ export default function MessagesPage() {
                         )}
                         {conversation.unread > 0 && (
                           <Badge
-                            variant="default"
-                            className="h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-primary"
+                            className="h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-lg animate-pulse"
                           >
                             {conversation.unread}
                           </Badge>
@@ -478,52 +478,52 @@ export default function MessagesPage() {
                 </div>
               </div>
             ))}
-            {conversations.length === 0 && (
-              <div className="p-8 text-center">
-                <div className="text-muted-foreground">
-                  <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p className="text-sm">No conversations yet</p>
-                  <p className="text-xs mt-1">Start a new conversation to get started</p>
+              {conversations.length === 0 && (
+                <div className="p-8 text-center">
+                  <div className="p-6 rounded-3xl bg-gradient-to-r from-green-50 to-blue-50 dark:from-slate-700 dark:to-slate-600 mx-auto max-w-sm">
+                    <MessageSquare className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+                    <p className="text-sm font-medium">No conversations yet</p>
+                    <p className="text-xs mt-1 text-muted-foreground">Start a new conversation to get started</p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
         </div>
 
-        {/* Chat Area */}
-        <div className="hidden md:flex flex-1 flex-col">
-          {currentConversation ? (
-            <>
-              {/* Chat Header */}
-              <div className="p-4 border-b bg-card">
-                <div className="flex items-center space-x-3">
-                  <div className="relative">
-                    <Avatar>
-                      {currentConversation?.otherUser?.profile_pic ? (
-                        <img src={currentConversation.otherUser.profile_pic} alt="Profile" className="w-full h-full object-cover" />
-                      ) : (
-                        <AvatarFallback>
-                          {currentConversation?.name?.charAt(0)}
-                        </AvatarFallback>
+          {/* Chat Area */}
+          <div className="h-screen md:flex flex-1 flex-col bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-900">
+            {currentConversation ? (
+              <>
+                {/* Chat Header */}
+                <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-green-500 to-blue-500 text-white shadow-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="relative">
+                      <Avatar className="ring-2 ring-white/50 shadow-lg">
+                        {currentConversation?.otherUser?.profile_pic ? (
+                          <img src={currentConversation.otherUser.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                          <AvatarFallback className="bg-white/20 text-white font-semibold">
+                            {currentConversation?.name?.charAt(0)}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      {currentConversation.online && (
+                        <Circle className="absolute -bottom-1 -right-1 h-3 w-3 fill-green-400 text-green-400 animate-pulse" />
                       )}
-                    </Avatar>
-                    {currentConversation.online && (
-                      <Circle className="absolute -bottom-1 -right-1 h-3 w-3 fill-green-500 text-green-500" />
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="font-medium">{currentConversation.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {currentConversation.online
-                        ? "Active now"
-                        : "Last seen 2 hours ago"}
-                    </p>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg">{currentConversation.name}</h3>
+                      <p className="text-sm text-white/80">
+                        {currentConversation.online
+                          ? "Active now"
+                          : "Last seen 2 hours ago"}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-slate-50/50 to-white dark:from-slate-800 dark:to-slate-900">
                 {messages.map((message: any) => {
                   const attachment = parseAttachment(message.content);
                   let messageText = message.content;
@@ -570,10 +570,10 @@ export default function MessagesPage() {
                         {messageText.trim() && (
                           <div
                             className={cn(
-                              "px-4 py-3 rounded-2xl shadow-sm",
+                              "px-4 py-3 rounded-2xl shadow-lg",
                               isOwn
-                                ? "bg-primary text-primary-foreground rounded-br-md"
-                                : "bg-white border rounded-bl-md"
+                                ? "bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-br-md"
+                                : "bg-white border border-slate-200 dark:bg-slate-700 dark:border-slate-600 rounded-bl-md shadow-md"
                             )}
                           >
                             <p className="text-sm leading-relaxed">{messageText}</p>
@@ -603,80 +603,83 @@ export default function MessagesPage() {
                 })}
               </div>
 
-              {/* Message Input */}
-              <div className="p-4 border-t bg-card">
-                {/* Attachment preview above input */}
-                {attachmentPreview && (
-                  <div className="mb-3 p-3 bg-muted/50 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <AttachmentPreview
-                        type={attachmentPreview.type}
-                        id={attachmentPreview.id}
-                        name={attachmentPreview.name}
-                        description={attachmentPreview.description}
-                        isOwn={true}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setAttachmentPreview(null);
-                          setNewMessage("");
-                        }}
-                        className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
-                      >
-                        ×
-                      </Button>
+                {/* Message Input */}
+                <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900">
+                  {/* Attachment preview above input */}
+                  {attachmentPreview && (
+                    <div className="mb-3 p-3 bg-gradient-to-r from-green-50 to-blue-50 dark:from-slate-700 dark:to-slate-600 rounded-lg shadow-md">
+                      <div className="flex items-center justify-between">
+                        <AttachmentPreview
+                          type={attachmentPreview.type}
+                          id={attachmentPreview.id}
+                          name={attachmentPreview.name}
+                          description={attachmentPreview.description}
+                          isOwn={true}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setAttachmentPreview(null);
+                            setNewMessage("");
+                          }}
+                          className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600 rounded-full"
+                        >
+                          ×
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                )}
-                <form onSubmit={handleSendMessage} className="flex items-end space-x-2">
-                  <div className="flex-1 relative">
-                    <Input
-                      placeholder="Type a message..."
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      className="pr-12 py-3 rounded-full border-2 focus:border-primary"
-                    />
-                  </div>
-                  <Button 
-                    type="submit" 
-                    size="icon" 
-                    className="rounded-full h-10 w-10 shrink-0"
-                    disabled={!newMessage.trim() && !attachmentPreview}
-                  >
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </form>
+                  )}
+                  <form onSubmit={handleSendMessage} className="flex items-end space-x-2">
+                    <div className="flex-1 relative">
+                      <Input
+                        placeholder="Type a message..."
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        className="pr-12 py-3 rounded-full border-2 border-green-200 focus:border-green-400 bg-white/80 backdrop-blur-sm shadow-sm"
+                      />
+                    </div>
+                    <Button 
+                      type="submit" 
+                      size="icon" 
+                      className="rounded-full h-10 w-10 shrink-0 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 border-0 shadow-lg"
+                      disabled={!newMessage.trim() && !attachmentPreview}
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </form>
               </div>
             </>
-          ) : (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center">
-                <h3 className="text-lg font-medium mb-2">
-                  Select a conversation
-                </h3>
-                <p className="text-muted-foreground">
-                  Choose a conversation to start messaging
-                </p>
+            ) : (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center p-8">
+                  <div className="p-6 rounded-3xl bg-gradient-to-r from-green-50 to-blue-50 dark:from-slate-700 dark:to-slate-600 mx-auto max-w-md">
+                    <MessageSquare className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+                    <h3 className="text-xl font-bold mb-2">
+                      Select a conversation
+                    </h3>
+                    <p className="text-muted-foreground">
+                      Choose a conversation to start messaging
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
 
-        {/* Student Modal */}
-        <Dialog open={showStudentModal} onOpenChange={setShowStudentModal}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Start a New Conversation</DialogTitle>
-            </DialogHeader>
-            <Input
-              placeholder="Search students..."
-              value={studentSearch}
-              onChange={(e) => setStudentSearch(e.target.value)}
-              className="mb-4"
-            />
+          {/* Student Modal */}
+          <Dialog open={showStudentModal} onOpenChange={setShowStudentModal}>
+            <DialogContent className="border-0 shadow-2xl">
+              <DialogHeader>
+                <DialogTitle className="text-xl bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">Start a New Conversation</DialogTitle>
+              </DialogHeader>
+              <Input
+                placeholder="Search students..."
+                value={studentSearch}
+                onChange={(e) => setStudentSearch(e.target.value)}
+                className="mb-4 border-2 border-green-200 focus:border-green-400"
+              />
             <div className="max-h-60 overflow-y-auto space-y-1">
               {filteredStudents.length > 0 ? (
                 filteredStudents.map((student: any) => (
@@ -696,26 +699,26 @@ export default function MessagesPage() {
                       }
                     }}
                   >
-                    <Avatar className="h-8 w-8">
-                      {student.profile_pic ? (
-                        <img src={student.profile_pic} alt="Profile" className="w-full h-full object-cover" />
-                      ) : (
-                        <AvatarFallback>
-                          {student.full_name
-                            .split(" ")
-                            .map((n: string) => n[0])
-                            .join("")
-                            .toUpperCase()
-                            .slice(0, 2)}
-                        </AvatarFallback>
-                      )}
-                    </Avatar>
+                      <Avatar className="h-8 w-8 ring-2 ring-green-200">
+                        {student.profile_pic ? (
+                          <img src={student.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                          <AvatarFallback className="bg-gradient-to-r from-green-500 to-blue-500 text-white">
+                            {student.full_name
+                              .split(" ")
+                              .map((n: string) => n[0])
+                              .join("")
+                              .toUpperCase()
+                              .slice(0, 2)}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
                     <div className="flex-1">
                       <span className="font-medium">{student.full_name}</span>
                       {student.positions?.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-1">
                           {student.positions.map((position: any, index: number) => (
-                            <Badge key={index} variant="outline" className="text-xs">
+                            <Badge key={index} className="bg-gradient-to-r from-green-500 to-blue-500 text-white border-0 shadow-sm text-xs">
                               {position.title}
                             </Badge>
                           ))}
@@ -732,6 +735,7 @@ export default function MessagesPage() {
             </div>
           </DialogContent>
         </Dialog>
+      </div>
       </div>
     </ProtectedLayout>
   );
