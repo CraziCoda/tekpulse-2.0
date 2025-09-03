@@ -21,6 +21,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import supabase from "@/lib/supabase";
@@ -45,6 +52,8 @@ import {
   Trash2,
   Sparkles,
   TrendingUp,
+  Search,
+  Filter,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -72,6 +81,11 @@ export default function PostsPage() {
   const [isEventsDialogOpen, setIsEventsDialogOpen] = useState(false);
   const [upcomingEvents, setUpcomingEvents] = useState<any>([]);
   const [communityStats, setCommunityStats] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCommunity, setSelectedCommunityFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all");
+  const [selectedHashtag, setSelectedHashtag] = useState("");
+  const [communities, setCommunities] = useState<any>([]);
 
   const getLevelIcon = (level: string) => {
     switch (level) {
@@ -333,7 +347,7 @@ export default function PostsPage() {
     const skip = loadMore ? postsToSkip : 0;
     const limit = 5; // Show 5 posts per load
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("posts")
       .select(
         `
@@ -363,7 +377,47 @@ export default function PostsPage() {
       )
       .eq("users_liked.user_id", user.id)
       .eq("users_bookmarked.user_id", user.id)
-      .eq("author.positions.approved", true)
+      .eq("author.positions.approved", true);
+
+    // Apply filters
+    if (searchTerm) {
+      query = query.ilike("content", `%${searchTerm}%`);
+    }
+
+    if (selectedHashtag) {
+      query = query.ilike("content", `%#${selectedHashtag}%`);
+    }
+
+    if (selectedCommunity !== "all") {
+      query = query.eq("community_id", selectedCommunity);
+    }
+
+    if (dateFilter !== "all") {
+      const now = new Date();
+      let dateThreshold;
+
+      switch (dateFilter) {
+        case "today":
+          dateThreshold = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate()
+          );
+          break;
+        case "week":
+          dateThreshold = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case "month":
+          dateThreshold = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          break;
+      }
+
+      if (dateThreshold) {
+        query = query.gte("created_at", dateThreshold.toISOString());
+      }
+    }
+
+    const { data, error } = await query
       .order("created_at", { ascending: false })
       .range(skip, skip + limit - 1);
 
@@ -541,7 +595,8 @@ export default function PostsPage() {
               {getTags(post.content).map((tag: string) => (
                 <Badge
                   key={tag}
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0 shadow-sm hover:shadow-md transition-shadow"
+                  className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => setSelectedHashtag(tag)}
                 >
                   #{tag}
                 </Badge>
@@ -671,10 +726,29 @@ export default function PostsPage() {
     }
   }
 
+  const getCommunities = async () => {
+    const { data, error } = await supabase
+      .from("communities")
+      .select("id, name, type")
+      .order("name");
+
+    if (error) {
+      console.error(error);
+    } else {
+      setCommunities(data || []);
+    }
+  };
+
   useEffect(() => {
     getUserProfile();
     getPosts();
+    getCommunities();
   }, []);
+
+  useEffect(() => {
+    setPostsToSkip(0);
+    getPosts();
+  }, [searchTerm, selectedCommunity, dateFilter, selectedHashtag]);
 
   const getTrendingHashtags = () => {
     const tagCounts: { [key: string]: number } = {};
@@ -764,6 +838,7 @@ export default function PostsPage() {
                       <div
                         key={trend.tag}
                         className="flex items-center justify-between p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                        onClick={() => setSelectedHashtag(trend.tag)}
                       >
                         <div className="flex items-center space-x-2">
                           <span className="text-sm font-medium text-blue-600">
@@ -993,11 +1068,143 @@ export default function PostsPage() {
                 </CardContent>
               </Card>
 
+              {/* Search and Filters */}
+              <Card className="border-0 sticky top-4 z-50 shadow-xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900">
+                <CardContent className="p-4">
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search posts..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                    <Select
+                      value={selectedCommunity}
+                      onValueChange={setSelectedCommunityFilter}
+                    >
+                      <SelectTrigger className="w-full sm:w-48">
+                        <SelectValue placeholder="All Communities" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Communities</SelectItem>
+                        {communities.map((community: any) => (
+                          <SelectItem key={community.id} value={community.id}>
+                            {community.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={dateFilter} onValueChange={setDateFilter}>
+                      <SelectTrigger className="w-full sm:w-32">
+                        <SelectValue placeholder="All Time" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Time</SelectItem>
+                        <SelectItem value="today">Today</SelectItem>
+                        <SelectItem value="week">This Week</SelectItem>
+                        <SelectItem value="month">This Month</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {(searchTerm ||
+                    selectedCommunity !== "all" ||
+                    dateFilter !== "all" ||
+                    selectedHashtag) && (
+                    <div className="flex items-center justify-between pt-3 border-t">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Filter className="h-4 w-4" />
+                        <span>Filters active:</span>
+                        {searchTerm && (
+                          <Badge variant="secondary">
+                            Search: "{searchTerm}"
+                          </Badge>
+                        )}
+                        {selectedCommunity !== "all" && (
+                          <Badge variant="secondary">
+                            {communities.find(
+                              (c: any) => c.id === selectedCommunity
+                            )?.name || "Community"}
+                          </Badge>
+                        )}
+                        {dateFilter !== "all" && (
+                          <Badge variant="secondary">
+                            {dateFilter === "today"
+                              ? "Today"
+                              : dateFilter === "week"
+                              ? "This Week"
+                              : "This Month"}
+                          </Badge>
+                        )}
+                        {selectedHashtag && (
+                          <Badge variant="secondary">#{selectedHashtag}</Badge>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSearchTerm("");
+                          setSelectedCommunityFilter("all");
+                          setDateFilter("all");
+                          setSelectedHashtag("");
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Clear
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               {/* Posts Feed */}
               <div className="space-y-4">
-                {posts?.map((post: any, index: number) => (
-                  <PostCard key={index} post={post} />
-                ))}
+                {posts?.length > 0 ? (
+                  posts.map((post: any, index: number) => (
+                    <PostCard key={index} post={post} />
+                  ))
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="p-6 rounded-3xl bg-gradient-to-r from-purple-50 to-pink-50 dark:from-slate-800 dark:to-slate-700 mx-auto max-w-md">
+                      <MessageCircle className="h-16 w-16 mx-auto text-muted-foreground mb-4 opacity-50" />
+                      <h3 className="text-xl font-bold mb-2">
+                        {searchTerm ||
+                        selectedCommunity !== "all" ||
+                        dateFilter !== "all" ||
+                        selectedHashtag
+                          ? "No posts found"
+                          : "No posts yet"}
+                      </h3>
+                      <p className="text-muted-foreground mb-4">
+                        {searchTerm ||
+                        selectedCommunity !== "all" ||
+                        dateFilter !== "all" ||
+                        selectedHashtag
+                          ? "Try adjusting your search or filter criteria"
+                          : "Be the first to share something with the community!"}
+                      </p>
+                      {(searchTerm ||
+                        selectedCommunity !== "all" ||
+                        dateFilter !== "all" ||
+                        selectedHashtag) && (
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setSearchTerm("");
+                            setSelectedCommunityFilter("all");
+                            setDateFilter("all");
+                            setSelectedHashtag("");
+                          }}
+                        >
+                          Clear Filters
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Load More */}
