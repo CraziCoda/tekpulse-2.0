@@ -46,9 +46,12 @@ import {
   Sparkles,
   TrendingUp,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 export default function PostsPage() {
+  const router = useRouter();
   const [posts, setPosts] = useState<any>([]);
   const [comments, setComments] = useState<any>([]);
   const [newPost, setNewPost] = useState("");
@@ -65,6 +68,9 @@ export default function PostsPage() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [recentActivity, setRecentActivity] = useState<any>([]);
+  const [trendingTags, setTrendingTags] = useState<any>([]);
+  const [isEventsDialogOpen, setIsEventsDialogOpen] = useState(false);
+  const [upcomingEvents, setUpcomingEvents] = useState<any>([]);
 
   const getLevelIcon = (level: string) => {
     switch (level) {
@@ -667,11 +673,46 @@ export default function PostsPage() {
     getPosts();
   }, []);
 
+  const getTrendingHashtags = () => {
+    const tagCounts: { [key: string]: number } = {};
+    
+    posts.forEach((post: any) => {
+      const hashtags = post.content.match(/#(\w+)/g) || [];
+      hashtags.forEach((tag: string) => {
+        const cleanTag = tag.toLowerCase();
+        tagCounts[cleanTag] = (tagCounts[cleanTag] || 0) + 1;
+      });
+    });
+    
+    const sorted = Object.entries(tagCounts)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 5)
+      .map(([tag, count]) => ({ tag: tag.slice(1), posts: count }));
+    
+    setTrendingTags(sorted);
+  };
+
+  async function getUpcomingEvents() {
+    const { data, error } = await supabase.from("events").select("*").order("date", { ascending: true }).limit(10);
+    if (error) {
+      console.error(error);
+    } else {
+      setUpcomingEvents(data || []);
+    }
+  }
+
   useEffect(() => {
     if (user) {
       getRecentActivity();
+      getUpcomingEvents();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (posts.length > 0) {
+      getTrendingHashtags();
+    }
+  }, [posts]);
 
   useEffect(() => {
     if (selectedPost) {
@@ -698,13 +739,7 @@ export default function PostsPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {[
-                      { tag: "StudyTips", posts: 24 },
-                      { tag: "CampusLife", posts: 18 },
-                      { tag: "ExamPrep", posts: 15 },
-                      { tag: "TechTalk", posts: 12 },
-                      { tag: "Events", posts: 9 },
-                    ].map((trend, index) => (
+                    {trendingTags.map((trend: any, index: number) => (
                       <div
                         key={trend.tag}
                         className="flex items-center justify-between p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
@@ -719,6 +754,11 @@ export default function PostsPage() {
                         </span>
                       </div>
                     ))}
+                    {trendingTags.length === 0 && (
+                      <div className="text-center py-4 text-muted-foreground text-sm">
+                        No trending tags yet
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -1062,6 +1102,50 @@ export default function PostsPage() {
                   )}
                 </DialogContent>
               </Dialog>
+              
+              {/* Events Dialog */}
+              <Dialog open={isEventsDialogOpen} onOpenChange={setIsEventsDialogOpen}>
+                <DialogContent className="max-w-4xl max-h-[80vh]">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center">
+                      <Calendar className="h-5 w-5 mr-2" />
+                      Campus Events
+                    </DialogTitle>
+                  </DialogHeader>
+                  <ScrollArea className="h-[60vh] pr-4">
+                    <div className="space-y-4">
+                      {upcomingEvents.map((event: any) => (
+                        <div
+                          key={event.id}
+                          className="flex items-start space-x-4 p-4 rounded-lg border bg-gradient-to-r from-green-50 to-emerald-50"
+                        >
+                          <div className="p-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500">
+                            <Calendar className="h-4 w-4 text-white" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-base font-semibold mb-2">{event.title}</h4>
+                            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                              <span>{event.date}</span>
+                              <span>•</span>
+                              <span>{event.time}</span>
+                              <span>•</span>
+                              <span className="flex items-center">
+                                <MapPin className="h-4 w-4 mr-1" />
+                                {event.location}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {upcomingEvents.length === 0 && (
+                        <div className="text-center py-8 text-muted-foreground">
+                          No events available
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                </DialogContent>
+              </Dialog>
             </div>
 
             {/* Right Sidebar */}
@@ -1078,44 +1162,49 @@ export default function PostsPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {[
-                      {
-                        icon: Users,
-                        label: "Find Study Groups",
-                        color: "from-blue-500 to-cyan-500",
-                      },
-                      {
-                        icon: Calendar,
-                        label: "Campus Events",
-                        color: "from-green-500 to-emerald-500",
-                      },
-                      {
-                        icon: MapPin,
-                        label: "Lost & Found",
-                        color: "from-purple-500 to-pink-500",
-                      },
-                      {
-                        icon: MessageCircle,
-                        label: "Messages",
-                        color: "from-orange-500 to-red-500",
-                      },
-                    ].map((action, index) => {
-                      const Icon = action.icon;
-                      return (
-                        <Button
-                          key={action.label}
-                          variant="ghost"
-                          className="w-full justify-start p-3 h-auto hover:bg-orange-50 dark:hover:bg-slate-700 transition-all duration-200 group"
-                        >
-                          <div
-                            className={`p-2 rounded-lg bg-gradient-to-r ${action.color} mr-3 group-hover:scale-110 transition-transform`}
-                          >
-                            <Icon className="h-4 w-4 text-white" />
-                          </div>
-                          <span className="font-medium">{action.label}</span>
-                        </Button>
-                      );
-                    })}
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start p-3 h-auto hover:bg-orange-50 dark:hover:bg-slate-700 transition-all duration-200 group"
+                      onClick={() => router.push('/communities')}
+                    >
+                      <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 mr-3 group-hover:scale-110 transition-transform">
+                        <Users className="h-4 w-4 text-white" />
+                      </div>
+                      <span className="font-medium">Communities</span>
+                    </Button>
+                    
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start p-3 h-auto hover:bg-orange-50 dark:hover:bg-slate-700 transition-all duration-200 group"
+                      onClick={() => setIsEventsDialogOpen(true)}
+                    >
+                      <div className="p-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 mr-3 group-hover:scale-110 transition-transform">
+                        <Calendar className="h-4 w-4 text-white" />
+                      </div>
+                      <span className="font-medium">Campus Events</span>
+                    </Button>
+                    
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start p-3 h-auto hover:bg-orange-50 dark:hover:bg-slate-700 transition-all duration-200 group"
+                      onClick={() => router.push('/lost-found')}
+                    >
+                      <div className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 mr-3 group-hover:scale-110 transition-transform">
+                        <MapPin className="h-4 w-4 text-white" />
+                      </div>
+                      <span className="font-medium">Lost & Found</span>
+                    </Button>
+                    
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start p-3 h-auto hover:bg-orange-50 dark:hover:bg-slate-700 transition-all duration-200 group"
+                      onClick={() => router.push('/messages')}
+                    >
+                      <div className="p-2 rounded-lg bg-gradient-to-r from-orange-500 to-red-500 mr-3 group-hover:scale-110 transition-transform">
+                        <MessageCircle className="h-4 w-4 text-white" />
+                      </div>
+                      <span className="font-medium">Messages</span>
+                    </Button>
                   </CardContent>
                 </Card>
 
@@ -1161,7 +1250,7 @@ export default function PostsPage() {
                 </Card>
 
                 {/* Suggested Connections */}
-                <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-indigo-50 dark:from-slate-800 dark:to-slate-900">
+                {/* <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-indigo-50 dark:from-slate-800 dark:to-slate-900">
                   <CardHeader className="pb-4">
                     <CardTitle className="flex items-center text-lg">
                       <div className="p-2 rounded-lg bg-gradient-to-r from-indigo-500 to-blue-500 mr-3">
@@ -1206,7 +1295,7 @@ export default function PostsPage() {
                       </div>
                     ))}
                   </CardContent>
-                </Card>
+                </Card> */}
               </div>
             </div>
           </div>
