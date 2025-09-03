@@ -236,20 +236,25 @@ export default function LostFoundPage() {
     }
   };
   const ItemCard = ({ item }: { item: any }) => (
-    <Card className={`hover:shadow-lg transition-all duration-200 border-0 shadow-sm ${
-      user?.is_admin ? 'border-l-4 border-l-red-500' : ''
-    }`}>
+    <Card
+      className={`border-0 shadow-xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 ${
+        user?.is_admin ? "border-l-4 border-l-red-500" : ""
+      }`}
+    >
       <div className="relative">
         {/* Status Badge */}
         <div className="absolute top-3 right-3 z-10">
-          <Badge 
-            variant={item.status === 'lost' ? 'destructive' : 'default'}
-            className="font-medium"
+          <Badge
+            className={
+              item.status === "lost"
+                ? "bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-lg font-medium"
+                : "bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg font-medium"
+            }
           >
-            {item.status === 'lost' ? 'Lost' : 'Found'}
+            {item.status === "lost" ? "Lost" : "Found"}
           </Badge>
         </div>
-        
+
         {/* Item Image */}
         {item.image_url ? (
           <div className="aspect-video w-full overflow-hidden rounded-t-lg">
@@ -265,13 +270,15 @@ export default function LostFoundPage() {
           </div>
         )}
       </div>
-      
+
       <CardContent className="p-5">
         {/* Header */}
         <div className="mb-3">
           <div className="flex items-start justify-between mb-2">
-            <h3 className="font-bold text-xl leading-tight line-clamp-2">{item.title}</h3>
-            <Badge className={getCategoryColor(item.category)} variant="secondary">
+            <h3 className="font-bold text-xl leading-tight line-clamp-2">
+              {item.title}
+            </h3>
+            <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0 shadow-sm">
               {item.category}
             </Badge>
           </div>
@@ -283,25 +290,27 @@ export default function LostFoundPage() {
         {/* Details */}
         <div className="space-y-3 mb-4">
           <div className="flex items-center gap-2 text-sm">
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-50">
-              <MapPin className="h-4 w-4 text-blue-600" />
+            <div className="p-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 shadow-md">
+              <MapPin className="h-4 w-4 text-white" />
             </div>
             <span className="font-medium text-foreground">{item.location}</span>
           </div>
-          
+
           <div className="flex items-center gap-2 text-sm">
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-50">
-              <Clock className="h-4 w-4 text-green-600" />
+            <div className="p-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 shadow-md">
+              <Clock className="h-4 w-4 text-white" />
             </div>
-            <span className="text-muted-foreground">{moment(item.created_at).fromNow()}</span>
+            <span className="text-muted-foreground font-medium">
+              {moment(item.created_at).fromNow()}
+            </span>
           </div>
-          
+
           <div className="flex items-center gap-2 text-sm">
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-50">
-              <User className="h-4 w-4 text-purple-600" />
+            <div className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-md">
+              <User className="h-4 w-4 text-white" />
             </div>
-            <span className="text-muted-foreground">
-              {item.author.id === user?.id ? 'You' : item.author.full_name}
+            <span className="text-muted-foreground font-medium">
+              {item.author.id === user?.id ? "You" : item.author.full_name}
             </span>
           </div>
         </div>
@@ -309,8 +318,11 @@ export default function LostFoundPage() {
         {/* Action Buttons */}
         <div className="space-y-2">
           <Button
-            className="w-full font-medium"
-            variant={item.author.id === user?.id ? "secondary" : "default"}
+            className={`w-full font-medium ${
+              item.author.id === user?.id
+                ? "bg-gradient-to-r from-gray-500 to-slate-500 hover:from-gray-600 hover:to-slate-600 text-white border-0 shadow-lg"
+                : "bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-0 shadow-lg"
+            }`}
             onClick={(e) => {
               if (item.author.id === user?.id) {
                 handleResolved(item.id);
@@ -326,7 +338,7 @@ export default function LostFoundPage() {
               ? "Mark as Resolved"
               : "Contact Reporter"}
           </Button>
-          
+
           {user?.is_admin && item.author.id !== user?.id && (
             <Button
               className="w-full font-medium"
@@ -349,211 +361,248 @@ export default function LostFoundPage() {
 
   return (
     <ProtectedLayout>
-      <div className="p-6 space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Lost & Found</h1>
-            <p className="text-muted-foreground">
-              Help reunite lost items with their owners
-            </p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50 to-red-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+        <div className="p-6 space-y-8">
+          {/* Hero Section */}
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 p-8 text-white">
+            <div className="absolute inset-0 bg-black/20"></div>
+            <div className="absolute top-4 right-4 opacity-30">
+              <Search className="h-24 w-24" />
+            </div>
+            <div className="relative z-10">
+              <h1 className="text-4xl font-bold tracking-tight mb-2">
+                Lost & Found 🔍
+              </h1>
+              <p className="text-orange-100 text-lg">
+                Help reunite lost items with their owners
+              </p>
+            </div>
           </div>
-          <Dialog
-            open={isReportDialogOpen}
-            onOpenChange={setIsReportDialogOpen}
-          >
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Report Item
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Report an Item</DialogTitle>
-                <DialogDescription>
-                  Help others by reporting lost or found items on campus.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <div className="flex space-x-2">
-                  <Button
-                    variant={reportType === "lost" ? "default" : "outline"}
-                    onClick={() => setReportType("lost")}
-                    className="flex-1"
-                  >
-                    Lost Item
-                  </Button>
-                  <Button
-                    variant={reportType === "found" ? "default" : "outline"}
-                    onClick={() => setReportType("found")}
-                    className="flex-1"
-                  >
-                    Found Item
-                  </Button>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="title">Item Title</Label>
-                  <Input
-                    id="title"
-                    placeholder="e.g., Blue Backpack"
-                    value={reportItem.title}
-                    onChange={(e) =>
-                      setReportItem({ ...reportItem, title: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="Provide detailed description of the item"
-                    rows={3}
-                    value={reportItem.description}
-                    onChange={(e) =>
-                      setReportItem({
-                        ...reportItem,
-                        description: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    placeholder="e.g., Library - 2nd Floor"
-                    value={reportItem.location}
-                    onChange={(e) =>
-                      setReportItem({ ...reportItem, location: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Input
-                    id="category"
-                    placeholder="e.g., electronics, bag, books"
-                    value={reportItem.category}
-                    onChange={(e) =>
-                      setReportItem({
-                        ...reportItem,
-                        category: e.target.value,
-                      })
-                    }
-                  />
-                </div>
 
-                {/* Image Upload */}
-                <div className="space-y-2">
-                  <Label>Item Photo (Optional)</Label>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" asChild>
-                      <label className="cursor-pointer">
-                        <ImageIcon className="h-4 w-4 mr-2" />
-                        Add Photo
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageSelect}
-                          className="hidden"
-                        />
-                      </label>
-                    </Button>
-                    {selectedImage && (
-                      <span className="text-sm text-muted-foreground">
-                        {selectedImage.name}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Image Preview */}
-                {imagePreview && (
-                  <div className="relative">
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="w-full h-48 object-cover rounded-lg"
-                    />
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={removeImage}
-                      className="absolute top-2 right-2"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-                {createReportError && (
-                  <p className="text-red-500">{createReportError}</p>
-                )}
-                <Button
-                  className="w-full"
-                  onClick={handleReport}
-                  disabled={isReporting}
-                >
-                  Report {reportType === "lost" ? "Lost" : "Found"} Item
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <Dialog
+              open={isReportDialogOpen}
+              onOpenChange={setIsReportDialogOpen}
+            >
+              <DialogTrigger asChild>
+                <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 border-0 shadow-lg hover:shadow-xl transition-all duration-200">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Report Item
                 </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto border-0 shadow-2xl">
+                <DialogHeader>
+                  <DialogTitle className="text-xl bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                    Report an Item
+                  </DialogTitle>
+                  <DialogDescription className="text-base">
+                    Help others by reporting lost or found items on campus.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 pt-4">
+                  <div className="flex space-x-2">
+                    <Button
+                      className={
+                        reportType === "lost"
+                          ? "flex-1 bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 border-0 shadow-lg"
+                          : "flex-1 border-2 border-red-200 hover:bg-red-50"
+                      }
+                      onClick={() => setReportType("lost")}
+                    >
+                      Lost Item
+                    </Button>
+                    <Button
+                      className={
+                        reportType === "found"
+                          ? "flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 border-0 shadow-lg"
+                          : "flex-1 border-2 border-green-200 hover:bg-green-50"
+                      }
+                      onClick={() => setReportType("found")}
+                    >
+                      Found Item
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Item Title</Label>
+                    <Input
+                      id="title"
+                      placeholder="e.g., Blue Backpack"
+                      value={reportItem.title}
+                      onChange={(e) =>
+                        setReportItem({ ...reportItem, title: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      placeholder="Provide detailed description of the item"
+                      rows={3}
+                      value={reportItem.description}
+                      onChange={(e) =>
+                        setReportItem({
+                          ...reportItem,
+                          description: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Location</Label>
+                    <Input
+                      id="location"
+                      placeholder="e.g., Library - 2nd Floor"
+                      value={reportItem.location}
+                      onChange={(e) =>
+                        setReportItem({
+                          ...reportItem,
+                          location: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Category</Label>
+                    <Input
+                      id="category"
+                      placeholder="e.g., electronics, bag, books"
+                      value={reportItem.category}
+                      onChange={(e) =>
+                        setReportItem({
+                          ...reportItem,
+                          category: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
 
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search for items..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+                  {/* Image Upload */}
+                  <div className="space-y-2">
+                    <Label>Item Photo (Optional)</Label>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" asChild>
+                        <label className="cursor-pointer">
+                          <ImageIcon className="h-4 w-4 mr-2" />
+                          Add Photo
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageSelect}
+                            className="hidden"
+                          />
+                        </label>
+                      </Button>
+                      {selectedImage && (
+                        <span className="text-sm text-muted-foreground">
+                          {selectedImage.name}
+                        </span>
+                      )}
+                    </div>
+                  </div>
 
-        <Tabs defaultValue="lost" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="lost">
-              Lost Items ({lostItems.length})
-            </TabsTrigger>
-            <TabsTrigger value="found">
-              Found Items ({foundItems.length})
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="lost" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {lostItems.map((item: any) => (
-                <ItemCard key={item.id} item={item} />
-              ))}
-            </div>
-            {lostItems.length === 0 && (
-              <div className="text-center py-12">
-                <Tag className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                <h3 className="text-lg font-medium mb-2">
-                  No lost items found
-                </h3>
-                <p className="text-muted-foreground">
-                  Try adjusting your search criteria
-                </p>
+                  {/* Image Preview */}
+                  {imagePreview && (
+                    <div className="relative">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-full h-48 object-cover rounded-lg"
+                      />
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={removeImage}
+                        className="absolute top-2 right-2"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                  {createReportError && (
+                    <p className="text-red-500 text-sm">{createReportError}</p>
+                  )}
+                  <Button
+                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 border-0 shadow-lg"
+                    onClick={handleReport}
+                    disabled={isReporting}
+                  >
+                    {isReporting
+                      ? "Reporting..."
+                      : `Report ${
+                          reportType === "lost" ? "Lost" : "Found"
+                        } Item`}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search for items..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 border-2 border-orange-100 focus:border-orange-300 bg-white/50 backdrop-blur-sm"
+            />
+          </div>
+
+          <Tabs defaultValue="lost" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 bg-white/50 backdrop-blur-sm border-0 shadow-lg">
+              <TabsTrigger
+                value="lost"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-pink-500 data-[state=active]:text-white"
+              >
+                Lost Items ({lostItems.length})
+              </TabsTrigger>
+              <TabsTrigger
+                value="found"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white"
+              >
+                Found Items ({foundItems.length})
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="lost" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {lostItems.map((item: any) => (
+                  <ItemCard key={item.id} item={item} />
+                ))}
               </div>
-            )}
-          </TabsContent>
-          <TabsContent value="found" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {foundItems.map((item: any) => (
-                <ItemCard key={item.id} item={item} />
-              ))}
-            </div>
-            {foundItems.length === 0 && (
-              <div className="text-center py-12">
-                <Tag className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                <h3 className="text-lg font-medium mb-2">No found items</h3>
-                <p className="text-muted-foreground">
-                  Try adjusting your search criteria
-                </p>
+              {lostItems.length === 0 && (
+                <div className="text-center py-12">
+                  <div className="p-6 rounded-3xl bg-gradient-to-r from-red-50 to-pink-50 dark:from-slate-800 dark:to-slate-700 mx-auto max-w-md">
+                    <Tag className="h-16 w-16 mx-auto text-muted-foreground mb-4 opacity-50" />
+                    <h3 className="text-xl font-bold mb-2">
+                      No lost items found
+                    </h3>
+                    <p className="text-muted-foreground">
+                      Try adjusting your search criteria
+                    </p>
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+            <TabsContent value="found" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {foundItems.map((item: any) => (
+                  <ItemCard key={item.id} item={item} />
+                ))}
               </div>
-            )}
-          </TabsContent>
-        </Tabs>
+              {foundItems.length === 0 && (
+                <div className="text-center py-12">
+                  <div className="p-6 rounded-3xl bg-gradient-to-r from-green-50 to-emerald-50 dark:from-slate-800 dark:to-slate-700 mx-auto max-w-md">
+                    <Tag className="h-16 w-16 mx-auto text-muted-foreground mb-4 opacity-50" />
+                    <h3 className="text-xl font-bold mb-2">No found items</h3>
+                    <p className="text-muted-foreground">
+                      Try adjusting your search criteria
+                    </p>
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </ProtectedLayout>
   );
