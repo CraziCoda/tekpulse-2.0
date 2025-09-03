@@ -64,6 +64,7 @@ export default function PostsPage() {
   const [user, setUser] = useState<any>(null);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [recentActivity, setRecentActivity] = useState<any>([]);
 
   const getLevelIcon = (level: string) => {
     switch (level) {
@@ -641,10 +642,36 @@ export default function PostsPage() {
     </Card>
   );
 
+  async function getRecentActivity() {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from("activities")
+      .select(`
+        *,
+        actor:profiles!activities_actor_id_fkey(full_name)
+      `)
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(5);
+
+    if (error) {
+      console.error(error);
+    } else {
+      setRecentActivity(data || []);
+    }
+  }
+
   useEffect(() => {
     getUserProfile();
     getPosts();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      getRecentActivity();
+    }
+  }, [user]);
 
   useEffect(() => {
     if (selectedPost) {
@@ -1103,50 +1130,33 @@ export default function PostsPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {[
-                      {
-                        user: "Sarah J.",
-                        action: "liked your post",
-                        time: "2m",
-                      },
-                      {
-                        user: "Mike D.",
-                        action: "commented on your post",
-                        time: "5m",
-                      },
-                      {
-                        user: "Emma W.",
-                        action: "shared your post",
-                        time: "12m",
-                      },
-                      {
-                        user: "John S.",
-                        action: "started following you",
-                        time: "1h",
-                      },
-                    ].map((activity, index) => (
+                    {recentActivity.map((activity: any) => (
                       <div
-                        key={index}
+                        key={activity.id}
                         className="flex items-center space-x-3 p-2 rounded-lg hover:bg-pink-50 dark:hover:bg-slate-700 transition-colors"
                       >
                         <Avatar className="h-8 w-8 ring-2 ring-pink-200">
                           <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs">
-                            {activity.user.charAt(0)}
+                            {activity.actor?.full_name?.charAt(0) || "?"}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm">
-                            <span className="font-medium">{activity.user}</span>
-                            <span className="text-muted-foreground ml-1">
-                              {activity.action}
+                            <span className="text-muted-foreground">
+                              {activity.description}
                             </span>
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {activity.time} ago
+                            {moment(activity.created_at).fromNow()}
                           </p>
                         </div>
                       </div>
                     ))}
+                    {recentActivity.length === 0 && (
+                      <div className="text-center py-4 text-muted-foreground text-sm">
+                        No recent activity
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
