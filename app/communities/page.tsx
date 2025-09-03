@@ -49,6 +49,8 @@ import {
   UserPlus,
   UserMinus,
   Settings,
+  Image as ImageIcon,
+  X,
 } from "lucide-react";
 import supabase from "@/lib/supabase";
 
@@ -294,6 +296,12 @@ export default function CommunitiesPage() {
   const [isCreatingCommunity, setIsCreatingCommunity] = useState(false);
   const [creatingCommunityError, setCreatingCommunityError] = useState("");
   const [communities, setCommunities] = useState<any>([]);
+  const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
+  const [selectedCommunityForPost, setSelectedCommunityForPost] = useState<any>(null);
+  const [newPost, setNewPost] = useState("");
+  const [isCreatingPost, setIsCreatingPost] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const [newCommunity, setNewCommunity] = useState<{
     name: string;
@@ -601,6 +609,19 @@ export default function CommunitiesPage() {
                   }}
                 >
                   <Settings className="h-4 w-4" />
+                </Button>
+              )}
+              {community.member_ids.includes(user?.id) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedCommunityForPost(community);
+                    setIsPostDialogOpen(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Post
                 </Button>
               )}
               <Button
@@ -1016,6 +1037,124 @@ export default function CommunitiesPage() {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Create Community Post Dialog */}
+        <Dialog open={isPostDialogOpen} onOpenChange={setIsPostDialogOpen}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Create Post in {selectedCommunityForPost?.name}</DialogTitle>
+              <DialogDescription>
+                Share something with your community members
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 pt-4">
+              <Textarea
+                placeholder="What's happening in your community?"
+                value={newPost}
+                onChange={(e) => setNewPost(e.target.value)}
+                rows={4}
+              />
+              
+              {/* Image Upload */}
+              <div className="space-y-2">
+                <Button variant="outline" size="sm" asChild>
+                  <label className="cursor-pointer">
+                    <ImageIcon className="h-4 w-4 mr-2" />
+                    Add Photo
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setSelectedImage(file);
+                          const reader = new FileReader();
+                          reader.onload = () => setImagePreview(reader.result as string);
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                </Button>
+              </div>
+              
+              {/* Image Preview */}
+              {imagePreview && (
+                <div className="relative">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full max-h-64 object-cover rounded-lg"
+                  />
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedImage(null);
+                      setImagePreview(null);
+                    }}
+                    className="absolute top-2 right-2"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+              
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => {
+                  setIsPostDialogOpen(false);
+                  setSelectedImage(null);
+                  setImagePreview(null);
+                  setNewPost("");
+                }}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={async () => {
+                    if (!newPost.trim() && !selectedImage) return;
+                    
+                    setIsCreatingPost(true);
+                    
+                    let publicUrl: null | string = null;
+                    
+                    if (selectedImage) {
+                      const fileExt = selectedImage.name.split(".").pop();
+                      const { data: imageData, error: uploadError } = await supabase.storage
+                        .from("post-images")
+                        .upload(`${user.id}/${Date.now()}.${fileExt}`, selectedImage);
+                      
+                      if (!uploadError) {
+                        const { data } = supabase.storage
+                          .from("post-images")
+                          .getPublicUrl(imageData.path);
+                        publicUrl = data.publicUrl;
+                      }
+                    }
+                    
+                    const { error } = await supabase.from("posts").insert({
+                      content: newPost,
+                      author_id: user.id,
+                      community_id: selectedCommunityForPost.id,
+                      image_url: publicUrl
+                    });
+                    
+                    if (!error) {
+                      setNewPost("");
+                      setSelectedImage(null);
+                      setImagePreview(null);
+                      setIsPostDialogOpen(false);
+                    }
+                    setIsCreatingPost(false);
+                  }}
+                  disabled={(!newPost.trim() && !selectedImage) || isCreatingPost}
+                >
+                  {isCreatingPost ? "Posting..." : "Post"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Community Management Dialog */}
         <Dialog open={isManageDialogOpen} onOpenChange={setIsManageDialogOpen}>

@@ -335,6 +335,11 @@ export default function PostsPage() {
             approved
           )
         ),
+        community:communities(
+          id,
+          name,
+          type
+        ),
         likes(count),
         comments(count),
         users_liked:likes(user_id),
@@ -466,6 +471,14 @@ export default function PostsPage() {
                 <span>{post.author.student_id}</span>
                 <span>•</span>
                 <span>{moment(post.created_at).fromNow()}</span>
+                {post.community && (
+                  <>
+                    <span>•</span>
+                    <Badge variant="outline" className="text-xs">
+                      {post.community.name}
+                    </Badge>
+                  </>
+                )}
                 {post.location && (
                   <>
                     <span>•</span>
