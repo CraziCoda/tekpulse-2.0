@@ -28,6 +28,8 @@ import {
   Clock,
   MapPin,
   Tag,
+  Sparkles,
+  ArrowUpRight,
 } from "lucide-react";
 import { useState } from "react";
 import supabase from "@/lib/supabase";
@@ -175,89 +177,110 @@ export default function DashboardPage() {
 
   return (
     <ProtectedLayout>
-      <div className="p-6 space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Welcome back! Here's what's happening on campus today.
-          </p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+        <div className="p-6 space-y-8">
+          {/* Hero Section */}
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 p-8 text-white">
+            <div className="absolute inset-0 bg-black/20"></div>
+            <div className="absolute top-4 right-4 opacity-30">
+              <Sparkles className="h-24 w-24" />
+            </div>
+            <div className="relative z-10">
+              <h1 className="text-4xl font-bold tracking-tight mb-2">Welcome Back! 👋</h1>
+              <p className="text-blue-100 text-lg">
+                Here's what's happening on campus today.
+              </p>
+            </div>
+          </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {quickStats.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <Card key={stat.title}>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
+          {/* Quick Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {quickStats.map((stat, index) => {
+              const Icon = stat.icon;
+              const gradients = [
+                'from-blue-500 to-cyan-500',
+                'from-orange-500 to-red-500', 
+                'from-green-500 to-emerald-500',
+                'from-purple-500 to-pink-500'
+              ];
+              return (
+                <Card key={stat.title} className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-lg">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className={`p-3 rounded-xl bg-gradient-to-r ${gradients[index]} shadow-lg`}>
+                        <Icon className="h-6 w-6 text-white" />
+                      </div>
+                      <ArrowUpRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                    </div>
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">
+                      <p className="text-sm font-medium text-muted-foreground mb-1">
                         {stat.title}
                       </p>
-                      <p className="text-2xl font-bold">{stat.value}</p>
+                      <p className="text-3xl font-bold mb-3">{stat.value}</p>
                     </div>
-                    <Icon className={`h-8 w-8 ${stat.color}`} />
-                  </div>
-                  <div className="flex items-center mt-4">
-                    <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
-                    <span className="text-sm text-green-600">
-                      {stat.change}
-                    </span>
-                    <span className="text-sm text-muted-foreground ml-1">
-                      from last month
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Upcoming Events */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Calendar className="h-5 w-5 mr-2" />
-                Upcoming Events
-              </CardTitle>
-              <CardDescription>
-                Important dates and events you shouldn't miss
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {upcomingEvents.map((event) => (
-                <div
-                  key={event.id}
-                  className="flex items-start space-x-4 p-3 rounded-lg border"
-                >
-                  <div className="flex-shrink-0">
-                    <Badge className={getEventTypeColor(event.type)}>
-                      {event.type}
-                    </Badge>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium">{event.title}</h4>
-                    <div className="flex items-center space-x-2 mt-1 text-xs text-muted-foreground">
-                      <span>{event.date}</span>
-                      <span>•</span>
-                      <span>{event.time}</span>
-                      <span>•</span>
-                      <span className="flex items-center">
-                        <MapPin className="h-3 w-3 mr-1" />
-                        {event.location}
+                    <div className="flex items-center">
+                      <div className={`flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        stat.change.startsWith('+') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      }`}>
+                        <TrendingUp className="h-3 w-3 mr-1" />
+                        {stat.change}
+                      </div>
+                      <span className="text-xs text-muted-foreground ml-2">
+                        vs last month
                       </span>
                     </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Upcoming Events */}
+            <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-blue-50 dark:from-slate-800 dark:to-slate-900">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center text-xl">
+                  <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 mr-3">
+                    <Calendar className="h-5 w-5 text-white" />
                   </div>
-                </div>
-              ))}
-              <Dialog open={isEventsDialogOpen} onOpenChange={setIsEventsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" className="w-full">
-                    View All Events
-                  </Button>
-                </DialogTrigger>
+                  Upcoming Events
+                </CardTitle>
+                <CardDescription className="text-base">
+                  Important dates and events you shouldn't miss
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {upcomingEvents.slice(0, 3).map((event, index) => (
+                  <div
+                    key={event.id}
+                    className="group flex items-start space-x-4 p-4 rounded-xl border-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
+                  >
+                    <div className="flex-shrink-0">
+                      <Badge className={`${getEventTypeColor(event.type)} shadow-sm`}>
+                        {event.type}
+                      </Badge>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-sm mb-2 group-hover:text-primary transition-colors">{event.title}</h4>
+                      <div className="flex items-center space-x-3 text-xs text-muted-foreground">
+                        <span className="font-medium">{event.date}</span>
+                        <span>•</span>
+                        <span>{event.time}</span>
+                        <span>•</span>
+                        <span className="flex items-center">
+                          <MapPin className="h-3 w-3 mr-1" />
+                          {event.location}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <Dialog open={isEventsDialogOpen} onOpenChange={setIsEventsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full mt-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0 hover:shadow-lg transition-all duration-200">
+                      View All Events
+                    </Button>
+                  </DialogTrigger>
                 <DialogContent className="max-w-4xl max-h-[80vh]">
                   <DialogHeader>
                     <DialogTitle className="flex items-center">
@@ -304,45 +327,55 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Announcements */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Bell className="h-5 w-5 mr-2" />
-                Latest Announcements
-              </CardTitle>
-              <CardDescription>
-                Stay updated with the latest campus news
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {announcements.slice(0, 3).map((announcement) => (
-                <div
-                  key={announcement.id}
-                  className={`p-3 rounded-lg border-l-4 ${getPriorityColor(
-                    announcement.priority
-                  )} bg-muted/50`}
+            {/* Announcements */}
+            <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-orange-50 dark:from-slate-800 dark:to-slate-900">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center text-xl">
+                  <div className="p-2 rounded-lg bg-gradient-to-r from-orange-500 to-red-500 mr-3">
+                    <Bell className="h-5 w-5 text-white" />
+                  </div>
+                  Latest Announcements
+                </CardTitle>
+                <CardDescription className="text-base">
+                  Stay updated with the latest campus news
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {announcements.slice(0, 3).map((announcement) => (
+                  <div
+                    key={announcement.id}
+                    className={`group p-4 rounded-xl border-l-4 ${getPriorityColor(
+                      announcement.priority
+                    )} bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02]`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <h4 className="font-semibold text-sm group-hover:text-primary transition-colors">
+                        {announcement.title}
+                      </h4>
+                      <Badge
+                        variant={announcement.priority === 'urgent' ? 'destructive' : 'secondary'}
+                        className="text-xs"
+                      >
+                        {announcement.priority}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                      {announcement.content}
+                    </p>
+                    <span className="text-xs text-muted-foreground font-medium">
+                      {moment(announcement.created_at).fromNow()}
+                    </span>
+                  </div>
+                ))}
+                <Dialog
+                  open={isAnnouncementsDialogOpen}
+                  onOpenChange={setIsAnnouncementsDialogOpen}
                 >
-                  <h4 className="text-sm font-medium mb-1">
-                    {announcement.title}
-                  </h4>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    {announcement.content}
-                  </p>
-                  <span className="text-xs text-muted-foreground">
-                    {moment(announcement.created_at).fromNow()}
-                  </span>
-                </div>
-              ))}
-              <Dialog
-                open={isAnnouncementsDialogOpen}
-                onOpenChange={setIsAnnouncementsDialogOpen}
-              >
-                <DialogTrigger asChild>
-                  <Button variant="outline" className="w-full">
-                    View All Announcements
-                  </Button>
-                </DialogTrigger>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full mt-4 bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 hover:shadow-lg transition-all duration-200">
+                      View All Announcements
+                    </Button>
+                  </DialogTrigger>
                 <DialogContent className="max-w-4xl max-h-[80vh]">
                   <DialogHeader>
                     <DialogTitle className="flex items-center">
@@ -396,35 +429,45 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>
-              Frequently used features for easy access
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Button variant="outline" className="h-auto flex-col py-4">
-                <BookOpen className="h-6 w-6 mb-2" />
-                <span className="text-sm">Course Registration</span>
-              </Button>
-              <Button variant="outline" className="h-auto flex-col py-4">
-                <DollarSign className="h-6 w-6 mb-2" />
-                <span className="text-sm">Pay Fees</span>
-              </Button>
-              <Button variant="outline" className="h-auto flex-col py-4">
-                <Users className="h-6 w-6 mb-2" />
-                <span className="text-sm">Study Groups</span>
-              </Button>
-              <Button variant="outline" className="h-auto flex-col py-4">
-                <MapPin className="h-6 w-6 mb-2" />
-                <span className="text-sm">Campus Services</span>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Quick Actions */}
+          <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-green-50 dark:from-slate-800 dark:to-slate-900">
+            <CardHeader>
+              <CardTitle className="flex items-center text-xl">
+                <div className="p-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 mr-3">
+                  <Sparkles className="h-5 w-5 text-white" />
+                </div>
+                Quick Actions
+              </CardTitle>
+              <CardDescription className="text-base">
+                Frequently used features for easy access
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { icon: BookOpen, label: 'Course Registration', gradient: 'from-blue-500 to-cyan-500' },
+                  { icon: DollarSign, label: 'Pay Fees', gradient: 'from-green-500 to-emerald-500' },
+                  { icon: Users, label: 'Study Groups', gradient: 'from-purple-500 to-pink-500' },
+                  { icon: MapPin, label: 'Campus Services', gradient: 'from-orange-500 to-red-500' }
+                ].map((action, index) => {
+                  const Icon = action.icon;
+                  return (
+                    <Button 
+                      key={action.label}
+                      variant="outline" 
+                      className="h-auto flex-col py-6 border-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm hover:shadow-lg transition-all duration-200 hover:scale-105 group"
+                    >
+                      <div className={`p-3 rounded-xl bg-gradient-to-r ${action.gradient} mb-3 group-hover:scale-110 transition-transform`}>
+                        <Icon className="h-6 w-6 text-white" />
+                      </div>
+                      <span className="text-sm font-medium">{action.label}</span>
+                    </Button>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </ProtectedLayout>
   );
