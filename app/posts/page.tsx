@@ -71,6 +71,7 @@ export default function PostsPage() {
   const [trendingTags, setTrendingTags] = useState<any>([]);
   const [isEventsDialogOpen, setIsEventsDialogOpen] = useState(false);
   const [upcomingEvents, setUpcomingEvents] = useState<any>([]);
+  const [communityStats, setCommunityStats] = useState<any>(null);
 
   const getLevelIcon = (level: string) => {
     switch (level) {
@@ -650,13 +651,15 @@ export default function PostsPage() {
 
   async function getRecentActivity() {
     if (!user) return;
-    
+
     const { data, error } = await supabase
       .from("activities")
-      .select(`
+      .select(
+        `
         *,
         actor:profiles!activities_actor_id_fkey(full_name)
-      `)
+      `
+      )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(5);
@@ -675,7 +678,7 @@ export default function PostsPage() {
 
   const getTrendingHashtags = () => {
     const tagCounts: { [key: string]: number } = {};
-    
+
     posts.forEach((post: any) => {
       const hashtags = post.content.match(/#(\w+)/g) || [];
       hashtags.forEach((tag: string) => {
@@ -683,17 +686,21 @@ export default function PostsPage() {
         tagCounts[cleanTag] = (tagCounts[cleanTag] || 0) + 1;
       });
     });
-    
+
     const sorted = Object.entries(tagCounts)
-      .sort(([,a], [,b]) => b - a)
+      .sort(([, a], [, b]) => b - a)
       .slice(0, 5)
       .map(([tag, count]) => ({ tag: tag.slice(1), posts: count }));
-    
+
     setTrendingTags(sorted);
   };
 
   async function getUpcomingEvents() {
-    const { data, error } = await supabase.from("events").select("*").order("date", { ascending: true }).limit(10);
+    const { data, error } = await supabase
+      .from("events")
+      .select("*")
+      .order("date", { ascending: true })
+      .limit(10);
     if (error) {
       console.error(error);
     } else {
@@ -701,10 +708,24 @@ export default function PostsPage() {
     }
   }
 
+  async function getCommunityStats() {
+    const { data, error } = await supabase
+      .from("platform_summary")
+      .select("*")
+      .single();
+
+    if (error) {
+      console.error(error);
+    } else {
+      setCommunityStats(data);
+    }
+  }
+
   useEffect(() => {
     if (user) {
       getRecentActivity();
       getUpcomingEvents();
+      getCommunityStats();
     }
   }, [user]);
 
@@ -775,7 +796,7 @@ export default function PostsPage() {
                   <CardContent className="space-y-4">
                     <div className="text-center p-4 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 dark:from-slate-700 dark:to-slate-600">
                       <div className="text-2xl font-bold text-green-600 mb-1">
-                        1,247
+                        {communityStats?.total_profiles || 0}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         Active Students
@@ -783,7 +804,7 @@ export default function PostsPage() {
                     </div>
                     <div className="text-center p-4 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 dark:from-slate-700 dark:to-slate-600">
                       <div className="text-2xl font-bold text-purple-600 mb-1">
-                        89
+                        {communityStats?.total_posts}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         Posts Today
@@ -974,8 +995,8 @@ export default function PostsPage() {
 
               {/* Posts Feed */}
               <div className="space-y-4">
-                {posts?.map((post: any) => (
-                  <PostCard key={post.id} post={post} />
+                {posts?.map((post: any, index: number) => (
+                  <PostCard key={index} post={post} />
                 ))}
               </div>
 
@@ -1102,9 +1123,12 @@ export default function PostsPage() {
                   )}
                 </DialogContent>
               </Dialog>
-              
+
               {/* Events Dialog */}
-              <Dialog open={isEventsDialogOpen} onOpenChange={setIsEventsDialogOpen}>
+              <Dialog
+                open={isEventsDialogOpen}
+                onOpenChange={setIsEventsDialogOpen}
+              >
                 <DialogContent className="max-w-4xl max-h-[80vh]">
                   <DialogHeader>
                     <DialogTitle className="flex items-center">
@@ -1123,7 +1147,9 @@ export default function PostsPage() {
                             <Calendar className="h-4 w-4 text-white" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h4 className="text-base font-semibold mb-2">{event.title}</h4>
+                            <h4 className="text-base font-semibold mb-2">
+                              {event.title}
+                            </h4>
                             <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                               <span>{event.date}</span>
                               <span>•</span>
@@ -1165,14 +1191,14 @@ export default function PostsPage() {
                     <Button
                       variant="ghost"
                       className="w-full justify-start p-3 h-auto hover:bg-orange-50 dark:hover:bg-slate-700 transition-all duration-200 group"
-                      onClick={() => router.push('/communities')}
+                      onClick={() => router.push("/communities")}
                     >
                       <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 mr-3 group-hover:scale-110 transition-transform">
                         <Users className="h-4 w-4 text-white" />
                       </div>
                       <span className="font-medium">Communities</span>
                     </Button>
-                    
+
                     <Button
                       variant="ghost"
                       className="w-full justify-start p-3 h-auto hover:bg-orange-50 dark:hover:bg-slate-700 transition-all duration-200 group"
@@ -1183,22 +1209,22 @@ export default function PostsPage() {
                       </div>
                       <span className="font-medium">Campus Events</span>
                     </Button>
-                    
+
                     <Button
                       variant="ghost"
                       className="w-full justify-start p-3 h-auto hover:bg-orange-50 dark:hover:bg-slate-700 transition-all duration-200 group"
-                      onClick={() => router.push('/lost-found')}
+                      onClick={() => router.push("/lost-found")}
                     >
                       <div className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 mr-3 group-hover:scale-110 transition-transform">
                         <MapPin className="h-4 w-4 text-white" />
                       </div>
                       <span className="font-medium">Lost & Found</span>
                     </Button>
-                    
+
                     <Button
                       variant="ghost"
                       className="w-full justify-start p-3 h-auto hover:bg-orange-50 dark:hover:bg-slate-700 transition-all duration-200 group"
-                      onClick={() => router.push('/messages')}
+                      onClick={() => router.push("/messages")}
                     >
                       <div className="p-2 rounded-lg bg-gradient-to-r from-orange-500 to-red-500 mr-3 group-hover:scale-110 transition-transform">
                         <MessageCircle className="h-4 w-4 text-white" />
