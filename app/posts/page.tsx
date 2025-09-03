@@ -43,6 +43,8 @@ import {
   Star,
   UserCheck,
   Trash2,
+  Sparkles,
+  TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -426,12 +428,12 @@ export default function PostsPage() {
   };
 
   const PostCard = ({ post }: { post: any }) => (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
       <CardContent className="p-6">
         {/* Post Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-start space-x-3">
-            <Avatar>
+            <Avatar className="ring-2 ring-purple-200 shadow-md">
               {post.author?.profile_pic ? (
                 <img
                   src={post.author.profile_pic}
@@ -439,14 +441,14 @@ export default function PostsPage() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <AvatarFallback>
+                <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold">
                   {post.author?.full_name?.charAt(0)}
                 </AvatarFallback>
               )}
             </Avatar>
             <div>
               <div className="flex items-center space-x-2 mb-1">
-                <h4 className="font-semibold">{post.author?.full_name}</h4>
+                <h4 className="font-bold text-lg">{post.author?.full_name}</h4>
                 {post?.author?.position && (
                   <>
                     {(() => {
@@ -454,27 +456,25 @@ export default function PostsPage() {
                         post.author.position.level
                       );
                       return (
-                        <LevelIcon
-                          className={`h-4 w-4 ${getLevelColor(
-                            post.author.position.level
-                          )}`}
-                        />
+                        <div className="p-1 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500">
+                          <LevelIcon className="h-3 w-3 text-white" />
+                        </div>
                       );
                     })()}
-                    <Badge variant="outline" className="text-xs">
+                    <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 shadow-sm">
                       {post.author.position.title}
                     </Badge>
                   </>
                 )}
               </div>
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <span>{post.author.student_id}</span>
+                <span className="font-medium">{post.author.student_id}</span>
                 <span>•</span>
-                <span>{moment(post.created_at).fromNow()}</span>
+                <span className="font-medium">{moment(post.created_at).fromNow()}</span>
                 {post.community && (
                   <>
                     <span>•</span>
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-xs border-purple-200 text-purple-700">
                       {post.community.name}
                     </Badge>
                   </>
@@ -483,7 +483,7 @@ export default function PostsPage() {
                   <>
                     <span>•</span>
                     <div className="flex items-center">
-                      <MapPin className="h-3 w-3 mr-1" />
+                      <MapPin className="h-3 w-3 mr-1 text-purple-500" />
                       <span>{post.location}</span>
                     </div>
                   </>
@@ -513,13 +513,13 @@ export default function PostsPage() {
 
         {/* Post Content */}
         <div className="mb-4">
-          <p className="text-sm leading-relaxed mb-3">{post.content}</p>
+          <p className="text-base leading-relaxed mb-4 text-slate-700 dark:text-slate-200">{post.content}</p>
 
           {/* Tags */}
           {getTags(post.content).length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-3">
+            <div className="flex flex-wrap gap-2 mb-4">
               {getTags(post.content).map((tag: string) => (
-                <Badge key={tag} variant="secondary" className="text-xs">
+                <Badge key={tag} className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0 shadow-sm hover:shadow-md transition-shadow">
                   #{tag}
                 </Badge>
               ))}
@@ -529,24 +529,26 @@ export default function PostsPage() {
 
         {/* Post Image */}
         {post.image_url && (
-          <div className="mb-4 rounded-lg overflow-hidden">
+          <div className="mb-4 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
             <img
               src={post.image_url}
               alt="Post image"
-              className="w-full max-h-96 object-cover"
+              className="w-full max-h-96 object-cover hover:scale-105 transition-transform duration-300"
             />
           </div>
         )}
 
         {/* Event Card */}
         {post.event && (
-          <Card className="mb-4 border-l-4 border-l-primary">
-            <CardContent className="p-3">
-              <div className="flex items-start space-x-2">
-                <Calendar className="h-4 w-4 text-primary mt-0.5" />
+          <Card className="mb-4 border-l-4 border-l-purple-500 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-slate-700 dark:to-slate-600 shadow-md">
+            <CardContent className="p-4">
+              <div className="flex items-start space-x-3">
+                <div className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500">
+                  <Calendar className="h-4 w-4 text-white" />
+                </div>
                 <div>
-                  <h5 className="font-medium text-sm">{post.event.title}</h5>
-                  <p className="text-xs text-muted-foreground">
+                  <h5 className="font-semibold text-sm">{post.event.title}</h5>
+                  <p className="text-xs text-muted-foreground font-medium">
                     {post.event.date}
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -559,48 +561,48 @@ export default function PostsPage() {
         )}
 
         {/* Post Actions */}
-        <div className="flex items-center justify-between pt-3 border-t">
+        <div className="flex items-center justify-between pt-4 border-t border-purple-100">
           <div className="flex items-center space-x-6">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => handleLike(post.id)}
               className={cn(
-                "flex items-center space-x-2 hover:text-red-500",
+                "flex items-center space-x-2 hover:text-red-500 hover:bg-red-50 rounded-full px-3 py-2 transition-all",
                 post.users_liked?.some(
                   (like: any) => like.user_id === user.id
-                ) && "text-red-500"
+                ) && "text-red-500 bg-red-50"
               )}
             >
               <Heart
                 className={cn(
-                  "h-4 w-4",
+                  "h-5 w-5",
                   post.users_liked?.some(
                     (like: any) => like.user_id === user.id
                   ) && "fill-current"
                 )}
               />
-              <span className="text-sm">{post.likes?.[0]?.count || 0}</span>
+              <span className="font-medium">{post.likes?.[0]?.count || 0}</span>
             </Button>
 
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setSelectedPost(post.id)}
-              className="flex items-center space-x-2 hover:text-blue-500"
+              className="flex items-center space-x-2 hover:text-blue-500 hover:bg-blue-50 rounded-full px-3 py-2 transition-all"
             >
-              <MessageCircle className="h-4 w-4" />
-              <span className="text-sm">{post.comments?.[0]?.count || 0}</span>
+              <MessageCircle className="h-5 w-5" />
+              <span className="font-medium">{post.comments?.[0]?.count || 0}</span>
             </Button>
 
             <Button
               variant="ghost"
               size="sm"
               onClick={() => handleShare(post.id)}
-              className="flex items-center space-x-2 hover:text-green-500"
+              className="flex items-center space-x-2 hover:text-green-500 hover:bg-green-50 rounded-full px-3 py-2 transition-all"
             >
-              <Share className="h-4 w-4" />
-              <span className="text-sm">0</span>
+              <Share className="h-5 w-5" />
+              <span className="font-medium">0</span>
             </Button>
           </div>
 
@@ -609,12 +611,12 @@ export default function PostsPage() {
             size="sm"
             onClick={() => handleBookmark(post.id)}
             className={cn(
-              "hover:text-yellow-500",
-              post.isBookmarked && "text-yellow-500"
+              "hover:text-yellow-500 hover:bg-yellow-50 rounded-full p-2 transition-all",
+              post.isBookmarked && "text-yellow-500 bg-yellow-50"
             )}
           >
             <Bookmark
-              className={cn("h-4 w-4", post.isBookmarked && "fill-current")}
+              className={cn("h-5 w-5", post.isBookmarked && "fill-current")}
             />
           </Button>
         </div>
@@ -635,148 +637,162 @@ export default function PostsPage() {
 
   return (
     <ProtectedLayout>
-      <div className="max-w-2xl mx-auto p-6 space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Campus Feed</h1>
-            <p className="text-muted-foreground">
-              Share updates and connect with fellow students
-            </p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+        <div className="max-w-2xl mx-auto p-6 space-y-8">
+          {/* Hero Header */}
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 p-8 text-white">
+            <div className="absolute inset-0 bg-black/20"></div>
+            <div className="absolute top-4 right-4 opacity-30">
+              <Sparkles className="h-20 w-20" />
+            </div>
+            <div className="relative z-10">
+              <h1 className="text-4xl font-bold tracking-tight mb-2">Campus Feed ✨</h1>
+              <p className="text-purple-100 text-lg">
+                Share updates and connect with fellow students
+              </p>
+            </div>
           </div>
-          <Dialog
-            open={isCreateDialogOpen}
-            onOpenChange={setIsCreateDialogOpen}
-          >
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                New Post
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Create a Post</DialogTitle>
-                <DialogDescription>
-                  Share something with your fellow students
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <div className="flex items-start space-x-3">
-                  <Avatar>
-                    {user?.profile_pic ? (
-                      <img
-                        src={user.profile_pic}
-                        alt="Profile"
-                        className="w-full h-full object-cover"
+          
+          <div className="flex justify-end">
+            <Dialog
+              open={isCreateDialogOpen}
+              onOpenChange={setIsCreateDialogOpen}
+            >
+              <DialogTrigger asChild>
+                <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 shadow-lg hover:shadow-xl transition-all duration-200">
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Post
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px] border-0 shadow-2xl">
+                <DialogHeader>
+                  <DialogTitle className="text-xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Create a Post</DialogTitle>
+                  <DialogDescription className="text-base">
+                    Share something with your fellow students
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 pt-4">
+                  <div className="flex items-start space-x-3 p-4 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 dark:from-slate-800 dark:to-slate-700">
+                    <Avatar className="ring-2 ring-purple-200">
+                      {user?.profile_pic ? (
+                        <img
+                          src={user.profile_pic}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                          {user?.full_name?.charAt(0)}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+                    <div className="flex-1">
+                      <Textarea
+                        placeholder="What's happening on campus? ✨"
+                        value={newPost}
+                        onChange={(e) => setNewPost(e.target.value)}
+                        rows={4}
+                        className="resize-none border-none p-0 focus-visible:ring-0 text-lg bg-transparent placeholder:text-muted-foreground/70"
                       />
-                    ) : (
-                      <AvatarFallback>
-                        {user?.full_name?.charAt(0)}
-                      </AvatarFallback>
-                    )}
-                  </Avatar>
-                  <div className="flex-1">
-                    <Textarea
-                      placeholder="What's happening on campus?"
-                      value={newPost}
-                      onChange={(e) => setNewPost(e.target.value)}
-                      rows={4}
-                      className="resize-none border-none p-0 focus-visible:ring-0 text-lg"
-                    />
+                    </div>
                   </div>
-                </div>
 
-                {/* Image Preview */}
-                {imagePreview && (
-                  <div className="relative mt-3">
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="w-full max-h-64 object-cover rounded-lg"
-                    />
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={removeImage}
-                      className="absolute top-2 right-2"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
+                  {/* Image Preview */}
+                  {imagePreview && (
+                    <div className="relative mt-3">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-full max-h-64 object-cover rounded-xl shadow-lg"
+                      />
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={removeImage}
+                        className="absolute top-2 right-2 bg-white/90 hover:bg-white shadow-lg"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
 
                 {postingError && (
                   <p className="text-red-500 text-sm">{postingError}</p>
                 )}
 
-                <div className="flex items-center justify-between pt-4 border-t">
-                  <div className="flex items-center space-x-2">
-                    <Button variant="ghost" size="sm" asChild>
-                      <label className="cursor-pointer">
-                        <ImageIcon className="h-4 w-4" />
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageSelect}
-                          className="hidden"
-                        />
-                      </label>
-                    </Button>
-                    <Button variant="ghost" size="sm">
-                      <MapPin className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm">
-                      <Calendar className="h-4 w-4" />
-                    </Button>
+                  <div className="flex items-center justify-between pt-4 border-t border-purple-100">
+                    <div className="flex items-center space-x-2">
+                      <Button variant="ghost" size="sm" className="hover:bg-purple-100" asChild>
+                        <label className="cursor-pointer">
+                          <ImageIcon className="h-4 w-4 text-purple-600" />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageSelect}
+                            className="hidden"
+                          />
+                        </label>
+                      </Button>
+                      <Button variant="ghost" size="sm" className="hover:bg-purple-100">
+                        <MapPin className="h-4 w-4 text-purple-600" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="hover:bg-purple-100">
+                        <Calendar className="h-4 w-4 text-purple-600" />
+                      </Button>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <span className={`text-sm font-medium ${
+                        280 - newPost.length < 20 ? 'text-red-500' : 'text-muted-foreground'
+                      }`}>
+                        {280 - newPost.length}
+                      </span>
+                      <Button
+                        onClick={handleCreatePost}
+                        disabled={
+                          (!newPost.trim() && !selectedImage) ||
+                          newPost.length > 280 ||
+                          isPosting
+                        }
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 shadow-lg"
+                      >
+                        {isPosting ? "Posting..." : "Post"}
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-muted-foreground">
-                      {280 - newPost.length}
-                    </span>
-                    <Button
-                      onClick={handleCreatePost}
-                      disabled={
-                        (!newPost.trim() && !selectedImage) ||
-                        newPost.length > 280 ||
-                        isPosting
-                      }
-                    >
-                      {isPosting ? "Posting..." : "Post"}
-                    </Button>
-                  </div>
-                </div>
               </div>
             </DialogContent>
           </Dialog>
         </div>
 
-        {/* Quick Post */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-start space-x-3">
-              <Avatar>
-                {user?.profile_pic ? (
-                  <img
-                    src={user.profile_pic}
-                    alt="Profile"
-                    className="w-full h-full object-cover"
+          {/* Quick Post */}
+          <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-purple-50 dark:from-slate-800 dark:to-slate-900 hover:shadow-2xl transition-all duration-300">
+            <CardContent className="p-6">
+              <div className="flex items-start space-x-4">
+                <Avatar className="ring-2 ring-purple-200 shadow-lg">
+                  {user?.profile_pic ? (
+                    <img
+                      src={user.profile_pic}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold">
+                      {user?.full_name?.charAt(0)}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+                <div className="flex-1">
+                  <Textarea
+                    placeholder="What's happening on campus? Share your thoughts... ✨"
+                    onClick={() => setIsCreateDialogOpen(true)}
+                    readOnly
+                    className="resize-none cursor-pointer border-2 border-purple-100 hover:border-purple-200 focus:border-purple-300 transition-colors bg-white/50 backdrop-blur-sm"
+                    rows={3}
                   />
-                ) : (
-                  <AvatarFallback>{user?.full_name?.charAt(0)}</AvatarFallback>
-                )}
-              </Avatar>
-              <div className="flex-1">
-                <Textarea
-                  placeholder="What's happening on campus?"
-                  onClick={() => setIsCreateDialogOpen(true)}
-                  readOnly
-                  className="resize-none cursor-pointer"
-                  rows={2}
-                />
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
         {/* Posts Feed */}
         <div className="space-y-4">
@@ -785,32 +801,43 @@ export default function PostsPage() {
           ))}
         </div>
 
-        {/* Load More */}
-        {hasMorePosts && (
-          <div className="text-center">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setLoadingMore(true);
-                setPostsToSkip((prev) => prev + 5);
-                getPosts(true).finally(() => setLoadingMore(false));
-              }}
-              disabled={loadingMore}
-            >
-              {loadingMore ? "Loading..." : "Load More Posts"}
-            </Button>
-          </div>
-        )}
+          {/* Load More */}
+          {hasMorePosts && (
+            <div className="text-center">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setLoadingMore(true);
+                  setPostsToSkip((prev) => prev + 5);
+                  getPosts(true).finally(() => setLoadingMore(false));
+                }}
+                disabled={loadingMore}
+                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                {loadingMore ? (
+                  <>
+                    <TrendingUp className="h-4 w-4 mr-2 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Load More Posts
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
 
-        {/* Comments Dialog */}
-        <Dialog
-          open={selectedPost !== null}
-          onOpenChange={() => setSelectedPost(null)}
-        >
-          <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Comments</DialogTitle>
-            </DialogHeader>
+          {/* Comments Dialog */}
+          <Dialog
+            open={selectedPost !== null}
+            onOpenChange={() => setSelectedPost(null)}
+          >
+            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto border-0 shadow-2xl">
+              <DialogHeader>
+                <DialogTitle className="text-xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Comments</DialogTitle>
+              </DialogHeader>
             {selectedPost && (
               <div className="space-y-4">
                 {/* Original Post */}
@@ -825,9 +852,9 @@ export default function PostsPage() {
                   {comments?.map((comment: any) => (
                     <div
                       key={comment.id}
-                      className="flex items-start space-x-3 p-3 rounded-lg bg-muted/50"
+                      className="flex items-start space-x-3 p-4 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 dark:from-slate-700 dark:to-slate-600 shadow-sm hover:shadow-md transition-shadow"
                     >
-                      <Avatar className="h-8 w-8">
+                      <Avatar className="h-8 w-8 ring-2 ring-purple-200">
                         {comment.author.profile_pic ? (
                           <img
                             src={comment.author.profile_pic}
@@ -835,29 +862,29 @@ export default function PostsPage() {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <AvatarFallback>
+                          <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
                             {comment.author.full_name.charAt(0)}
                           </AvatarFallback>
                         )}
                       </Avatar>
                       <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <span className="font-medium text-sm">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span className="font-semibold text-sm">
                             {comment.author.full_name}
                           </span>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs text-muted-foreground font-medium">
                             {moment(comment.created_at).fromNow()}
                           </span>
                         </div>
-                        <p className="text-sm">{comment.content}</p>
+                        <p className="text-sm leading-relaxed">{comment.content}</p>
                       </div>
                     </div>
                   ))}
                 </div>
 
                 {/* Add Comment */}
-                <div className="flex items-start space-x-3 pt-4 border-t">
-                  <Avatar className="h-8 w-8">
+                <div className="flex items-start space-x-3 pt-4 border-t border-purple-100">
+                  <Avatar className="h-8 w-8 ring-2 ring-purple-200">
                     {user?.profile_pic ? (
                       <img
                         src={user.profile_pic}
@@ -865,17 +892,17 @@ export default function PostsPage() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <AvatarFallback>
+                      <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
                         {user?.full_name?.charAt(0)}
                       </AvatarFallback>
                     )}
                   </Avatar>
                   <div className="flex-1 flex space-x-2">
                     <Input
-                      placeholder="Write a comment..."
+                      placeholder="Write a comment... ✨"
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
-                      className="flex-1"
+                      className="flex-1 border-2 border-purple-100 focus:border-purple-300 rounded-full"
                     />
                     <Button
                       size="sm"
@@ -883,6 +910,7 @@ export default function PostsPage() {
                       onClick={() => {
                         handleCreateComment();
                       }}
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 rounded-full shadow-lg"
                     >
                       <Send className="h-4 w-4" />
                     </Button>
@@ -892,6 +920,7 @@ export default function PostsPage() {
             )}
           </DialogContent>
         </Dialog>
+        </div>
       </div>
     </ProtectedLayout>
   );
