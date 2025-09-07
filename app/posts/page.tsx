@@ -988,7 +988,7 @@ export default function PostsPage() {
                     <ScrollArea className="h-[60vh] pr-4">
                       <div className="space-y-4">
                         {bookmarks.map((bookmark: any) => (
-                          <Card key={bookmark.id} className="p-4">
+                          <Card key={bookmark.id} className="p-4 cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => router.push(`/posts/${bookmark.post_id}`)}>
                             <div className="flex items-start space-x-3">
                               <Avatar className="h-8 w-8">
                                 {bookmark.post?.author?.profile_pic ? (
