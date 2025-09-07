@@ -54,6 +54,7 @@ import {
 } from "lucide-react";
 import supabase from "@/lib/supabase";
 import moment from "moment";
+import { useRouter } from "next/navigation";
 
 // const communities = [
 //   {
@@ -273,6 +274,7 @@ const recentPosts = [
 ];
 
 export default function CommunitiesPage() {
+  const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("all");
@@ -1110,7 +1112,8 @@ export default function CommunitiesPage() {
                 {recentPosts.map((post: any) => (
                   <Card
                     key={post.id}
-                    className="hover:shadow-md transition-shadow"
+                    className="hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => router.push(`/posts/${post.id}`)}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-3">
