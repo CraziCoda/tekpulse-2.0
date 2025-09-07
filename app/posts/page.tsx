@@ -86,6 +86,8 @@ export default function PostsPage() {
   const [dateFilter, setDateFilter] = useState("all");
   const [selectedHashtag, setSelectedHashtag] = useState("");
   const [communities, setCommunities] = useState<any>([]);
+  const [bookmarks, setBookmarks] = useState<any>([]);
+  const [isBookmarksDialogOpen, setIsBookmarksDialogOpen] = useState(false);
 
   const getLevelIcon = (level: string) => {
     switch (level) {
@@ -168,12 +170,37 @@ export default function PostsPage() {
     );
   };
 
-  const handleBookmark = (postId: number) => {
+  const handleBookmark = async (postId: number) => {
+    const post = posts.find((p: any) => p.id === postId);
+    const isBookmarked = post?.users_bookmarked?.some(
+      (bookmark: any) => bookmark.user_id === user.id
+    );
+
+    if (!isBookmarked) {
+      await supabase.from("bookmarks").insert({
+        post_id: postId,
+        user_id: user.id,
+      });
+    } else {
+      await supabase
+        .from("bookmarks")
+        .delete()
+        .eq("post_id", postId)
+        .eq("user_id", user.id);
+    }
+
     setPosts(
-      posts.map((post: any) =>
-        post.id === postId
-          ? { ...post, isBookmarked: !post.isBookmarked }
-          : post
+      posts.map((p: any) =>
+        p.id === postId
+          ? {
+              ...p,
+              users_bookmarked: isBookmarked
+                ? p.users_bookmarked.filter(
+                    (bookmark: any) => bookmark.user_id !== user.id
+                  )
+                : [...p.users_bookmarked, { user_id: user.id }],
+            }
+          : p
       )
     );
   };
@@ -585,7 +612,10 @@ export default function PostsPage() {
 
         {/* Post Content */}
         <div className="mb-4">
-          <p className="text-base leading-relaxed mb-4 text-slate-700 dark:text-slate-200">
+          <p 
+            className="text-base leading-relaxed mb-4 text-slate-700 dark:text-slate-200 cursor-pointer hover:text-purple-600 transition-colors"
+            onClick={() => router.push(`/posts/${post.id}`)}
+          >
             {post.content}
           </p>
 
@@ -692,11 +722,18 @@ export default function PostsPage() {
             onClick={() => handleBookmark(post.id)}
             className={cn(
               "hover:text-yellow-500 hover:bg-yellow-50 rounded-full p-2 transition-all",
-              post.isBookmarked && "text-yellow-500 bg-yellow-50"
+              post.users_bookmarked?.some(
+                (bookmark: any) => bookmark.user_id === user.id
+              ) && "text-yellow-500 bg-yellow-50"
             )}
           >
             <Bookmark
-              className={cn("h-5 w-5", post.isBookmarked && "fill-current")}
+              className={cn(
+                "h-5 w-5",
+                post.users_bookmarked?.some(
+                  (bookmark: any) => bookmark.user_id === user.id
+                ) && "fill-current"
+              )}
             />
           </Button>
         </div>
@@ -736,6 +773,30 @@ export default function PostsPage() {
       console.error(error);
     } else {
       setCommunities(data || []);
+    }
+  };
+
+  const getBookmarks = async () => {
+    const { data, error } = await supabase
+      .from("bookmarks")
+      .select(`
+        *,
+        post:posts(
+          *,
+          author:profiles(
+            id,
+            full_name,
+            profile_pic
+          )
+        )
+      `)
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error(error);
+    } else {
+      setBookmarks(data || []);
     }
   };
 
@@ -800,6 +861,7 @@ export default function PostsPage() {
       getRecentActivity();
       getUpcomingEvents();
       getCommunityStats();
+      getBookmarks();
     }
   }, [user]);
 
@@ -908,7 +970,64 @@ export default function PostsPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-2">
+                <Dialog open={isBookmarksDialogOpen} onOpenChange={setIsBookmarksDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="border-purple-200 text-purple-600 hover:bg-purple-50">
+                      <Bookmark className="h-4 w-4 mr-2" />
+                      Bookmarks
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[80vh]">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center">
+                        <Bookmark className="h-5 w-5 mr-2" />
+                        My Bookmarks
+                      </DialogTitle>
+                    </DialogHeader>
+                    <ScrollArea className="h-[60vh] pr-4">
+                      <div className="space-y-4">
+                        {bookmarks.map((bookmark: any) => (
+                          <Card key={bookmark.id} className="p-4">
+                            <div className="flex items-start space-x-3">
+                              <Avatar className="h-8 w-8">
+                                {bookmark.post?.author?.profile_pic ? (
+                                  <img src={bookmark.post.author.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+                                ) : (
+                                  <AvatarFallback>{bookmark.post?.author?.full_name?.charAt(0)}</AvatarFallback>
+                                )}
+                              </Avatar>
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-2 mb-1">
+                                  <span className="font-medium">{bookmark.post?.author?.full_name}</span>
+                                  <span className="text-sm text-muted-foreground">•</span>
+                                  <span className="text-sm text-muted-foreground">
+                                    {moment(bookmark.created_at).fromNow()}
+                                  </span>
+                                </div>
+                                <p className="text-sm">{bookmark.post?.content}</p>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleBookmark(bookmark.post_id)}
+                                className="text-yellow-500"
+                              >
+                                <Bookmark className="h-4 w-4 fill-current" />
+                              </Button>
+                            </div>
+                          </Card>
+                        ))}
+                        {bookmarks.length === 0 && (
+                          <div className="text-center py-8 text-muted-foreground">
+                            No bookmarks yet
+                          </div>
+                        )}
+                      </div>
+                    </ScrollArea>
+                  </DialogContent>
+                </Dialog>
+                
                 <Dialog
                   open={isCreateDialogOpen}
                   onOpenChange={setIsCreateDialogOpen}
