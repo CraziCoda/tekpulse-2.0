@@ -51,236 +51,18 @@ import {
   Settings,
   Paperclip,
   X,
+  Heart,
+  Send,
 } from "lucide-react";
 import supabase from "@/lib/supabase";
 import moment from "moment";
 import { useRouter } from "next/navigation";
 
-// const communities = [
-//   {
-//     id: 1,
-//     name: "Computer Science Department",
-//     type: "department",
-//     faculty: "Engineering & Technology",
-//     description:
-//       "Connect with fellow CS students, share projects, discuss coursework, and collaborate on coding challenges.",
-//     members: 342,
-//     posts: 1247,
-//     isJoined: true,
-//     isPrivate: false,
-//     moderators: ["Dr. Smith", "Prof. Johnson"],
-//     leaders: [
-//       {
-//         name: "Sarah Johnson",
-//         position: "CS President",
-//         level: "president",
-//         studentId: "ST002",
-//       },
-//     ],
-//     recentActivity: "2 min ago",
-//     tags: ["Programming", "Algorithms", "Software Engineering"],
-//     avatar: "CS",
-//     canManage: false,
-//   },
-//   {
-//     id: 2,
-//     name: "Business Administration",
-//     type: "department",
-//     faculty: "Business & Economics",
-//     description:
-//       "Business students networking, case study discussions, internship opportunities, and career guidance.",
-//     members: 289,
-//     posts: 856,
-//     isJoined: false,
-//     isPrivate: false,
-//     moderators: ["Prof. Williams", "Dr. Brown"],
-//     leaders: [
-//       {
-//         name: "Mike Davis",
-//         position: "Business Rep",
-//         level: "representative",
-//         studentId: "ST003",
-//       },
-//     ],
-//     recentActivity: "15 min ago",
-//     tags: ["Marketing", "Finance", "Entrepreneurship"],
-//     avatar: "BA",
-//     canManage: false,
-//   },
-//   {
-//     id: 3,
-//     name: "Engineering Faculty",
-//     type: "faculty",
-//     faculty: "Engineering & Technology",
-//     description:
-//       "All engineering students united! Share resources, discuss projects, and collaborate across departments.",
-//     members: 1247,
-//     posts: 3421,
-//     isJoined: true,
-//     isPrivate: false,
-//     moderators: ["Dean Anderson", "Prof. Davis"],
-//     leaders: [
-//       {
-//         name: "David Kim",
-//         position: "Engineering President",
-//         level: "president",
-//         studentId: "ST007",
-//       },
-//     ],
-//     recentActivity: "5 min ago",
-//     tags: ["Innovation", "Projects", "Research"],
-//     avatar: "EF",
-//     canManage: true, // User is a president of this community
-//   },
-//   {
-//     id: 4,
-//     name: "Psychology Department",
-//     type: "department",
-//     faculty: "Social Sciences",
-//     description:
-//       "Psychology students sharing research, discussing theories, and supporting each other through studies.",
-//     members: 156,
-//     posts: 423,
-//     isJoined: false,
-//     isPrivate: false,
-//     moderators: ["Dr. Wilson", "Prof. Taylor"],
-//     leaders: [],
-//     recentActivity: "1 hour ago",
-//     tags: ["Research", "Mental Health", "Cognitive Science"],
-//     avatar: "PS",
-//     canManage: false,
-//   },
-//   {
-//     id: 5,
-//     name: "Medical College",
-//     type: "college",
-//     faculty: "Health Sciences",
-//     description:
-//       "Future doctors and healthcare professionals. Share study materials, discuss cases, and support each other.",
-//     members: 567,
-//     posts: 1892,
-//     isJoined: false,
-//     isPrivate: true,
-//     moderators: ["Dr. Garcia", "Prof. Martinez"],
-//     leaders: [
-//       {
-//         name: "Lisa Chen",
-//         position: "Medical Secretary",
-//         level: "secretary",
-//         studentId: "ST006",
-//       },
-//     ],
-//     recentActivity: "30 min ago",
-//     tags: ["Medicine", "Healthcare", "Clinical Studies"],
-//     avatar: "MC",
-//     canManage: false,
-//   },
-//   {
-//     id: 6,
-//     name: "Mathematics Department",
-//     type: "department",
-//     faculty: "Sciences",
-//     description:
-//       "Math enthusiasts solving problems together, sharing proofs, and discussing mathematical concepts.",
-//     members: 198,
-//     posts: 634,
-//     isJoined: true,
-//     isPrivate: false,
-//     moderators: ["Prof. Lee", "Dr. Chen"],
-//     leaders: [],
-//     recentActivity: "45 min ago",
-//     tags: ["Calculus", "Statistics", "Pure Mathematics"],
-//     avatar: "MA",
-//     canManage: false,
-//   },
-//   {
-//     id: 7,
-//     name: "Arts & Literature Faculty",
-//     type: "faculty",
-//     faculty: "Arts & Humanities",
-//     description:
-//       "Creative minds unite! Share your work, discuss literature, and explore artistic expressions.",
-//     members: 423,
-//     posts: 1156,
-//     isJoined: false,
-//     isPrivate: false,
-//     moderators: ["Prof. Thompson", "Dr. White"],
-//     leaders: [],
-//     recentActivity: "20 min ago",
-//     tags: ["Creative Writing", "Art History", "Literature"],
-//     avatar: "AL",
-//     canManage: false,
-//   },
-//   {
-//     id: 8,
-//     name: "International Students",
-//     type: "special",
-//     faculty: "Cross-Faculty",
-//     description:
-//       "International students supporting each other, sharing cultural experiences, and navigating campus life.",
-//     members: 234,
-//     posts: 567,
-//     isJoined: false,
-//     isPrivate: false,
-//     moderators: ["International Office", "Student Council"],
-//     leaders: [],
-//     recentActivity: "10 min ago",
-//     tags: ["Cultural Exchange", "Support", "Events"],
-//     avatar: "IS",
-//     canManage: false,
-//   },
-// ];
-
-const recentPosts = [
-  {
-    id: 1,
-    communityId: 1,
-    communityName: "Computer Science Department",
-    author: "Sarah Johnson",
-    authorPosition: { title: "CS President", level: "president" },
-    content:
-      "Anyone working on the Data Structures assignment? I'm stuck on implementing binary trees. Would love to collaborate! 🌳",
-    timestamp: "2 min ago",
-    likes: 8,
-    comments: 3,
-    isPinned: false,
-  },
-  {
-    id: 2,
-    communityId: 3,
-    communityName: "Engineering Faculty",
-    author: "David Kim",
-    authorPosition: { title: "Engineering President", level: "president" },
-    content:
-      "Reminder: Engineering Expo registration closes tomorrow! Don't miss the chance to showcase your projects. 🚀",
-    timestamp: "15 min ago",
-    likes: 23,
-    comments: 7,
-    isPinned: true,
-  },
-  {
-    id: 3,
-    communityId: 6,
-    communityName: "Mathematics Department",
-    author: "Emma Wilson",
-    authorPosition: null,
-    content:
-      "Found this amazing proof for the Pythagorean theorem using geometric algebra. Sharing the PDF in comments! 📐",
-    timestamp: "45 min ago",
-    likes: 15,
-    comments: 12,
-    isPinned: false,
-  },
-];
-
 export default function CommunitiesPage() {
-  const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("all");
-  const [selectedCommunity, setSelectedCommunity] = useState<number | null>(
-    null
-  );
+  
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isApplyDialogOpen, setIsApplyDialogOpen] = useState(false);
   const [isManageDialogOpen, setIsManageDialogOpen] = useState(false);
@@ -307,6 +89,11 @@ export default function CommunitiesPage() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [recentPosts, setRecentPosts] = useState<any>([]);
+  const [newComment, setNewComment] = useState("");
+  const [selectedPostForComment, setSelectedPostForComment] = useState<number | null>(null);
+  const [isCommenting, setIsCommenting] = useState(false);
+  const [postComments, setPostComments] = useState<any>({});
+  const [showComments, setShowComments] = useState<number | null>(null);
 
   const [newCommunity, setNewCommunity] = useState<{
     name: string;
@@ -574,11 +361,13 @@ export default function CommunitiesPage() {
           type
         ),
         likes(count),
-        comments(count)
+        comments(count),
+        users_liked:likes(user_id)
       `
       )
       .not("community_id", "is", null)
       .eq("author.positions.approved", true)
+      .eq("users_liked.user_id", user?.id)
       .order("created_at", { ascending: false })
       .limit(10);
 
@@ -754,11 +543,94 @@ export default function CommunitiesPage() {
     );
   };
 
+  const handleLike = async (postId: number) => {
+    const post = recentPosts.find((p: any) => p.id === postId);
+    const isLiked = post?.users_liked?.some((like: any) => like.user_id === user.id);
+    
+    if (!isLiked) {
+      await supabase.from("likes").insert({ post_id: postId, user_id: user.id });
+    } else {
+      await supabase.from("likes").delete().eq("post_id", postId).eq("user_id", user.id);
+    }
+    
+    setRecentPosts(recentPosts.map((p: any) => 
+      p.id === postId ? {
+        ...p,
+        users_liked: isLiked 
+          ? p.users_liked.filter((like: any) => like.user_id !== user.id)
+          : [...p.users_liked, { user_id: user.id }],
+        likes: [{ count: isLiked ? (p.likes?.[0]?.count || 1) - 1 : (p.likes?.[0]?.count || 0) + 1 }]
+      } : p
+    ));
+  };
+
+  const handleComment = async () => {
+    if (!newComment.trim() || !selectedPostForComment) return;
+    
+    setIsCommenting(true);
+    const { error } = await supabase.from("comments").insert({
+      content: newComment.trim(),
+      post_id: selectedPostForComment,
+      author_id: user.id,
+    });
+
+    if (!error) {
+      setNewComment("");
+      setSelectedPostForComment(null);
+      setRecentPosts(recentPosts.map((p: any) => 
+        p.id === selectedPostForComment ? {
+          ...p,
+          comments: [{ count: (p.comments?.[0]?.count || 0) + 1 }]
+        } : p
+      ));
+      if (showComments === selectedPostForComment) {
+        getPostComments(selectedPostForComment);
+      }
+    }
+    setIsCommenting(false);
+  };
+
+  const getPostComments = async (postId: number) => {
+    const { data, error } = await supabase
+      .from("comments")
+      .select(`
+        *,
+        author:profiles(
+          id,
+          full_name,
+          profile_pic
+        )
+      `)
+      .eq("post_id", postId)
+      .order("created_at", { ascending: false });
+
+    if (!error) {
+      setPostComments({ ...postComments, [postId]: data || [] });
+    }
+  };
+
+  const toggleComments = (postId: number) => {
+    if (showComments === postId) {
+      setShowComments(null);
+    } else {
+      setShowComments(postId);
+      if (!postComments[postId]) {
+        getPostComments(postId);
+      }
+    }
+  };
+
   useEffect(() => {
     getUserProfile();
     getCommunities();
     getRecentPosts();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      getRecentPosts();
+    }
+  }, [user]);
 
   return (
     <ProtectedLayout>
@@ -1112,8 +984,7 @@ export default function CommunitiesPage() {
                 {recentPosts.map((post: any) => (
                   <Card
                     key={post.id}
-                    className="hover:shadow-md transition-shadow cursor-pointer"
-                    onClick={() => router.push(`/posts/${post.id}`)}
+                    className="hover:shadow-md transition-shadow"
                   >
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-3">
@@ -1213,16 +1084,97 @@ export default function CommunitiesPage() {
                         );
                       })()}
 
-                      <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                        <div className="flex items-center space-x-1">
-                          <TrendingUp className="h-4 w-4" />
-                          <span>{post.likes?.[0]?.count || 0} likes</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <MessageSquare className="h-4 w-4" />
-                          <span>{post.comments?.[0]?.count || 0} comments</span>
+                      {/* Post Actions */}
+                      <div className="flex items-center justify-between pt-3 border-t">
+                        <div className="flex items-center space-x-4">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleLike(post.id);
+                            }}
+                            className={`flex items-center space-x-1 ${post.users_liked?.some((like: any) => like.user_id === user.id) ? 'text-red-500' : ''}`}
+                          >
+                            <Heart className={`h-4 w-4 ${post.users_liked?.some((like: any) => like.user_id === user.id) ? 'fill-current' : ''}`} />
+                            <span>{post.likes?.[0]?.count || 0}</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleComments(post.id);
+                            }}
+                            className="flex items-center space-x-1"
+                          >
+                            <MessageSquare className="h-4 w-4" />
+                            <span>{post.comments?.[0]?.count || 0}</span>
+                          </Button>
                         </div>
                       </div>
+
+                      {/* Comments Section */}
+                      {showComments === post.id && (
+                        <div className="mt-3 pt-3 border-t space-y-3">
+                          {/* Existing Comments */}
+                          {postComments[post.id]?.map((comment: any) => (
+                            <div key={comment.id} className="flex space-x-2">
+                              <Avatar className="h-6 w-6">
+                                {comment.author?.profile_pic ? (
+                                  <img src={comment.author.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+                                ) : (
+                                  <AvatarFallback className="text-xs">
+                                    {comment.author?.full_name?.charAt(0)}
+                                  </AvatarFallback>
+                                )}
+                              </Avatar>
+                              <div className="flex-1">
+                                <div className="bg-gray-50 rounded-lg p-2">
+                                  <div className="flex items-center space-x-2 mb-1">
+                                    <span className="text-xs font-medium">{comment.author?.full_name}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {moment(comment.created_at).fromNow()}
+                                    </span>
+                                  </div>
+                                  <p className="text-sm">{comment.content}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          
+                          {/* Comment Input */}
+                          <div className="flex space-x-2">
+                            <Avatar className="h-6 w-6">
+                              {user?.profile_pic ? (
+                                <img src={user.profile_pic} alt="Profile" className="w-full h-full object-cover" />
+                              ) : (
+                                <AvatarFallback className="text-xs">
+                                  {user?.full_name?.charAt(0)}
+                                </AvatarFallback>
+                              )}
+                            </Avatar>
+                            <div className="flex-1 flex space-x-2">
+                              <Input
+                                placeholder="Write a comment..."
+                                value={selectedPostForComment === post.id ? newComment : ""}
+                                onChange={(e) => {
+                                  setNewComment(e.target.value);
+                                  setSelectedPostForComment(post.id);
+                                }}
+                                className="flex-1"
+                              />
+                              <Button
+                                size="sm"
+                                disabled={!newComment || isCommenting || selectedPostForComment !== post.id}
+                                onClick={handleComment}
+                              >
+                                <Send className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))}
