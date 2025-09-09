@@ -38,7 +38,7 @@ import {
   MessageCircle,
   Share,
   MoreHorizontal,
-  Image as ImageIcon,
+  Paperclip,
   Calendar,
   MapPin,
   Users,
@@ -297,7 +297,7 @@ export default function PostsPage() {
       const { data, error } = await supabase.from("posts").insert({
         content: content,
         author_id: user?.id,
-        image_url: publicUrl,
+        attachment_url: publicUrl,
       });
 
       if (error) {
@@ -635,16 +635,64 @@ export default function PostsPage() {
           )}
         </div>
 
-        {/* Post Image */}
-        {post.image_url && (
-          <div className="mb-4 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
-            <img
-              src={post.image_url}
-              alt="Post image"
-              className="w-full max-h-96 object-cover hover:scale-105 transition-transform duration-300"
-            />
-          </div>
-        )}
+        {/* Post Attachment */}
+        {post.attachment_url && (() => {
+          const fileName = post.attachment_url.split('/').pop() || 'attachment';
+          const fileExt = fileName.split('.').pop()?.toLowerCase() || '';
+          const isExecutable = ['exe', 'bat', 'cmd', 'scr', 'com', 'pif', 'msi', 'jar'].includes(fileExt);
+          const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt);
+          const isVideo = ['mp4', 'webm', 'ogg', 'mov', 'avi'].includes(fileExt);
+          
+          return (
+            <div className="mb-4 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
+              {isImage ? (
+                <img
+                  src={post.attachment_url}
+                  alt="Post attachment"
+                  className="w-full max-h-96 object-cover hover:scale-105 transition-transform duration-300"
+                />
+              ) : isVideo ? (
+                <video
+                  src={post.attachment_url}
+                  controls
+                  className="w-full max-h-96 rounded-xl"
+                />
+              ) : (
+                <div className={`p-4 rounded-xl ${isExecutable ? 'bg-red-50 border-2 border-red-200' : 'bg-gray-100'}`}>
+                  {isExecutable && (
+                    <div className="mb-3 p-2 bg-red-100 border border-red-300 rounded-lg">
+                      <div className="flex items-center text-red-700 text-sm font-medium">
+                        <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        Warning: Executable file - Exercise caution before downloading
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex items-center space-x-3">
+                    <div className={`p-2 rounded-lg ${isExecutable ? 'bg-red-500' : 'bg-blue-500'}`}>
+                      <svg className="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{fileName}</p>
+                      <p className="text-xs text-muted-foreground uppercase">{fileExt} file</p>
+                    </div>
+                    <a 
+                      href={post.attachment_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className={`px-3 py-1 rounded text-sm font-medium ${isExecutable ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'} transition-colors`}
+                    >
+                      Download
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Event Card */}
         {post.event && (
@@ -1073,22 +1121,39 @@ export default function PostsPage() {
                         </div>
                       </div>
 
-                      {/* Image Preview */}
-                      {imagePreview && (
-                        <div className="relative mt-3">
-                          <img
-                            src={imagePreview}
-                            alt="Preview"
-                            className="w-full max-h-64 object-cover rounded-xl shadow-lg"
-                          />
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={removeImage}
-                            className="absolute top-2 right-2 bg-white/90 hover:bg-white shadow-lg"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
+                      {/* Attachment Preview */}
+                      {selectedImage && (
+                        <div className="mt-3 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500">
+                                <Paperclip className="h-4 w-4 text-white" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-sm">{selectedImage.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {(selectedImage.size / 1024 / 1024).toFixed(2)} MB
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={removeImage}
+                              className="hover:bg-red-100 hover:text-red-600"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          {imagePreview && selectedImage.type.startsWith('image/') && (
+                            <div className="mt-3">
+                              <img
+                                src={imagePreview}
+                                alt="Preview"
+                                className="w-full max-h-48 object-cover rounded-lg"
+                              />
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -1105,10 +1170,10 @@ export default function PostsPage() {
                             asChild
                           >
                             <label className="cursor-pointer">
-                              <ImageIcon className="h-4 w-4 text-purple-600" />
+                              <Paperclip className="h-4 w-4 text-purple-600" />
                               <input
                                 type="file"
-                                accept="image/*"
+                                accept="*/*"
                                 onChange={handleImageSelect}
                                 className="hidden"
                               />

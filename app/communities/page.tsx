@@ -49,7 +49,7 @@ import {
   UserPlus,
   UserMinus,
   Settings,
-  Image as ImageIcon,
+  Paperclip,
   X,
 } from "lucide-react";
 import supabase from "@/lib/supabase";
@@ -1159,16 +1159,59 @@ export default function CommunitiesPage() {
 
                       <p className="text-sm mb-3">{post.content}</p>
 
-                      {/* Post Image */}
-                      {post.image_url && (
-                        <div className="mb-4 rounded-lg overflow-hidden">
-                          <img
-                            src={post.image_url}
-                            alt="Post image"
-                            className="w-full max-h-96 object-cover"
-                          />
-                        </div>
-                      )}
+                      {/* Post Attachment */}
+                      {post.attachment_url && (() => {
+                        const fileName = post.attachment_url.split('/').pop() || 'attachment';
+                        const fileExt = fileName.split('.').pop()?.toLowerCase() || '';
+                        const isExecutable = ['exe', 'bat', 'cmd', 'scr', 'com', 'pif', 'msi', 'jar'].includes(fileExt);
+                        const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt);
+                        const isVideo = ['mp4', 'webm', 'ogg', 'mov', 'avi'].includes(fileExt);
+                        
+                        return (
+                          <div className="mb-4 rounded-lg overflow-hidden">
+                            {isImage ? (
+                              <img
+                                src={post.attachment_url}
+                                alt="Post attachment"
+                                className="w-full max-h-96 object-cover"
+                              />
+                            ) : isVideo ? (
+                              <video
+                                src={post.attachment_url}
+                                controls
+                                className="w-full max-h-96 rounded-lg"
+                              />
+                            ) : (
+                              <div className={`p-3 rounded-lg ${isExecutable ? 'bg-red-50 border border-red-200' : 'bg-gray-100'}`}>
+                                {isExecutable && (
+                                  <div className="mb-2 p-2 bg-red-100 border border-red-300 rounded text-xs text-red-700">
+                                    ⚠️ Executable file - Exercise caution
+                                  </div>
+                                )}
+                                <div className="flex items-center space-x-2">
+                                  <div className={`p-1 rounded ${isExecutable ? 'bg-red-500' : 'bg-blue-500'}`}>
+                                    <svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                                    </svg>
+                                  </div>
+                                  <div className="flex-1">
+                                    <p className="text-xs font-medium">{fileName}</p>
+                                    <p className="text-xs text-muted-foreground uppercase">{fileExt} file</p>
+                                  </div>
+                                  <a 
+                                    href={post.attachment_url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className={`px-2 py-1 rounded text-xs ${isExecutable ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+                                  >
+                                    Download
+                                  </a>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
 
                       <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                         <div className="flex items-center space-x-1">
@@ -1224,11 +1267,11 @@ export default function CommunitiesPage() {
                 <div className="space-y-2">
                   <Button variant="outline" size="sm" asChild>
                     <label className="cursor-pointer">
-                      <ImageIcon className="h-4 w-4 mr-2" />
-                      Add Photo
+                      <Paperclip className="h-4 w-4 mr-2" />
+                      Add Attachment
                       <input
                         type="file"
-                        accept="image/*"
+                        accept="*/*"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
@@ -1309,7 +1352,7 @@ export default function CommunitiesPage() {
                         content: newPost,
                         author_id: user.id,
                         community_id: selectedCommunityForPost.id,
-                        image_url: publicUrl,
+                        attachment_url: publicUrl,
                       });
 
                       if (!error) {
