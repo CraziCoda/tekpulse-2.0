@@ -1041,32 +1041,77 @@ export default function CommunitiesPage() {
                               />
                             </label>
                           </Button>
-                          {selectedImage && (
-                            <span className="text-sm text-muted-foreground">
-                              {selectedImage.name}
-                            </span>
-                          )}
+
                         </div>
-                        {imagePreview && (
-                          <div className="relative">
-                            <img
-                              src={imagePreview}
-                              alt="Preview"
-                              className="w-full h-48 object-cover rounded-lg"
-                            />
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedImage(null);
-                                setImagePreview(null);
-                              }}
-                              className="absolute top-2 right-2"
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        )}
+                        {selectedImage && (() => {
+                          const fileName = selectedImage.name;
+                          const fileExt = fileName.split('.').pop()?.toLowerCase() || '';
+                          const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].includes(fileExt);
+                          const isVideo = ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv', 'flv'].includes(fileExt);
+                          const isAudio = ['mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a'].includes(fileExt);
+                          const isPdf = fileExt === 'pdf';
+                          const isDocument = ['doc', 'docx', 'txt', 'rtf'].includes(fileExt);
+                          const isSpreadsheet = ['xls', 'xlsx', 'csv'].includes(fileExt);
+                          const isPresentation = ['ppt', 'pptx'].includes(fileExt);
+                          const isArchive = ['zip', 'rar', '7z', 'tar', 'gz'].includes(fileExt);
+                          const isExecutable = ['exe', 'bat', 'cmd', 'scr', 'com', 'pif', 'msi', 'jar'].includes(fileExt);
+                          
+                          const getFileIcon = () => {
+                            if (isImage) return '🖼️';
+                            if (isVideo) return '🎥';
+                            if (isAudio) return '🎵';
+                            if (isPdf) return '📄';
+                            if (isDocument) return '📝';
+                            if (isSpreadsheet) return '📊';
+                            if (isPresentation) return '📽️';
+                            if (isArchive) return '📦';
+                            if (isExecutable) return '⚠️';
+                            return '📎';
+                          };
+                          
+                          return (
+                            <div className="relative">
+                              {isImage && imagePreview ? (
+                                <img src={imagePreview} alt="Preview" className="w-full h-48 object-cover rounded-lg" />
+                              ) : (
+                                <div className={`p-3 rounded-lg ${isExecutable ? 'bg-red-50 border border-red-200' : 'bg-gray-100'}`}>
+                                  {isExecutable && (
+                                    <div className="mb-2 p-2 bg-red-100 border border-red-300 rounded text-xs text-red-700">
+                                      ⚠️ Executable file - Exercise caution
+                                    </div>
+                                  )}
+                                  <div className="flex items-center space-x-3">
+                                    <div className="text-2xl">{getFileIcon()}</div>
+                                    <div className="flex-1">
+                                      <p className="text-sm font-medium">{fileName}</p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {isDocument && 'Document'}
+                                        {isSpreadsheet && 'Spreadsheet'}
+                                        {isPresentation && 'Presentation'}
+                                        {isArchive && 'Archive'}
+                                        {isPdf && 'PDF Document'}
+                                        {isVideo && 'Video File'}
+                                        {isAudio && 'Audio File'}
+                                        {!isDocument && !isSpreadsheet && !isPresentation && !isArchive && !isPdf && !isVideo && !isAudio && `${fileExt.toUpperCase()} file`}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedImage(null);
+                                  setImagePreview(null);
+                                }}
+                                className="absolute top-2 right-2"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          );
+                        })()}
                         <Button
                           className="w-full"
                           onClick={async () => {
@@ -1172,23 +1217,55 @@ export default function CommunitiesPage() {
                         const fileName = post.attachment_url.split('/').pop() || 'attachment';
                         const fileExt = fileName.split('.').pop()?.toLowerCase() || '';
                         const isExecutable = ['exe', 'bat', 'cmd', 'scr', 'com', 'pif', 'msi', 'jar'].includes(fileExt);
-                        const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt);
-                        const isVideo = ['mp4', 'webm', 'ogg', 'mov', 'avi'].includes(fileExt);
+                        const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].includes(fileExt);
+                        const isVideo = ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv', 'flv'].includes(fileExt);
+                        const isAudio = ['mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a'].includes(fileExt);
+                        const isPdf = fileExt === 'pdf';
+                        const isDocument = ['doc', 'docx', 'txt', 'rtf'].includes(fileExt);
+                        const isSpreadsheet = ['xls', 'xlsx', 'csv'].includes(fileExt);
+                        const isPresentation = ['ppt', 'pptx'].includes(fileExt);
+                        const isArchive = ['zip', 'rar', '7z', 'tar', 'gz'].includes(fileExt);
+                        
+                        const getFileIcon = () => {
+                          if (isImage) return '🖼️';
+                          if (isVideo) return '🎥';
+                          if (isAudio) return '🎵';
+                          if (isPdf) return '📄';
+                          if (isDocument) return '📝';
+                          if (isSpreadsheet) return '📊';
+                          if (isPresentation) return '📽️';
+                          if (isArchive) return '📦';
+                          if (isExecutable) return '⚠️';
+                          return '📎';
+                        };
                         
                         return (
                           <div className="mb-4 rounded-lg overflow-hidden">
                             {isImage ? (
-                              <img
-                                src={post.attachment_url}
-                                alt="Post attachment"
-                                className="w-full max-h-96 object-cover"
-                              />
+                              <img src={post.attachment_url} alt="Post attachment" className="w-full max-h-96 object-cover" />
                             ) : isVideo ? (
-                              <video
-                                src={post.attachment_url}
-                                controls
-                                className="w-full max-h-96 rounded-lg"
-                              />
+                              <video src={post.attachment_url} controls className="w-full max-h-96 rounded-lg" />
+                            ) : isAudio ? (
+                              <audio src={post.attachment_url} controls className="w-full" />
+                            ) : isPdf ? (
+                              <div className="p-3 rounded-lg bg-red-50 border border-red-200">
+                                <div className="flex items-center space-x-3">
+                                  <div className="text-2xl">{getFileIcon()}</div>
+                                  <div className="flex-1">
+                                    <p className="text-sm font-medium">{fileName}</p>
+                                    <p className="text-xs text-muted-foreground">PDF Document</p>
+                                  </div>
+                                  <div className="flex space-x-2">
+                                    <a href={post.attachment_url} target="_blank" rel="noopener noreferrer" 
+                                       className="px-3 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white">
+                                      View
+                                    </a>
+                                    <a href={post.attachment_url} download className="px-3 py-1 rounded text-xs bg-gray-600 hover:bg-gray-700 text-white">
+                                      Download
+                                    </a>
+                                  </div>
+                                </div>
+                              </div>
                             ) : (
                               <div className={`p-3 rounded-lg ${isExecutable ? 'bg-red-50 border border-red-200' : 'bg-gray-100'}`}>
                                 {isExecutable && (
@@ -1196,23 +1273,21 @@ export default function CommunitiesPage() {
                                     ⚠️ Executable file - Exercise caution
                                   </div>
                                 )}
-                                <div className="flex items-center space-x-2">
-                                  <div className={`p-1 rounded ${isExecutable ? 'bg-red-500' : 'bg-blue-500'}`}>
-                                    <svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                      <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                                    </svg>
-                                  </div>
+                                <div className="flex items-center space-x-3">
+                                  <div className="text-2xl">{getFileIcon()}</div>
                                   <div className="flex-1">
-                                    <p className="text-xs font-medium">{fileName}</p>
-                                    <p className="text-xs text-muted-foreground uppercase">{fileExt} file</p>
+                                    <p className="text-sm font-medium">{fileName}</p>
+                                    <p className="text-xs text-muted-foreground uppercase">
+                                      {isDocument && 'Document'}
+                                      {isSpreadsheet && 'Spreadsheet'}
+                                      {isPresentation && 'Presentation'}
+                                      {isArchive && 'Archive'}
+                                      {!isDocument && !isSpreadsheet && !isPresentation && !isArchive && `${fileExt} file`}
+                                    </p>
                                   </div>
-                                  <a 
-                                    href={post.attachment_url} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer" 
-                                    className={`px-2 py-1 rounded text-xs ${isExecutable ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
-                                  >
-                                    Download
+                                  <a href={post.attachment_url} target="_blank" rel="noopener noreferrer" 
+                                     className={`px-3 py-1 rounded text-xs ${isExecutable ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}>
+                                    {isExecutable ? 'Download' : 'View'}
                                   </a>
                                 </div>
                               </div>
@@ -1377,27 +1452,76 @@ export default function CommunitiesPage() {
                   </Button>
                 </div>
 
-                {/* Image Preview */}
-                {imagePreview && (
-                  <div className="relative">
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="w-full max-h-64 object-cover rounded-lg"
-                    />
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedImage(null);
-                        setImagePreview(null);
-                      }}
-                      className="absolute top-2 right-2"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
+                {/* File Preview */}
+                {selectedImage && (() => {
+                  const fileName = selectedImage.name;
+                  const fileExt = fileName.split('.').pop()?.toLowerCase() || '';
+                  const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].includes(fileExt);
+                  const isVideo = ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv', 'flv'].includes(fileExt);
+                  const isAudio = ['mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a'].includes(fileExt);
+                  const isPdf = fileExt === 'pdf';
+                  const isDocument = ['doc', 'docx', 'txt', 'rtf'].includes(fileExt);
+                  const isSpreadsheet = ['xls', 'xlsx', 'csv'].includes(fileExt);
+                  const isPresentation = ['ppt', 'pptx'].includes(fileExt);
+                  const isArchive = ['zip', 'rar', '7z', 'tar', 'gz'].includes(fileExt);
+                  const isExecutable = ['exe', 'bat', 'cmd', 'scr', 'com', 'pif', 'msi', 'jar'].includes(fileExt);
+                  
+                  const getFileIcon = () => {
+                    if (isImage) return '🖼️';
+                    if (isVideo) return '🎥';
+                    if (isAudio) return '🎵';
+                    if (isPdf) return '📄';
+                    if (isDocument) return '📝';
+                    if (isSpreadsheet) return '📊';
+                    if (isPresentation) return '📽️';
+                    if (isArchive) return '📦';
+                    if (isExecutable) return '⚠️';
+                    return '📎';
+                  };
+                  
+                  return (
+                    <div className="relative">
+                      {isImage && imagePreview ? (
+                        <img src={imagePreview} alt="Preview" className="w-full max-h-64 object-cover rounded-lg" />
+                      ) : (
+                        <div className={`p-3 rounded-lg ${isExecutable ? 'bg-red-50 border border-red-200' : 'bg-gray-100'}`}>
+                          {isExecutable && (
+                            <div className="mb-2 p-2 bg-red-100 border border-red-300 rounded text-xs text-red-700">
+                              ⚠️ Executable file - Exercise caution
+                            </div>
+                          )}
+                          <div className="flex items-center space-x-3">
+                            <div className="text-2xl">{getFileIcon()}</div>
+                            <div className="flex-1">
+                              <p className="text-sm font-medium">{fileName}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {isDocument && 'Document'}
+                                {isSpreadsheet && 'Spreadsheet'}
+                                {isPresentation && 'Presentation'}
+                                {isArchive && 'Archive'}
+                                {isPdf && 'PDF Document'}
+                                {isVideo && 'Video File'}
+                                {isAudio && 'Audio File'}
+                                {!isDocument && !isSpreadsheet && !isPresentation && !isArchive && !isPdf && !isVideo && !isAudio && `${fileExt.toUpperCase()} file`}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedImage(null);
+                          setImagePreview(null);
+                        }}
+                        className="absolute top-2 right-2"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  );
+                })()}
 
                 <div className="flex justify-end space-x-2">
                   <Button
