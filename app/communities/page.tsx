@@ -94,6 +94,8 @@ export default function CommunitiesPage() {
   const [isCommenting, setIsCommenting] = useState(false);
   const [postComments, setPostComments] = useState<any>({});
   const [showComments, setShowComments] = useState<number | null>(null);
+  const [isNewPostDialogOpen, setIsNewPostDialogOpen] = useState(false);
+  const [selectedCommunityId, setSelectedCommunityId] = useState("");
 
   const [newCommunity, setNewCommunity] = useState<{
     name: string;
@@ -981,6 +983,141 @@ export default function CommunitiesPage() {
 
             <TabsContent value="feed" className="space-y-4">
               <div className="max-w-2xl mx-auto space-y-4">
+                <div className="flex justify-end">
+                  <Dialog open={isNewPostDialogOpen} onOpenChange={setIsNewPostDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+                        <Plus className="h-4 w-4 mr-2" />
+                        New Post
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[500px]">
+                      <DialogHeader>
+                        <DialogTitle>Create New Post</DialogTitle>
+                        <DialogDescription>
+                          Share something with your community
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 pt-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="community">Select Community</Label>
+                          <Select value={selectedCommunityId} onValueChange={setSelectedCommunityId}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Choose a community" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {joinedCommunities.map((community: any) => (
+                                <SelectItem key={community.id} value={community.id}>
+                                  {community.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <Textarea
+                          placeholder="What's happening in your community?"
+                          value={newPost}
+                          onChange={(e) => setNewPost(e.target.value)}
+                          rows={4}
+                        />
+                        <div className="space-y-2">
+                          <Button variant="outline" size="sm" asChild>
+                            <label className="cursor-pointer">
+                              <Paperclip className="h-4 w-4 mr-2" />
+                              Add Attachment
+                              <input
+                                type="file"
+                                accept="*/*"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    setSelectedImage(file);
+                                    const reader = new FileReader();
+                                    reader.onload = () => setImagePreview(reader.result as string);
+                                    reader.readAsDataURL(file);
+                                  }
+                                }}
+                                className="hidden"
+                              />
+                            </label>
+                          </Button>
+                          {selectedImage && (
+                            <span className="text-sm text-muted-foreground">
+                              {selectedImage.name}
+                            </span>
+                          )}
+                        </div>
+                        {imagePreview && (
+                          <div className="relative">
+                            <img
+                              src={imagePreview}
+                              alt="Preview"
+                              className="w-full h-48 object-cover rounded-lg"
+                            />
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedImage(null);
+                                setImagePreview(null);
+                              }}
+                              className="absolute top-2 right-2"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+                        <Button
+                          className="w-full"
+                          onClick={async () => {
+                            if (!newPost.trim() || !selectedCommunityId) return;
+                            
+                            setIsCreatingPost(true);
+                            
+                            let publicUrl: null | string = null;
+                            if (selectedImage) {
+                              const fileExt = selectedImage?.name.split(".").pop();
+                              const { data: imageData, error: uploadError } = await supabase.storage
+                                .from("post-images")
+                                .upload(`${user.id}/${Date.now()}.${fileExt}`, selectedImage);
+
+                              if (uploadError) {
+                                console.error(uploadError);
+                                setIsCreatingPost(false);
+                                return;
+                              }
+
+                              const { data } = supabase.storage
+                                .from("post-images")
+                                .getPublicUrl(imageData.path);
+                              publicUrl = data.publicUrl;
+                            }
+
+                            const { error } = await supabase.from("posts").insert({
+                              content: newPost,
+                              author_id: user.id,
+                              community_id: selectedCommunityId,
+                              attachment_url: publicUrl,
+                            });
+
+                            if (!error) {
+                              setNewPost("");
+                              setSelectedImage(null);
+                              setImagePreview(null);
+                              setSelectedCommunityId("");
+                              setIsNewPostDialogOpen(false);
+                              getRecentPosts();
+                            }
+                            setIsCreatingPost(false);
+                          }}
+                          disabled={isCreatingPost || !newPost.trim() || !selectedCommunityId}
+                        >
+                          {isCreatingPost ? "Posting..." : "Create Post"}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
                 {recentPosts.map((post: any) => (
                   <Card
                     key={post.id}
